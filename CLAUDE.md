@@ -20,6 +20,12 @@ There is no application code here — Claude is the "runtime." The repo is a str
 - When training data from Strava is needed, use the `stravalib` Python package (auth via Strava OAuth tokens — ask the user where credentials live before assuming).
 - Prefer pulling raw activity data into a short scratch session, then summarising into an analysis file under `analyses/`. Don't commit raw activity dumps.
 
+### Training profile and project-scoped config
+- Project-scoped training settings live in `config/` at the repo root and are checked in. The change history of those files is itself part of the coaching record — when zones shift between blocks or max HR is recalibrated, that's a training event worth a commit message.
+- Currently this is just `config/training.json` (max HR, resting HR, HR zone bands), used by the `characterize-activity` skill. Future training-data settings (pace zones, lifetime PRs, threshold history) belong here too — not in `~/.config/rungpt/`.
+- OAuth credentials remain user-scoped at `~/.config/rungpt/strava.json`. They are not project state and must not be committed.
+- When an analysis cites HR zones (e.g. "threshold session at 158–163"), it is implicitly written against whatever `config/training.json` said at the time. Old analyses are not retroactively wrong when zones change — they were correct in their moment.
+
 ## Working in this repo
 
 - This is a notebook, not a codebase. There are no build, lint, or test commands.

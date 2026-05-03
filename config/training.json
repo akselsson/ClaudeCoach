@@ -1,0 +1,11 @@
+{
+  "max_hr": 184,
+  "resting_hr": 48,
+  "hr_zones": [
+    {"name": "easy",      "min": 0,   "max": 140},
+    {"name": "steady",    "min": 140, "max": 150},
+    {"name": "tempo",     "min": 150, "max": 155},
+    {"name": "threshold", "min": 155, "max": 165},
+    {"name": "vo2",       "min": 165, "max": 999}
+  ]
+}
