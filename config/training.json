@@ -4,9 +4,9 @@
   "hr_zones": [
     {"name": "easy",          "min": 0,   "max": 140},
     {"name": "steady",        "min": 140, "max": 150},
-    {"name": "sub-threshold", "min": 150, "max": 155},
-    {"name": "threshold",     "min": 155, "max": 165},
-    {"name": "vo2",           "min": 165, "max": 999}
+    {"name": "sub-threshold", "min": 150, "max": 160},
+    {"name": "threshold",     "min": 160, "max": 170},
+    {"name": "vo2",           "min": 170, "max": 999}
   ],
   "pace_anchors": [
     {
