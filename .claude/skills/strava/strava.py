@@ -119,19 +119,36 @@ def to_seconds(value) -> int:
         return int(float(value))
 
 
+def _type_value(t) -> str:
+    """Stravalib v2 wraps activity/sport types as Pydantic RootModels whose str()
+    looks like "root='Run'". Unwrap to the bare value so callers see "Run"."""
+    if t is None:
+        return ""
+    root = getattr(t, "root", None)
+    if root is not None:
+        return str(root)
+    s = str(t)
+    match = re.match(r"root='([^']*)'", s)
+    return match.group(1) if match else s
+
+
 def matches_type(activity, type_filter: str | None) -> bool:
     if not type_filter:
         return True
-    return type_filter in (str(activity.type or ""), str(getattr(activity, "sport_type", "") or ""))
+    return type_filter in (
+        _type_value(activity.type),
+        _type_value(getattr(activity, "sport_type", None)),
+    )
 
 
 def summary_dict(activity) -> dict:
     return {
         "id": activity.id,
         "start_date_local": activity.start_date_local.isoformat() if activity.start_date_local else None,
-        "type": str(activity.type) if activity.type else None,
-        "sport_type": str(getattr(activity, "sport_type", "") or "") or None,
+        "type": _type_value(activity.type) or None,
+        "sport_type": _type_value(getattr(activity, "sport_type", None)) or None,
         "name": activity.name,
+        "description": getattr(activity, "description", None),
         "distance_km": round(to_meters(activity.distance) / 1000, 3),
         "moving_time_s": to_seconds(activity.moving_time),
         "elapsed_time_s": to_seconds(activity.elapsed_time),
@@ -184,7 +201,17 @@ def cmd_whoami(args: argparse.Namespace) -> None:
 def cmd_recent(args: argparse.Namespace) -> None:
     client = authed_client(Path(args.config).expanduser())
     after = parse_relative(args.since)
-    out = [summary_dict(act) for act in client.get_activities(after=after) if matches_type(act, args.type)]
+    out = []
+    for act in client.get_activities(after=after):
+        if not matches_type(act, args.type):
+            continue
+        row = summary_dict(act)
+        # Strava's list endpoint omits description; fetch detail when asked.
+        # Workout structure ("4 x 1 km", "tröskel", etc.) lives in the description,
+        # so reviewers analysing past training usually want this on.
+        if args.with_description:
+            row["description"] = client.get_activity(act.id).description
+        out.append(row)
     json.dump(out, sys.stdout, indent=2, default=str)
     sys.stdout.write("\n")
 
@@ -288,6 +315,9 @@ def main() -> None:
     p = sub.add_parser("recent", help="List activities in a relative time window")
     p.add_argument("--since", default="14d", help="Time window: 7d, 4w, 12h (default: 14d)")
     p.add_argument("--type", default=None, help="Filter by activity type (e.g. Run, Ride, TrailRun)")
+    p.add_argument("--with-description", action="store_true",
+                   help="Fetch each activity's description (extra API call per activity, "
+                        "but reveals workout structure like '4 x 1 km' or 'tröskel')")
     p.set_defaults(func=cmd_recent)
 
     p = sub.add_parser("activity", help="Fetch one activity's full detail (incl. splits and laps)")
