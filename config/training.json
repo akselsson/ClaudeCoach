@@ -2,10 +2,36 @@
   "max_hr": 184,
   "resting_hr": 48,
   "hr_zones": [
-    {"name": "easy",      "min": 0,   "max": 140},
-    {"name": "steady",    "min": 140, "max": 150},
-    {"name": "tempo",     "min": 150, "max": 155},
-    {"name": "threshold", "min": 155, "max": 165},
-    {"name": "vo2",       "min": 165, "max": 999}
+    {"name": "easy",          "min": 0,   "max": 140},
+    {"name": "steady",        "min": 140, "max": 150},
+    {"name": "sub-threshold", "min": 150, "max": 155},
+    {"name": "threshold",     "min": 155, "max": 165},
+    {"name": "vo2",           "min": 165, "max": 999}
+  ],
+  "pace_anchors": [
+    {
+      "date": "2025-10",
+      "type": "5k_race",
+      "value": "19:50",
+      "pace_per_km": "3:58",
+      "current": false,
+      "note": "Pre-100k peak. Historical ceiling — informs the vo2 pace zone as 'where 5K race effort would land at full fitness', but not a current target. Re-test before treating it as today's fitness."
+    },
+    {
+      "date": "2026-05-03",
+      "type": "marathon_pace_estimate",
+      "value": "4:40/km",
+      "current": true,
+      "note": "User-stated 2026-05-03, post-Tuscany 100k recovery. Consistent with May 2 threshold reps at ~4:25/km, HR 167-169 (activity 18341982884). Anchor for current marathon and threshold pace zones."
+    }
+  ],
+  "pace_zones": [
+    {"name": "recovery",      "min_per_km": "5:30", "max_per_km": null},
+    {"name": "easy",          "min_per_km": "4:55", "max_per_km": "5:25"},
+    {"name": "steady",        "min_per_km": "4:45", "max_per_km": "4:55"},
+    {"name": "marathon",      "min_per_km": "4:35", "max_per_km": "4:45"},
+    {"name": "threshold",     "min_per_km": "4:20", "max_per_km": "4:30"},
+    {"name": "interval",      "min_per_km": "4:05", "max_per_km": "4:15"},
+    {"name": "vo2",           "min_per_km": "3:55", "max_per_km": "4:05"}
   ]
 }
