@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Characterize a single Strava activity for the rungpt notebook.
+"""Characterize a single Strava activity for the ClaudeCoach notebook.
 
 Reads the user's training profile from <project_root>/config/training.json,
 fetches the activity detail and stream data via the existing strava CLI

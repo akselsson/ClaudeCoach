@@ -1,11 +1,11 @@
 ---
 name: weekly-training-review
-description: Run a 14-day training review for the rungpt running coach. Compares the most recent 14-day plan in `analyses/` against actual Strava activity, surfaces discrepancies, asks the user about them before writing anything, then produces a new dated analysis file containing the review and a fresh detailed 14-day plan. Use this whenever the user asks for a "weekly review", "training review", "check in on training", "how's the build going", "plan the next two weeks", or any variant of "look at what I did and tell me what's next" — even if the word "review" isn't used, if the request is about taking stock of recent training and deciding what comes next, this is the skill.
+description: Run a 14-day training review for the ClaudeCoach running coach. Compares the most recent 14-day plan in `analyses/` against actual Strava activity, surfaces discrepancies, asks the user about them before writing anything, then produces a new dated analysis file containing the review and a fresh detailed 14-day plan. Use this whenever the user asks for a "weekly review", "training review", "check in on training", "how's the build going", "plan the next two weeks", or any variant of "look at what I did and tell me what's next" — even if the word "review" isn't used, if the request is about taking stock of recent training and deciding what comes next, this is the skill.
 ---
 
 # Weekly training review
 
-This skill drives the recurring training-review loop for the rungpt notebook. The goal is **continuity**: each new plan starts from honest reflection on whether the previous plan was actually executed, and any deviations are understood (not just papered over) before the next 14 days are committed to.
+This skill drives the recurring training-review loop for the ClaudeCoach notebook. The goal is **continuity**: each new plan starts from honest reflection on whether the previous plan was actually executed, and any deviations are understood (not just papered over) before the next 14 days are committed to.
 
 It assumes the conventions in the project's `CLAUDE.md` — analyses live as dated markdown files in `analyses/`, the Strava skill at `.claude/skills/strava/strava.py` is the canonical way to read training data, and the season plan / current training block are already documented there.
 

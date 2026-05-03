@@ -1,11 +1,11 @@
 ---
 name: setup-training-plan
-description: Set up a new training plan from scratch for the rungpt running coach. Use when the user wants to "make a plan", "set up training", "build a season plan", "plan for race X", "start a new block", "I have a new race coming up", "I want to train for Y" — anything where there isn't yet a plan in `analyses/` for the goal in question, or the existing plan is being thrown out and rewritten. This skill pulls long-term Strava data to ground the plan in the user's actual fitness history, then conducts a structured interview about goals, schedule constraints, training-style preferences, and life context before writing a dated plan file. It is **not** for routine 14-day check-ins against an existing plan — that's `weekly-training-review`.
+description: Set up a new training plan from scratch for the ClaudeCoach running coach. Use when the user wants to "make a plan", "set up training", "build a season plan", "plan for race X", "start a new block", "I have a new race coming up", "I want to train for Y" — anything where there isn't yet a plan in `analyses/` for the goal in question, or the existing plan is being thrown out and rewritten. This skill pulls long-term Strava data to ground the plan in the user's actual fitness history, then conducts a structured interview about goals, schedule constraints, training-style preferences, and life context before writing a dated plan file. It is **not** for routine 14-day check-ins against an existing plan — that's `weekly-training-review`.
 ---
 
 # Set up a training plan
 
-This skill creates a new training plan for the rungpt notebook. The output is a dated markdown file in `analyses/` (a season plan, a race-specific plan, or a multi-week training block — whichever fits the horizon). The job is to produce a plan that's **specific, grounded in the user's real fitness, and aligned with how the user actually lives** — not a generic template.
+This skill creates a new training plan for the ClaudeCoach notebook. The output is a dated markdown file in `analyses/` (a season plan, a race-specific plan, or a multi-week training block — whichever fits the horizon). The job is to produce a plan that's **specific, grounded in the user's real fitness, and aligned with how the user actually lives** — not a generic template.
 
 ## Why this skill exists
 

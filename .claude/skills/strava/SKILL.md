@@ -5,7 +5,7 @@ description: Read the user's Strava training data via the bundled stravalib-back
 
 # Strava read CLI
 
-This skill exposes a small, read-only CLI over the user's Strava data. It exists because rungpt analyses (in `analyses/`) need to be grounded in real training data, not memory or guesses.
+This skill exposes a small, read-only CLI over the user's Strava data. It exists because ClaudeCoach analyses (in `analyses/`) need to be grounded in real training data, not memory or guesses.
 
 The script lives at `.claude/skills/strava/strava.py` and is self-installing via `uv` (PEP-723 inline metadata pulls `stravalib`). Run it directly — no `uv run` prefix needed.
 
@@ -18,7 +18,7 @@ Use this skill whenever an analysis or recommendation requires looking at what t
 - "Look at my long run from Sunday" → `recent` to find the id, then `activity <id>` (and `streams <id>` if HR/pace breakdown is needed)
 - Before writing a weekly review or race plan in `analyses/`, pull recent data first.
 
-## Prerequisites: credentials at `~/.config/rungpt/strava.json`
+## Prerequisites: credentials at `~/.config/claudecoach/strava.json`
 
 The skill reads/writes one config file. Format:
 
@@ -38,7 +38,7 @@ Only `client_id` and `client_secret` are required to start; the others are popul
 
 The user has registered a Strava API app but has not yet exchanged a code for a refresh token. To do so:
 
-1. Confirm `~/.config/rungpt/strava.json` exists with at least `client_id` and `client_secret`.
+1. Confirm `~/.config/claudecoach/strava.json` exists with at least `client_id` and `client_secret`.
 2. Have the user open this URL in a browser (substitute the real client_id):
    ```
    https://www.strava.com/oauth/authorize?client_id=<CLIENT_ID>&redirect_uri=http://localhost&response_type=code&scope=activity:read_all

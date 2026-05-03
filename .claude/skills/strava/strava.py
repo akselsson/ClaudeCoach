@@ -3,9 +3,9 @@
 # requires-python = ">=3.11"
 # dependencies = ["stravalib>=1.7"]
 # ///
-"""Strava read CLI for the rungpt coaching notebook.
+"""Strava read CLI for the ClaudeCoach coaching notebook.
 
-Reads ~/.config/rungpt/strava.json for credentials, auto-refreshes the
+Reads ~/.config/claudecoach/strava.json for credentials, auto-refreshes the
 access token when stale (writing the new one back to disk), and exposes
 a small set of read operations as JSON-on-stdout subcommands.
 """
@@ -23,10 +23,10 @@ from pathlib import Path
 
 from stravalib.client import Client
 
-DEFAULT_CONFIG = Path.home() / ".config" / "rungpt" / "strava.json"
+DEFAULT_CONFIG = Path.home() / ".config" / "claudecoach" / "strava.json"
 TOKEN_REFRESH_BUFFER_SECONDS = 300
 
-# Cache lives under the rungpt project root so all notebook state stays in one
+# Cache lives under the ClaudeCoach project root so all notebook state stays in one
 # place. The script lives at <project_root>/.claude/skills/strava/strava.py, so
 # parents[3] resolves to the project root regardless of CWD.
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -452,7 +452,7 @@ def cmd_weekly_volume(args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="strava",
-        description="rungpt Strava read CLI (uses stravalib + ~/.config/rungpt/strava.json)",
+        description="ClaudeCoach Strava read CLI (uses stravalib + ~/.config/claudecoach/strava.json)",
     )
     parser.add_argument("--config", default=str(DEFAULT_CONFIG),
                         help=f"Path to credentials JSON (default: {DEFAULT_CONFIG})")
