@@ -91,6 +91,21 @@ Strava's average heart rate over a 60-90 minute run often hides 4×1km or 2×3km
 
 When in doubt, fetch `activity <id>` and look at the per-km HR in `splits_metric`. A clear sawtooth (high → low → high → low) is interval structure; a smooth ramp from warmup to higher steady HR is a threshold or progression.
 
+### Cache
+
+Detail and stream responses are cached on disk so repeated reviews don't burn rate-limit budget on activities that haven't changed. Strava enforces 100 requests / 15 min and 1000 / day, and a single multi-week review with `--with-description` plus a few `activity` and `streams` drill-downs eats a real fraction of that — almost all on data that, once an activity is uploaded, is effectively immutable (splits/laps/streams are FIT-derived; descriptions usually settle within a day).
+
+- **Location:** `<project_root>/.cache/strava/`. One file per cached entry: `activities/<id>.json` for details, `streams/<id>.<resolution>.json` for streams. The `.cache/` directory is gitignored.
+- **What's cached:** activity details (`activity <id>`, and the description fetch behind `recent --with-description`) and stream responses (`streams <id>`).
+- **What's not cached:** the list endpoint (`recent`, `weekly-volume`) — these are time-windowed and inherently volatile, the savings would be marginal and the invalidation tricky.
+- **Invalidation:**
+  - **Recency window.** Activities younger than ~2 days bypass the cache for both reads and writes — the user may still be editing the title or description, and Strava exposes no last-modified timestamp to detect that.
+  - **Free name-mismatch invalidation.** When `recent --with-description` runs, the list endpoint returns the current `name`. If it disagrees with the cached entry's name, that entry is treated as stale and refetched. (Description-only edits to old activities are a known gap — they slip past this signal. They're rare in practice.)
+  - **`--refresh` flag.** Available on `recent`, `activity`, and `streams`. Forces refetch and overwrite, regardless of cache state. Use this if the user reports an edit you can't see, or just wants fresh data.
+- **Streams:** cached per `(id, resolution)`. Asking for additional stream types fetches only the missing ones from Strava and merges them into the existing cache file, so subsequent subset requests are full hits.
+- **Custom location:** override with `--cache <path>` at the top level (analogous to `--config`).
+- **Wiping:** `rm -rf .cache/strava` is safe — every entry is reproducible from the API.
+
 Pipe through `jq` for ad-hoc reshaping:
 
 ```bash
