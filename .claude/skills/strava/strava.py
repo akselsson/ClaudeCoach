@@ -5,9 +5,10 @@
 # ///
 """Strava read CLI for the ClaudeCoach coaching notebook.
 
-Reads ~/.config/claudecoach/strava.json for credentials, auto-refreshes the
-access token when stale (writing the new one back to disk), and exposes
-a small set of read operations as JSON-on-stdout subcommands.
+Reads STRAVA_CLIENT_ID / STRAVA_CLIENT_SECRET from the environment (auto-loading
+<project_root>/.env if present), keeps the rotating OAuth tokens in
+<project_root>/.cache/strava/token.json, auto-refreshes the access token when
+stale, and exposes a small set of read operations as JSON-on-stdout subcommands.
 """
 from __future__ import annotations
 
@@ -23,7 +24,6 @@ from pathlib import Path
 
 from stravalib.client import Client
 
-DEFAULT_CONFIG = Path.home() / ".config" / "claudecoach" / "strava.json"
 TOKEN_REFRESH_BUFFER_SECONDS = 300
 
 # Cache lives under the ClaudeCoach project root so all notebook state stays in one
@@ -31,6 +31,11 @@ TOKEN_REFRESH_BUFFER_SECONDS = 300
 # parents[3] resolves to the project root regardless of CWD.
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CACHE = PROJECT_ROOT / ".cache" / "strava"
+DEFAULT_ENV_FILE = PROJECT_ROOT / ".env"
+# Rotating OAuth state. Lives in the (gitignored) cache dir because it is
+# regenerable from STRAVA_CLIENT_ID/SECRET + a fresh auth-code; nothing of
+# value is lost if it is wiped.
+DEFAULT_TOKEN_CACHE = PROJECT_ROOT / ".cache" / "strava" / "token.json"
 
 # Activities younger than this still get title/description edits in practice,
 # so we bypass the cache for them. Strava exposes no last-modified field,
@@ -39,18 +44,47 @@ DEFAULT_CACHE = PROJECT_ROOT / ".cache" / "strava"
 RECENT_WINDOW_DAYS = 2
 
 
-def load_config(path: Path) -> dict:
+def _parse_env_file(path: Path) -> dict[str, str]:
+    """Tiny KEY=VALUE parser. Skips blanks/comments, strips matching surrounding
+    quotes. Deliberately does not handle shell expansion or multiline values —
+    the file is meant to hold a handful of opaque secrets, nothing more."""
+    out: dict[str, str] = {}
     if not path.exists():
-        sys.exit(
-            f"error: config file not found at {path}\n"
-            'create it with at least: {"client_id": "...", "client_secret": "..."}'
-        )
-    return json.loads(path.read_text())
+        return out
+    for raw in path.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        out[key] = value
+    return out
 
 
-def save_config(path: Path, config: dict) -> None:
+def load_env_file(path: Path) -> None:
+    """Populate os.environ from a .env file without overriding existing vars,
+    so a one-shot `STRAVA_CLIENT_ID=… script …` invocation always wins."""
+    for k, v in _parse_env_file(path).items():
+        os.environ.setdefault(k, v)
+
+
+def _load_token_cache(path: Path) -> dict:
+    """Return cached OAuth tokens, or {} on missing/corrupt file. A corrupt
+    cache should behave like a miss (forcing a refresh), not crash the run."""
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _save_token_cache(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(config, indent=2) + "\n")
+    path.write_text(json.dumps(data, indent=2) + "\n")
     os.chmod(path, 0o600)
 
 
@@ -69,37 +103,47 @@ def _token_fields(token_response):
     )
 
 
-def authed_client(config_path: Path) -> Client:
+def authed_client(env_file: Path, token_cache: Path) -> Client:
     """Return a Client with a fresh access token. Refreshes and persists when stale."""
-    config = load_config(config_path)
-    for required in ("client_id", "client_secret", "refresh_token"):
-        if required not in config:
-            sys.exit(
-                f"error: '{required}' missing from {config_path}\n"
-                "if you have client_id/client_secret but no refresh_token, "
-                "run `auth-code <code>` first (see SKILL.md)."
-            )
+    load_env_file(env_file)
+    client_id = os.environ.get("STRAVA_CLIENT_ID")
+    client_secret = os.environ.get("STRAVA_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        sys.exit(
+            f"error: STRAVA_CLIENT_ID / STRAVA_CLIENT_SECRET not set.\n"
+            f"put them in {env_file} (see .env.example) or export them in the shell."
+        )
 
-    expires_at = config.get("expires_at", 0)
+    cache = _load_token_cache(token_cache)
+    # The token cache is the source of truth for refresh_token (it rotates on
+    # refresh). STRAVA_REFRESH_TOKEN in env is only the bootstrap path — used
+    # the very first time, before the cache has been written.
+    refresh_token = cache.get("refresh_token") or os.environ.get("STRAVA_REFRESH_TOKEN")
+    if not refresh_token:
+        sys.exit(
+            f"error: no refresh_token available.\n"
+            f"either set STRAVA_REFRESH_TOKEN in {env_file}, "
+            "or run `auth-code <code>` to bootstrap (see SKILL.md)."
+        )
+
+    expires_at = cache.get("expires_at", 0)
     now = int(time.time())
     needs_refresh = (
-        not config.get("access_token")
+        not cache.get("access_token")
         or expires_at - now < TOKEN_REFRESH_BUFFER_SECONDS
     )
 
     if needs_refresh:
         token = Client().refresh_access_token(
-            client_id=config["client_id"],
-            client_secret=config["client_secret"],
-            refresh_token=config["refresh_token"],
+            client_id=client_id,
+            client_secret=client_secret,
+            refresh_token=refresh_token,
         )
         access, refresh, exp = _token_fields(token)
-        config["access_token"] = access
-        config["refresh_token"] = refresh
-        config["expires_at"] = exp
-        save_config(config_path, config)
+        cache = {"access_token": access, "refresh_token": refresh, "expires_at": exp}
+        _save_token_cache(token_cache, cache)
 
-    return Client(access_token=config["access_token"])
+    return Client(access_token=cache["access_token"])
 
 
 def parse_relative(spec: str) -> datetime:
@@ -324,32 +368,37 @@ def cached_activity_streams(
 
 
 def cmd_auth_code(args: argparse.Namespace) -> None:
-    config_path = Path(args.config).expanduser()
-    config = load_config(config_path)
-    for required in ("client_id", "client_secret"):
-        if required not in config:
-            sys.exit(f"error: '{required}' missing from {config_path}")
+    env_file = Path(args.env_file).expanduser()
+    token_cache = Path(args.token_cache).expanduser()
+    load_env_file(env_file)
+    client_id = os.environ.get("STRAVA_CLIENT_ID")
+    client_secret = os.environ.get("STRAVA_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        sys.exit(
+            f"error: STRAVA_CLIENT_ID / STRAVA_CLIENT_SECRET not set in {env_file} or env"
+        )
 
     client = Client()
     token = client.exchange_code_for_token(
-        client_id=config["client_id"],
-        client_secret=config["client_secret"],
+        client_id=client_id,
+        client_secret=client_secret,
         code=args.code,
     )
     access, refresh, exp = _token_fields(token)
-    config["access_token"] = access
-    config["refresh_token"] = refresh
-    config["expires_at"] = exp
-    save_config(config_path, config)
+    _save_token_cache(token_cache, {
+        "access_token": access,
+        "refresh_token": refresh,
+        "expires_at": exp,
+    })
 
     client.access_token = access
     athlete = client.get_athlete()
     print(f"authenticated as {athlete.firstname} {athlete.lastname} (id={athlete.id})", file=sys.stderr)
-    print(f"refresh_token saved to {config_path}", file=sys.stderr)
+    print(f"tokens saved to {token_cache}", file=sys.stderr)
 
 
 def cmd_whoami(args: argparse.Namespace) -> None:
-    client = authed_client(Path(args.config).expanduser())
+    client = authed_client(Path(args.env_file).expanduser(), Path(args.token_cache).expanduser())
     athlete = client.get_athlete()
     json.dump({
         "id": athlete.id,
@@ -363,7 +412,7 @@ def cmd_whoami(args: argparse.Namespace) -> None:
 
 
 def cmd_recent(args: argparse.Namespace) -> None:
-    client = authed_client(Path(args.config).expanduser())
+    client = authed_client(Path(args.env_file).expanduser(), Path(args.token_cache).expanduser())
     cache_dir = Path(args.cache).expanduser()
     after = parse_relative(args.since)
     out = []
@@ -390,7 +439,7 @@ def cmd_recent(args: argparse.Namespace) -> None:
 
 
 def cmd_activity(args: argparse.Namespace) -> None:
-    client = authed_client(Path(args.config).expanduser())
+    client = authed_client(Path(args.env_file).expanduser(), Path(args.token_cache).expanduser())
     cache_dir = Path(args.cache).expanduser()
     detail = cached_activity_detail(
         client,
@@ -403,7 +452,7 @@ def cmd_activity(args: argparse.Namespace) -> None:
 
 
 def cmd_streams(args: argparse.Namespace) -> None:
-    client = authed_client(Path(args.config).expanduser())
+    client = authed_client(Path(args.env_file).expanduser(), Path(args.token_cache).expanduser())
     cache_dir = Path(args.cache).expanduser()
     types = [t.strip() for t in args.types.split(",") if t.strip()]
     out = cached_activity_streams(
@@ -419,7 +468,7 @@ def cmd_streams(args: argparse.Namespace) -> None:
 
 
 def cmd_weekly_volume(args: argparse.Namespace) -> None:
-    client = authed_client(Path(args.config).expanduser())
+    client = authed_client(Path(args.env_file).expanduser(), Path(args.token_cache).expanduser())
     after = datetime.now(timezone.utc) - timedelta(weeks=args.weeks)
     buckets: dict[str, dict] = defaultdict(
         lambda: {"n_activities": 0, "distance_m": 0.0, "moving_time_s": 0, "elev_gain_m": 0.0}
@@ -452,10 +501,13 @@ def cmd_weekly_volume(args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="strava",
-        description="ClaudeCoach Strava read CLI (uses stravalib + ~/.config/claudecoach/strava.json)",
+        description="ClaudeCoach Strava read CLI (stravalib + STRAVA_* env vars / .env)",
     )
-    parser.add_argument("--config", default=str(DEFAULT_CONFIG),
-                        help=f"Path to credentials JSON (default: {DEFAULT_CONFIG})")
+    parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE),
+                        help=f"Path to .env with STRAVA_CLIENT_ID/SECRET "
+                             f"(default: {DEFAULT_ENV_FILE})")
+    parser.add_argument("--token-cache", default=str(DEFAULT_TOKEN_CACHE),
+                        help=f"Path to OAuth token cache (default: {DEFAULT_TOKEN_CACHE})")
     parser.add_argument("--cache", default=str(DEFAULT_CACHE),
                         help=f"Cache directory for activity details and streams "
                              f"(default: {DEFAULT_CACHE})")

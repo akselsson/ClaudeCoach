@@ -22,8 +22,8 @@ There is no application code here — Claude is the "runtime." The repo is a str
 
 ### Training profile and project-scoped config
 - Project-scoped training settings live in `config/` at the repo root and are checked in. The change history of those files is itself part of the coaching record — when zones shift between blocks or max HR is recalibrated, that's a training event worth a commit message.
-- Currently this is just `config/training.json` (max HR, resting HR, HR zone bands), used by the `characterize-activity` skill. Future training-data settings (pace zones, lifetime PRs, threshold history) belong here too — not in `~/.config/claudecoach/`.
-- OAuth credentials remain user-scoped at `~/.config/claudecoach/strava.json`. They are not project state and must not be committed.
+- Currently this is just `config/training.json` (max HR, resting HR, HR zone bands), used by the `characterize-activity` skill. Future training-data settings (pace zones, lifetime PRs, threshold history) belong here too.
+- Strava API credentials live in `<project_root>/.env` as `STRAVA_CLIENT_ID` / `STRAVA_CLIENT_SECRET` (and an optional bootstrap `STRAVA_REFRESH_TOKEN`). `.env` is gitignored — see `.env.example` for the template. The rotating OAuth tokens (access/refresh/expires) are cached at `.cache/strava/token.json`, also gitignored and treated as regenerable state.
 - When an analysis cites HR zones (e.g. "threshold session at 158–163"), it is implicitly written against whatever `config/training.json` said at the time. Old analyses are not retroactively wrong when zones change — they were correct in their moment.
 
 ## Working in this repo

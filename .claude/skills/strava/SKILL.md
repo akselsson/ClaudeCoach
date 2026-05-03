@@ -18,34 +18,33 @@ Use this skill whenever an analysis or recommendation requires looking at what t
 - "Look at my long run from Sunday" → `recent` to find the id, then `activity <id>` (and `streams <id>` if HR/pace breakdown is needed)
 - Before writing a weekly review or race plan in `analyses/`, pull recent data first.
 
-## Prerequisites: credentials at `~/.config/claudecoach/strava.json`
+## Prerequisites: credentials in `.env` + token cache in `.cache/strava/`
 
-The skill reads/writes one config file. Format:
+Two files split by purpose:
 
-```json
-{
-  "client_id": "12345",
-  "client_secret": "...",
-  "refresh_token": "...",
-  "access_token": "...",
-  "expires_at": 1700000000
-}
-```
+- **`<project_root>/.env`** (gitignored) — the static API app credentials. See `.env.example` for the template.
+  ```
+  STRAVA_CLIENT_ID=12345
+  STRAVA_CLIENT_SECRET=...
+  STRAVA_REFRESH_TOKEN=...   # bootstrap-only; optional
+  ```
+  Anything in the real environment overrides `.env`, so `STRAVA_CLIENT_ID=… script …` works for one-offs.
+- **`<project_root>/.cache/strava/token.json`** (gitignored, mode 600) — the rotating OAuth state. Written by `auth-code`, refreshed automatically when the access token nears expiry. Treat as regenerable: deleting it just means the next call refreshes from `STRAVA_REFRESH_TOKEN` (or you re-run `auth-code`).
 
-Only `client_id` and `client_secret` are required to start; the others are populated by `auth-code` (first time) and refreshed automatically thereafter. Required scope: `activity:read_all`.
+Required scope: `activity:read_all`.
 
-### One-time bootstrap (if `refresh_token` is missing)
+### One-time bootstrap (if there is no token cache yet)
 
-The user has registered a Strava API app but has not yet exchanged a code for a refresh token. To do so:
+The user has registered a Strava API app but has not yet exchanged a code. To do so:
 
-1. Confirm `~/.config/claudecoach/strava.json` exists with at least `client_id` and `client_secret`.
+1. Confirm `<project_root>/.env` has `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET` set.
 2. Have the user open this URL in a browser (substitute the real client_id):
    ```
    https://www.strava.com/oauth/authorize?client_id=<CLIENT_ID>&redirect_uri=http://localhost&response_type=code&scope=activity:read_all
    ```
 3. After authorizing, Strava redirects to `http://localhost/?state=&code=<CODE>&scope=read,activity:read_all`. The browser will show a connection-refused error — that's fine. The `code` value is in the address bar.
 4. Run `.claude/skills/strava/strava.py auth-code <CODE>` (codes are single-use and expire in ~10 min).
-5. The skill prints "authenticated as <name>" to stderr and persists the refresh_token. Done forever.
+5. The skill prints "authenticated as <name>" to stderr and writes `.cache/strava/token.json`. Done forever.
 
 ## Subcommands
 
