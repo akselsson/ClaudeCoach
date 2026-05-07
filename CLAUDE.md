@@ -20,6 +20,7 @@ There is no application code here — Claude is the "runtime." The repo is a str
 - When training data from Strava is needed, use the `stravalib` Python package (auth via Strava OAuth tokens — ask the user where credentials live before assuming).
 - Prefer pulling raw activity data into a short scratch session, then summarising into an analysis file under `analyses/`. Don't commit raw activity dumps.
 - After downloading an activity, always run the `characterize-activity` skill on it before classifying or writing it up. Averages alone routinely mislabel sessions (an "easy" run with a long surge, a tempo masked as steady, etc.) — the skill's zone breakdown and load metrics are what catch this.
+- Always run `characterize-activity` in a **separate sub-agent** (Agent tool) and have it report back a short characterization — effort tag, primary focus, key zone percentages, load relative to other recent sessions, and any structural notes. Don't run the CLI in the main thread; the JSON dump and per-session number-crunching belong off the main context. The sub-agent's summary is what the analysis is written from.
 
 ### Training profile and project-scoped config
 - Project-scoped training settings live in `config/` at the repo root and are checked in. The change history of those files is itself part of the coaching record — when zones shift between blocks or max HR is recalibrated, that's a training event worth a commit message.

@@ -58,13 +58,15 @@ A run's average HR over 60–90 minutes can hide what was actually a hard workou
 
 For any run that trips one of these flags, fetch `activity <id>` and look at `splits_metric` (per-km HR). A clear sawtooth (high → low → high → low) is interval structure; a smooth ramp from warm-up to a sustained higher band is threshold or progression. Either way, treat it as a quality session and record what was actually done.
 
-#### When to spawn a sub-agent
+#### Sub-agent for per-session characterization
 
-If the window contains **3 or more** structured-looking workouts, or you need to compute things like average pace per work interval across multiple sessions, delegate per-activity analysis to a sub-agent (the general-purpose Agent tool). Give it the activity id, the planned session from the prior plan, and ask it to return a one-line verdict: "rep paces, average HR per rep, did it match the plan, and any signal of fade or struggle." This keeps the main thread focused on the cross-session story.
+For any session that needs more than a glance at averages — anything tripping the hidden-quality flags above, or any run flagged in the description as structured — delegate to a sub-agent (the general-purpose Agent tool) running the `characterize-activity` skill. **Always use a sub-agent for this**, not a direct call in the main thread: the characterizer's JSON output and per-session number-crunching belong off the main context, and the sub-agent's job is to return a short summary (effort tag, primary focus, top zone percentages, load relative to other sessions in the window, structural notes, drift if relevant) plus a one-line verdict on whether it matched the planned session.
 
-For typical 14-day windows with 1–2 quality sessions, just call `activity <id>` directly — sub-agents are overkill.
+A reasonable sub-agent prompt: "Run `characterize-activity` on activity `<id>`. The plan said `<planned session>`. Report back a 4–8 line summary: effort rating, primary focus, top 2–3 HR-zone percentages, training load, structure (interval count if any), drift if notable, and a one-line verdict on whether this matched the plan." Spawn one sub-agent per session that needs drilldown — they're cheap and they keep the main thread focused on the cross-session story.
 
-Do **not** dump raw JSON into the analysis file. The analysis file is a narrative; the JSON is scratch.
+For obvious easy aerobic runs that don't trip any flags (modest HR, no structured description, no suspicious suffer score), skip characterization entirely — `recent` plus a glance at average HR is enough. Reserve sub-agents for sessions that actually need the drilldown.
+
+Do **not** dump raw JSON into the analysis file. The analysis file is a narrative; the JSON stays in the sub-agent's context.
 
 ### 3. Compare and ask — this is the important part
 

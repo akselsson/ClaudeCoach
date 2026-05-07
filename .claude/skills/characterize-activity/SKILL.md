@@ -61,6 +61,14 @@ When zones change between training blocks (post-race fitness shift, threshold dr
 
 ## Invocation
 
+**Always run this skill in a separate sub-agent (the Agent tool), not in the main thread.** The CLI emits a substantial JSON blob and the per-session number-crunching is exactly the kind of context the main thread should not absorb. Spawn a sub-agent, have it shell out to the CLI, read the JSON, and report back a short characterization — effort tag, primary focus, key zone percentages, load relative to other recent sessions in the window, structural notes (interval count if any), and drift if relevant. The sub-agent's summary is what the analysis is written from; the JSON itself stays in the sub-agent's context.
+
+A reasonable sub-agent prompt:
+
+> Run `.claude/skills/characterize-activity/characterize.py <activity-id>` and report back a 4–8 line characterization: effort rating, primary focus, top 2–3 HR-zone percentages, training load (TRIMP / Edwards / suffer), structure classification + interval guess if intervals, and drift if notable. Don't paste the JSON. If the activity description hints at structure (e.g. "4 x 1 km", "tröskel"), confirm whether the characterizer agrees.
+
+The CLI itself:
+
 ```bash
 .claude/skills/characterize-activity/characterize.py <activity-id>
 ```
@@ -70,10 +78,7 @@ Optional flags: `--resolution {low,medium,high}` (stream resolution, default `me
 The CLI shells out to `.claude/skills/strava/strava.py activity` and `… streams`, so the on-disk cache (`.cache/strava/`) and OAuth refresh just work — no extra setup. If `strava whoami` works, `characterize.py` works.
 
 ```bash
-# typical use
-.claude/skills/characterize-activity/characterize.py 12345678901
-
-# pipe through jq to surface just the headline
+# inside the sub-agent: pipe through jq to surface just the headline
 .claude/skills/characterize-activity/characterize.py 12345678901 \
   | jq '{effort: .effort.rating, focus: .primary_focus,
          load: .load, hr_zone_pct: [.hr_zones[] | {name, pct}]}'
