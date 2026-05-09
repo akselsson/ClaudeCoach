@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Berlin Build · 2026 Season Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0a0d0e;
+    --bg-dark-2: #11161a;
+    --grid: rgba(255,255,255,0.045);
+    --bg-light: #f5f0e6;
+    --paper: #efe8d9;
+    --ink-dark: #e8e6e0;
+    --ink-dark-dim: #9aa5a5;
+    --ink-dark-faint: #5d6868;
+    --ink-light: #1f1f1d;
+    --ink-light-dim: #7c756a;
+    --rule-light: #d8cfba;
+    --amber: #ffb547;
+    --amber-soft: rgba(255,181,71,0.18);
+    --oxblood: #7a2e2e;
+    --oxblood-dim: #9d5757;
+
+    --phase-history: #2c3539;
+    --phase-recovery: #4a7a7a;
+    --phase-reintro: #7aa570;
+    --phase-base-1: #8eb056;
+    --phase-base-2: #b4a850;
+    --phase-base-3: #c89a45;
+    --phase-italy: #5e564a;
+    --phase-specificity: #c47340;
+    --phase-taper: #b8c4cc;
+    --phase-race: #ffb547;
+    --phase-postrace: #4a6a7a;
+    --phase-sharpen: #7a9a8e;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Sora", system-ui, sans-serif;
+    color: var(--ink-light);
+    background: var(--bg-light);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ───────────────────────────────────── HEADER ───────────────────────────────────── */
+  .deck {
+    background: var(--bg-dark);
+    color: var(--ink-dark);
+    padding: 32px 48px 56px;
+    position: relative;
+    overflow: hidden;
+    background-image:
+      repeating-linear-gradient(to right, var(--grid) 0 1px, transparent 1px 80px),
+      radial-gradient(ellipse at top right, rgba(255,181,71,0.06), transparent 60%);
+  }
+  .deck::after {
+    /* faint grain */
+    content: "";
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    mix-blend-mode: screen;
+    opacity: 0.7;
+  }
+  .deck > * { position: relative; z-index: 1; }
+
+  .deck .topstrip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dark-dim);
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .deck .topstrip .signal { color: var(--amber); }
+  .deck .topstrip .signal::before {
+    content: "●";
+    margin-right: 8px;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .deck .title-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+    margin: 36px 0 20px;
+  }
+  .deck h1 {
+    font-family: "Archivo Black", sans-serif;
+    font-size: clamp(48px, 7vw, 96px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--ink-dark);
+    text-transform: uppercase;
+  }
+  .deck h1 em {
+    font-style: normal;
+    color: var(--amber);
+  }
+  .deck .subtitle {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-dark-dim);
+    line-height: 1.7;
+    max-width: 320px;
+    text-align: right;
+  }
+  .deck .subtitle strong { color: var(--ink-dark); font-weight: 500; }
+
+  .chips {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin: 28px 0 40px;
+  }
+  .chip {
+    background: var(--bg-dark);
+    padding: 14px 18px 16px;
+  }
+  .chip .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+  }
+  .chip .val {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 32px;
+    line-height: 1;
+    margin-top: 8px;
+    letter-spacing: -0.01em;
+  }
+  .chip .unit {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-dark-dim);
+    margin-left: 6px;
+    letter-spacing: 0.08em;
+  }
+  .chip.accent .val { color: var(--amber); }
+
+  .panel-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+    margin: 24px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .panel-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* SVG containers */
+  .svg-wrap { width: 100%; }
+  .svg-wrap svg { width: 100%; height: auto; display: block; }
+
+  /* HR zone strip */
+  .hr-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-top: 18px;
+  }
+  .hr-cell {
+    background: var(--bg-dark);
+    padding: 12px 14px 14px;
+    position: relative;
+  }
+  .hr-cell::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .hr-cell.easy::before { background: #5a8a8a; }
+  .hr-cell.steady::before { background: #8eb056; }
+  .hr-cell.subt::before { background: #c89a45; }
+  .hr-cell.thresh::before { background: #c47340; }
+  .hr-cell.vo2::before { background: #b8424c; }
+  .hr-cell .name {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dark-dim);
+  }
+  .hr-cell .bpm {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 18px;
+    margin-top: 6px;
+  }
+  .hr-cell .bpm small {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-dark-faint);
+    margin-left: 6px;
+    font-weight: 400;
+  }
+
+  /* ─────────────────────────── TRANSITION STRIP ─────────────────────────── */
+  .transition {
+    background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark) 50%, var(--bg-light) 50%, var(--bg-light) 100%);
+    padding: 0 48px;
+    position: relative;
+  }
+  .transition .rule {
+    border: none;
+    border-top: 1px solid var(--amber);
+    margin: 0;
+    position: relative;
+  }
+  .transition .caption {
+    position: relative;
+    transform: translateY(-50%);
+    background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark) 50%, var(--bg-light) 50%, var(--bg-light) 100%);
+    display: inline-block;
+    padding: 0 18px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-left: 40px;
+  }
+
+  /* ─────────────────────────── EDITORIAL JOURNAL ─────────────────────────── */
+  .journal {
+    padding: 80px 48px 48px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .journal .preamble {
+    max-width: 640px;
+    margin: 0 auto 80px;
+    text-align: center;
+  }
+  .journal .preamble h2 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 400;
+    font-size: clamp(36px, 4vw, 56px);
+    line-height: 1.05;
+    margin: 0 0 18px;
+    letter-spacing: -0.015em;
+  }
+  .journal .preamble h2 em {
+    font-style: italic;
+    color: var(--oxblood);
+  }
+  .journal .preamble p {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--ink-light-dim);
+    margin: 0;
+  }
+
+  .block-heading {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 24px;
+    margin: 64px 0 32px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .block-heading h3 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 500;
+    font-size: 32px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .block-heading h3 em { font-style: italic; color: var(--oxblood); }
+  .block-heading .meta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+  }
+
+  .week {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 56px;
+    padding: 36px 0;
+    border-bottom: 1px solid var(--rule-light);
+    position: relative;
+  }
+  .week:last-child { border-bottom: none; }
+  .week .rail {
+    position: relative;
+  }
+  .week .wknum {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--oxblood);
+    font-size: 88px;
+    line-height: 0.85;
+    letter-spacing: -0.02em;
+  }
+  .week .phase-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-top: 8px;
+    color: var(--ink-light-dim);
+  }
+  .week .dates {
+    font-family: "Sora", sans-serif;
+    font-size: 14px;
+    margin-top: 14px;
+    color: var(--ink-light);
+    font-weight: 500;
+  }
+  .week .vol {
+    margin-top: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-light-dim);
+  }
+  .week .vol strong {
+    color: var(--ink-light);
+    font-weight: 500;
+  }
+
+  .week .body {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .week .intent {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 36;
+    font-size: 18px;
+    line-height: 1.45;
+    color: var(--oxblood);
+    margin: 0 0 22px;
+    border-left: 2px solid var(--oxblood);
+    padding-left: 16px;
+  }
+  .week ul.days {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .week ul.days li {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 18px;
+    padding: 9px 0;
+    border-top: 1px dotted var(--rule-light);
+    align-items: baseline;
+  }
+  .week ul.days li:first-child { border-top: none; padding-top: 4px; }
+  .week ul.days .day {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+    padding-top: 2px;
+  }
+  .week ul.days .day.race {
+    color: var(--oxblood);
+    font-weight: 700;
+  }
+  .week ul.days .session {
+    font-size: 15.5px;
+    line-height: 1.5;
+  }
+  .week ul.days .session .tag {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--paper);
+    color: var(--ink-light-dim);
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: 1px;
+  }
+  .week ul.days .session .tag.race { background: var(--oxblood); color: #fff; }
+  .week ul.days .session .tag.long { background: #2c3e3e; color: #fff; }
+  .week ul.days .session .tag.qual { background: var(--amber); color: var(--ink-light); }
+  .week ul.days .session .tag.b2b { background: var(--phase-specificity); color: #fff; }
+  .week ul.days .session .tag.off { background: transparent; border: 1px solid var(--rule-light); }
+  .week ul.days .session strong { font-weight: 600; }
+
+  /* Block 2 narrative cards */
+  .narrative-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px 32px;
+    margin-top: 12px;
+  }
+  .narr-card {
+    border: 1px solid var(--rule-light);
+    padding: 26px 28px 28px;
+    background: rgba(255,255,255,0.4);
+    position: relative;
+  }
+  .narr-card.hatched {
+    background:
+      repeating-linear-gradient(135deg, transparent 0 8px, rgba(125,109,80,0.07) 8px 9px),
+      rgba(255,255,255,0.3);
+  }
+  .narr-card .nrange {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+  }
+  .narr-card h4 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 72;
+    font-weight: 500;
+    font-size: 24px;
+    margin: 6px 0 10px;
+    letter-spacing: -0.005em;
+  }
+  .narr-card h4 em { font-style: italic; color: var(--oxblood); }
+  .narr-card p {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-light);
+    margin: 0 0 10px;
+  }
+  .narr-card .keys {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-light-dim);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dotted var(--rule-light);
+  }
+  .narr-card .keys span { color: var(--ink-light); font-weight: 500; }
+
+  /* ─────────────────────────── BERLIN BANNER ─────────────────────────── */
+  .race-banner {
+    margin-top: 100px;
+    background: var(--bg-dark);
+    color: var(--ink-dark);
+    padding: 80px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .race-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 50%, rgba(255,181,71,0.20), transparent 55%),
+      radial-gradient(ellipse at 80% 80%, rgba(122,46,46,0.30), transparent 60%);
+  }
+  .race-banner .inner {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .race-banner .a-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .race-banner h2 {
+    font-family: "Archivo Black", sans-serif;
+    font-size: clamp(44px, 6vw, 84px);
+    line-height: 0.92;
+    text-transform: uppercase;
+    margin: 14px 0 14px;
+    color: var(--ink-dark);
+    letter-spacing: -0.01em;
+  }
+  .race-banner h2 em {
+    font-style: normal;
+    color: var(--amber);
+  }
+  .race-banner .race-date {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-dark-dim);
+    letter-spacing: 0.12em;
+  }
+  .race-banner .race-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .race-banner .race-stats .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+  }
+  .race-banner .race-stats .val {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 26px;
+    margin-top: 6px;
+    color: var(--ink-dark);
+  }
+  .race-banner .creed {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 1.3;
+    color: var(--ink-dark);
+    margin: 0;
+  }
+  .race-banner .creed strong {
+    color: var(--amber);
+    font-weight: 500;
+  }
+  .race-banner .creed::before {
+    content: "“";
+    color: var(--amber);
+    font-size: 1.5em;
+    line-height: 0;
+    vertical-align: -0.15em;
+    margin-right: 0.05em;
+  }
+  .race-banner .creed::after {
+    content: "”";
+    color: var(--amber);
+    font-size: 1.5em;
+    line-height: 0;
+    vertical-align: -0.15em;
+  }
+
+  /* ─────────────────────────── POST-BERLIN ─────────────────────────── */
+  .postscript {
+    background: var(--bg-light);
+    padding: 80px 48px 64px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .postscript .ps-head {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+    margin-bottom: 12px;
+  }
+  .postscript h3 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 500;
+    font-size: 38px;
+    line-height: 1.1;
+    margin: 0 0 18px;
+    max-width: 720px;
+    letter-spacing: -0.01em;
+  }
+  .postscript h3 em { font-style: italic; color: var(--oxblood); }
+  .postscript .ps-body {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 56px;
+    margin-top: 24px;
+  }
+  .postscript .ps-body p {
+    font-size: 16px;
+    line-height: 1.65;
+    margin: 0 0 14px;
+    max-width: 560px;
+  }
+  .ps-finish {
+    border-left: 3px solid var(--oxblood);
+    padding: 8px 0 8px 22px;
+  }
+  .ps-finish .label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+  .ps-finish h4 {
+    font-family: "Archivo Black", sans-serif;
+    text-transform: uppercase;
+    font-size: 28px;
+    margin: 6px 0 4px;
+    letter-spacing: -0.005em;
+  }
+  .ps-finish .when {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-light-dim);
+    letter-spacing: 0.1em;
+  }
+  .ps-finish p {
+    margin-top: 12px !important;
+    font-size: 14.5px !important;
+    color: var(--ink-light-dim);
+  }
+
+  /* ─────────────────────────── FOOTER ─────────────────────────── */
+  footer {
+    background: var(--bg-dark);
+    color: var(--ink-dark-dim);
+    padding: 40px 48px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    line-height: 1.7;
+  }
+  footer .foot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  footer .foot-grid h5 {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+  footer code {
+    color: var(--amber);
+    font-size: 11px;
+  }
+  footer ul { padding-left: 18px; margin: 0; }
+  footer li { margin-bottom: 4px; }
+
+  /* ─────────────────────────── RESPONSIVE ─────────────────────────── */
+  @media (max-width: 920px) {
+    .deck { padding: 24px 22px 40px; }
+    .deck .title-row { grid-template-columns: 1fr; }
+    .deck .subtitle { text-align: left; max-width: none; }
+    .chips { grid-template-columns: 1fr 1fr; }
+    .hr-strip { grid-template-columns: 1fr 1fr; }
+    .journal { padding: 60px 22px 32px; }
+    .week { grid-template-columns: 1fr; gap: 18px; }
+    .week .wknum { font-size: 64px; }
+    .narrative-grid { grid-template-columns: 1fr; }
+    .race-banner { padding: 56px 22px; }
+    .race-banner .inner { grid-template-columns: 1fr; gap: 28px; }
+    .postscript { padding: 56px 22px 40px; }
+    .postscript .ps-body { grid-template-columns: 1fr; gap: 28px; }
+    .transition { padding: 0 22px; }
+    .transition .caption { margin-left: 0; }
+    footer { padding: 32px 22px; }
+    footer .foot-grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  /* ─────────────────────────── MOTION ─────────────────────────── */
+  @keyframes wipe {
+    from { transform: scaleX(0); opacity: 0; }
+    to { transform: scaleX(1); opacity: 1; }
+  }
+  @keyframes rise {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .week, .narr-card { animation: rise 0.7s ease-out backwards; }
+  .week:nth-child(1) { animation-delay: 0.05s; }
+  .week:nth-child(2) { animation-delay: 0.12s; }
+  .week:nth-child(3) { animation-delay: 0.19s; }
+  .week:nth-child(4) { animation-delay: 0.26s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .deck .topstrip .signal::before { animation: none; }
+  }
+
+  /* ─────────────────────────── PRINT ─────────────────────────── */
+  @media print {
+    .deck { background: #fff; color: #000; padding: 16px; }
+    .deck::after { display: none; }
+    .deck h1, .chip .val, .chip .lbl, .panel-label, .topstrip { color: #000 !important; }
+    .deck .topstrip .signal::before { animation: none; color: #000; }
+    .race-banner { background: #fff; color: #000; }
+    .race-banner h2, .race-banner .creed { color: #000 !important; }
+    .race-banner h2 em, .race-banner .creed strong { color: #c47340 !important; }
+    .race-banner::before { display: none; }
+    footer { background: #fff; color: #000; }
+    .week, .narr-card { animation: none !important; }
+    body { background: #fff; }
+    .race-banner, .deck { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- DATA-INSTRUMENT HEADER                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="deck">
+  <div class="topstrip">
+    <span class="signal">PLAN ACTIVE · BLOCK 01 · WEEK 02 STARTING</span>
+    <span>2026 — RUNNING SEASON DASHBOARD</span>
+    <span>UPDATED 2026·05·09</span>
+  </div>
+
+  <div class="title-row">
+    <h1>Berlin<br>Build &amp; <em>Beyond</em></h1>
+    <div class="subtitle">
+      Twenty-one weeks <strong>May 4 → Sep 27</strong>.<br>
+      Recovery from a 100k, into the A-race at 161k, out the other side<br>
+      to Lidingö 30k — one continuous arc.
+    </div>
+  </div>
+
+  <div class="chips">
+    <div class="chip"><div class="lbl">Today</div><div class="val">May 09<span class="unit">2026</span></div></div>
+    <div class="chip accent"><div class="lbl">→ Berlin Mauerweglauf</div><div class="val">98<span class="unit">days</span></div></div>
+    <div class="chip"><div class="lbl">→ Lidingöloppet</div><div class="val">140<span class="unit">days</span></div></div>
+    <div class="chip"><div class="lbl">Build phase</div><div class="val">02<span class="unit">/ 14 wks</span></div></div>
+  </div>
+
+  <div class="panel-label">Season gantt — phase &amp; race timeline</div>
+  <div class="svg-wrap">
+    <svg viewBox="0 0 1200 180" preserveAspectRatio="none" aria-label="Season gantt timeline">
+      <defs>
+        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="6" height="6" fill="#5e564a"/>
+          <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+        </pattern>
+      </defs>
+
+      <!-- background grid: 21 weekly columns, ~57.14px wide each, total 1200px -->
+      <!-- helper: columns at x = i * 57.14 -->
+
+      <!-- month labels -->
+      <g font-family="JetBrains Mono, monospace" font-size="9" fill="#5d6868" letter-spacing="2">
+        <text x="0"    y="14">MAY</text>
+        <text x="220"  y="14">JUN</text>
+        <text x="450"  y="14">JUL</text>
+        <text x="680"  y="14">AUG</text>
+        <text x="910"  y="14">SEP</text>
+      </g>
+
+      <!-- weekly tick marks (top) -->
+      <g stroke="rgba(255,255,255,0.06)" stroke-width="1">
+        <line x1="0"     y1="22" x2="0"     y2="30"/>
+        <line x1="57.1"  y1="22" x2="57.1"  y2="30"/>
+        <line x1="114.3" y1="22" x2="114.3" y2="30"/>
+        <line x1="171.4" y1="22" x2="171.4" y2="30"/>
+        <line x1="228.6" y1="22" x2="228.6" y2="30"/>
+        <line x1="285.7" y1="22" x2="285.7" y2="30"/>
+        <line x1="342.9" y1="22" x2="342.9" y2="30"/>
+        <line x1="400"   y1="22" x2="400"   y2="30"/>
+        <line x1="457.1" y1="22" x2="457.1" y2="30"/>
+        <line x1="514.3" y1="22" x2="514.3" y2="30"/>
+        <line x1="571.4" y1="22" x2="571.4" y2="30"/>
+        <line x1="628.6" y1="22" x2="628.6" y2="30"/>
+        <line x1="685.7" y1="22" x2="685.7" y2="30"/>
+        <line x1="742.9" y1="22" x2="742.9" y2="30"/>
+        <line x1="800"   y1="22" x2="800"   y2="30"/>
+        <line x1="857.1" y1="22" x2="857.1" y2="30"/>
+        <line x1="914.3" y1="22" x2="914.3" y2="30"/>
+        <line x1="971.4" y1="22" x2="971.4" y2="30"/>
+        <line x1="1028.6" y1="22" x2="1028.6" y2="30"/>
+        <line x1="1085.7" y1="22" x2="1085.7" y2="30"/>
+        <line x1="1142.9" y1="22" x2="1142.9" y2="30"/>
+        <line x1="1200"   y1="22" x2="1200"   y2="30"/>
+      </g>
+
+      <!-- ───── PHASE BANDS (y=40..78) ───── -->
+      <!-- W1 May 4-10 race week (history) -->
+      <rect x="0"    y="40" width="57.1" height="38" fill="#2c3539" opacity="0.65"/>
+      <!-- W2 May 11-17 recovery -->
+      <rect x="57.1" y="40" width="57.1" height="38" fill="#4a7a7a"/>
+      <!-- W3 May 18-24 reintroduction -->
+      <rect x="114.3" y="40" width="57.1" height="38" fill="#7aa570"/>
+      <!-- W4-W8 base build (May 25 - Jun 28) -->
+      <rect x="171.4" y="40" width="57.1" height="38" fill="#8eb056"/>
+      <rect x="228.6" y="40" width="57.1" height="38" fill="#a4ad55"/>
+      <rect x="285.7" y="40" width="57.1" height="38" fill="#b4a850"/>
+      <rect x="342.9" y="40" width="57.1" height="38" fill="#c0a04a"/>
+      <rect x="400"   y="40" width="57.1" height="38" fill="#c89a45"/>
+      <!-- W9 deload Jun 29 - Jul 5 -->
+      <rect x="457.1" y="40" width="57.1" height="38" fill="#7c8a5f"/>
+      <!-- W10-W11 Italy unstructured -->
+      <rect x="514.3" y="40" width="114.3" height="38" fill="url(#hatch)"/>
+      <!-- W12-W13 specificity Jul 20 - Aug 2 -->
+      <rect x="628.6" y="40" width="57.1" height="38" fill="#c47340"/>
+      <rect x="685.7" y="40" width="57.1" height="38" fill="#b85a32"/>
+      <!-- W14-W15 taper Aug 3-14 -->
+      <rect x="742.9" y="40" width="57.1" height="38" fill="#b8c4cc"/>
+      <rect x="800"   y="40" width="57.1" height="38" fill="#d8dde0"/>
+      <!-- W15-end == race week, race lands on day Aug 15. Show race column accent -->
+      <rect x="800"   y="40" width="57.1" height="38" fill="none" stroke="#ffb547" stroke-width="1.5"/>
+      <!-- W16-W17 post-race recovery Aug 17-30 -->
+      <rect x="857.1" y="40" width="57.1" height="38" fill="#4a6a7a"/>
+      <rect x="914.3" y="40" width="57.1" height="38" fill="#5a7a8a"/>
+      <!-- W18-W20 sharpen Aug 31 - Sep 20 -->
+      <rect x="971.4" y="40" width="57.1" height="38" fill="#7a9a8e"/>
+      <rect x="1028.6" y="40" width="57.1" height="38" fill="#8eaa9c"/>
+      <rect x="1085.7" y="40" width="57.1" height="38" fill="#a4baa8"/>
+      <!-- W21 Lidingö race week Sep 21-27 -->
+      <rect x="1142.9" y="40" width="57.1" height="38" fill="#7a9a8e" stroke="#ffb547" stroke-width="1.5"/>
+
+      <!-- Phase labels (centered above each band) -->
+      <g font-family="JetBrains Mono, monospace" font-size="8.5" fill="#0a0d0e" font-weight="700" text-anchor="middle" letter-spacing="1.5">
+        <text x="28.5"  y="63">DONE</text>
+        <text x="85.7"  y="63" fill="#e8f0f0">REC</text>
+        <text x="142.9" y="63" fill="#0a0d0e">REINTRO</text>
+        <text x="285.7" y="63">BASE BUILD</text>
+        <text x="485.7" y="63" fill="#e8f0f0">DELOAD</text>
+        <text x="571.4" y="63" fill="#e8f0f0">ITALY · UNSTRUCTURED</text>
+        <text x="657.1" y="63" fill="#0a0d0e">SPEC</text>
+        <text x="685.7" y="74" fill="#0a0d0e">2× B2B</text>
+        <text x="771.4" y="63">TAPER</text>
+        <text x="885.7" y="63" fill="#e8f0f0">REST</text>
+        <text x="1028.6" y="63" fill="#0a0d0e">REBUILD</text>
+        <text x="1171.4" y="63" fill="#0a0d0e">SHARP</text>
+      </g>
+
+      <!-- ───── RACE PINS (y ~ 100) ───── -->
+      <!-- Sat May 9 Kungsholmen (history) at end of W1 -->
+      <g>
+        <line x1="49" y1="40" x2="49" y2="120" stroke="#7c756a" stroke-width="1" stroke-dasharray="2 3"/>
+        <circle cx="49" cy="100" r="6" fill="#0a0d0e" stroke="#7c756a" stroke-width="1.5"/>
+        <text x="49" y="103" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700" fill="#7c756a">C</text>
+        <text x="49" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7c756a" letter-spacing="0.5">KUNGSHOLMEN</text>
+        <text x="49" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#5d6868">21k · DONE</text>
+      </g>
+      <!-- Sat May 30 Stockholm Marathon (skipped) -->
+      <g>
+        <line x1="200" y1="40" x2="200" y2="120" stroke="#5d6868" stroke-width="1" stroke-dasharray="1 4" opacity="0.6"/>
+        <circle cx="200" cy="100" r="5" fill="#0a0d0e" stroke="#5d6868" stroke-width="1" stroke-dasharray="2 2"/>
+        <text x="200" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5d6868" letter-spacing="0.5">STO MARATHON</text>
+        <text x="200" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#5d6868">SKIP</text>
+      </g>
+      <!-- Sat Aug 15 Berlin Mauerweglauf — A-race -->
+      <g>
+        <line x1="828.6" y1="40" x2="828.6" y2="120" stroke="#ffb547" stroke-width="2"/>
+        <circle cx="828.6" cy="100" r="9" fill="#ffb547"/>
+        <text x="828.6" y="103" text-anchor="middle" font-family="Archivo Black, sans-serif" font-size="11" fill="#0a0d0e">A</text>
+        <text x="828.6" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#ffb547" letter-spacing="0.5">BERLIN MWL</text>
+        <text x="828.6" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547">161 km</text>
+      </g>
+      <!-- Sat Sep 26 Lidingöloppet — B-race -->
+      <g>
+        <line x1="1171.5" y1="40" x2="1171.5" y2="120" stroke="#a4baa8" stroke-width="1.5"/>
+        <circle cx="1171.5" cy="100" r="7" fill="#a4baa8"/>
+        <text x="1171.5" y="103" text-anchor="middle" font-family="Archivo Black, sans-serif" font-size="9" fill="#0a0d0e">B</text>
+        <text x="1171.5" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#a4baa8" letter-spacing="0.5">LIDINGÖ</text>
+        <text x="1171.5" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#a4baa8">30 km</text>
+      </g>
+
+      <!-- ───── TODAY rule (May 9) — at end of W1, x ≈ 48.6 ───── -->
+      <g>
+        <line x1="48.6" y1="34" x2="48.6" y2="170" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.85"/>
+        <circle cx="48.6" cy="34" r="3" fill="#ffb547"/>
+        <text x="55" y="170" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700" letter-spacing="1">TODAY</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="panel-label">Weekly running volume — kilometres (estimated for B2)</div>
+  <div class="svg-wrap">
+    <svg viewBox="0 0 1200 180" preserveAspectRatio="none" aria-label="Weekly volume chart">
+      <!-- baseline -->
+      <line x1="0" y1="160" x2="1200" y2="160" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+
+      <!-- horizontal helper grid lines at 50/100 km -->
+      <g stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="2 4">
+        <line x1="0" y1="40" x2="1200" y2="40"/>
+        <line x1="0" y1="100" x2="1200" y2="100"/>
+      </g>
+      <g font-family="JetBrains Mono, monospace" font-size="8" fill="#5d6868" letter-spacing="1">
+        <text x="4" y="38">— 120 KM</text>
+        <text x="4" y="98">— 60 KM</text>
+      </g>
+
+      <!-- bars: x = w*57.14 + 8, width 41, y from baseline 160. scale: 1km = 1px -->
+      <!-- Volumes: w1-21
+        w1=40, w2=32, w3=62, w4=77, w5=79, w6=85, w7=95, w8=100,
+        w9=70, w10=55, w11=55, w12=110, w13=115, w14=70, w15=45,
+        w16=12, w17=30, w18=50, w19=60, w20=55, w21=42 -->
+      <g>
+        <!-- W1 history -->
+        <rect x="8"     y="120" width="41" height="40"  fill="#2c3539"/>
+        <text x="28.5"  y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5d6868">40</text>
+        <!-- W2 -->
+        <rect x="65.1"  y="128" width="41" height="32"  fill="#4a7a7a"/>
+        <text x="85.6"  y="123" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">32</text>
+        <!-- W3 -->
+        <rect x="122.3" y="98"  width="41" height="62"  fill="#7aa570"/>
+        <text x="142.8" y="93"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">62</text>
+        <!-- W4 -->
+        <rect x="179.4" y="83"  width="41" height="77"  fill="#8eb056"/>
+        <text x="199.9" y="78"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">77</text>
+        <!-- W5 -->
+        <rect x="236.6" y="81"  width="41" height="79"  fill="#a4ad55"/>
+        <text x="257.1" y="76"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">79</text>
+        <!-- W6 -->
+        <rect x="293.7" y="75"  width="41" height="85"  fill="#b4a850"/>
+        <text x="314.2" y="70"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">85</text>
+        <!-- W7 -->
+        <rect x="350.9" y="65"  width="41" height="95"  fill="#c0a04a"/>
+        <text x="371.4" y="60"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">95</text>
+        <!-- W8 -->
+        <rect x="408"   y="60"  width="41" height="100" fill="#c89a45"/>
+        <text x="428.5" y="55"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547">100</text>
+        <!-- W9 deload -->
+        <rect x="465.1" y="90"  width="41" height="70"  fill="#7c8a5f"/>
+        <text x="485.6" y="85"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">70</text>
+        <!-- W10 italy hatched -->
+        <rect x="522.3" y="105" width="41" height="55"  fill="url(#hatch)"/>
+        <text x="542.8" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7c756a">~55</text>
+        <!-- W11 italy hatched -->
+        <rect x="579.4" y="105" width="41" height="55"  fill="url(#hatch)"/>
+        <text x="599.9" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#7c756a">~55</text>
+        <!-- W12 specificity -->
+        <rect x="636.6" y="50"  width="41" height="110" fill="#c47340"/>
+        <text x="657.1" y="45"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547">110</text>
+        <!-- W13 peak -->
+        <rect x="693.7" y="45"  width="41" height="115" fill="#b85a32"/>
+        <text x="714.2" y="40"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547">115</text>
+        <!-- W14 taper 1 -->
+        <rect x="750.9" y="90"  width="41" height="70"  fill="#b8c4cc"/>
+        <text x="771.4" y="85"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">70</text>
+        <!-- W15 taper 2 + race -->
+        <rect x="808"   y="115" width="41" height="45"  fill="#d8dde0"/>
+        <rect x="808"   y="115" width="41" height="45"  fill="none" stroke="#ffb547" stroke-width="1.5"/>
+        <text x="828.5" y="110" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700">45 + RACE</text>
+        <!-- W16 walks -->
+        <rect x="865.1" y="148" width="41" height="12"  fill="#4a6a7a"/>
+        <text x="885.6" y="143" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">~12</text>
+        <!-- W17 -->
+        <rect x="922.3" y="130" width="41" height="30"  fill="#5a7a8a"/>
+        <text x="942.8" y="125" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">30</text>
+        <!-- W18 -->
+        <rect x="979.4" y="110" width="41" height="50"  fill="#7a9a8e"/>
+        <text x="999.9" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">50</text>
+        <!-- W19 -->
+        <rect x="1036.6" y="100" width="41" height="60" fill="#8eaa9c"/>
+        <text x="1057.1" y="95"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">60</text>
+        <!-- W20 -->
+        <rect x="1093.7" y="105" width="41" height="55" fill="#a4baa8"/>
+        <text x="1114.2" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">55</text>
+        <!-- W21 race week -->
+        <rect x="1150.9" y="118" width="41" height="42" fill="#a4baa8"/>
+        <rect x="1150.9" y="118" width="41" height="42" fill="none" stroke="#ffb547" stroke-width="1.2"/>
+        <text x="1171.4" y="113" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700">42 + RACE</text>
+      </g>
+
+      <!-- TODAY rule continues -->
+      <line x1="48.6" y1="20" x2="48.6" y2="160" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.7"/>
+
+      <!-- week index strip at bottom -->
+      <g font-family="JetBrains Mono, monospace" font-size="8" fill="#5d6868" letter-spacing="0.5" text-anchor="middle">
+        <text x="28.5"   y="175">W01</text>
+        <text x="85.6"   y="175">W02</text>
+        <text x="142.8"  y="175">W03</text>
+        <text x="199.9"  y="175">W04</text>
+        <text x="257.1"  y="175">W05</text>
+        <text x="314.2"  y="175">W06</text>
+        <text x="371.4"  y="175">W07</text>
+        <text x="428.5"  y="175">W08</text>
+        <text x="485.6"  y="175">W09</text>
+        <text x="542.8"  y="175">W10</text>
+        <text x="599.9"  y="175">W11</text>
+        <text x="657.1"  y="175">W12</text>
+        <text x="714.2"  y="175">W13</text>
+        <text x="771.4"  y="175">W14</text>
+        <text x="828.5"  y="175">W15</text>
+        <text x="885.6"  y="175">W16</text>
+        <text x="942.8"  y="175">W17</text>
+        <text x="999.9"  y="175">W18</text>
+        <text x="1057.1" y="175">W19</text>
+        <text x="1114.2" y="175">W20</text>
+        <text x="1171.4" y="175">W21</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="panel-label">HR zones — calibrated 2026 · max HR 184 · resting 48</div>
+  <div class="hr-strip">
+    <div class="hr-cell easy">
+      <div class="name">Easy</div>
+      <div class="bpm">&lt; 140<small>bpm</small></div>
+    </div>
+    <div class="hr-cell steady">
+      <div class="name">Steady aerobic</div>
+      <div class="bpm">140 — 150<small>bpm</small></div>
+    </div>
+    <div class="hr-cell subt">
+      <div class="name">Sub-threshold</div>
+      <div class="bpm">150 — 160<small>bpm</small></div>
+    </div>
+    <div class="hr-cell thresh">
+      <div class="name">Threshold</div>
+      <div class="bpm">160 — 170<small>bpm</small></div>
+    </div>
+    <div class="hr-cell vo2">
+      <div class="name">VO₂ / race-cap</div>
+      <div class="bpm">170+<small>bpm · cap 165 non-race</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- transition -->
+<div class="transition">
+  <hr class="rule">
+  <span class="caption">—— Block 01 · week-by-week ——</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- EDITORIAL TRAINING JOURNAL                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<main class="journal">
+
+  <div class="preamble">
+    <h2>The work begins on the <em>second day</em><br>after the race.</h2>
+    <p>Saturday's half went hard — negative split, max HR 182, 45% in vo₂. The plan absorbs that cost across the next two weeks before quality returns. Below: the day-by-day for Block 1 (May 4 → Jun 7), then the strategic shape of the build to Berlin and the recovery into Lidingö.</p>
+  </div>
+
+  <div class="block-heading">
+    <h3>Block 01 · <em>recovery → reintroduction → first quality</em></h3>
+    <span class="meta">May 4 — Jun 7 · five weeks</span>
+  </div>
+
+  <!-- ───── WEEK 02 ───── -->
+  <article class="week">
+    <aside class="rail">
+      <div class="wknum">02</div>
+      <div class="phase-tag">Post-race recovery</div>
+      <div class="dates">May 11 — May 17</div>
+      <div class="vol">target <strong>~32 km</strong> · no long, no quality</div>
+    </aside>
+    <div class="body">
+      <p class="intent">Recovery is the work this week. Race ran hotter than the model assumed; the cost is real and budgeted for. One extra non-running day at the front buys cleaner re-entry into Week 3.</p>
+      <ul class="days">
+        <li><span class="day">Mon 11</span><span class="session"><span class="tag off">Off</span>or 30 min walk</span></li>
+        <li><span class="day">Tue 12</span><span class="session"><span class="tag off">Walk / spin</span>30–45 min, no running</span></li>
+        <li><span class="day">Wed 13</span><span class="session">5–6 km <strong>very easy</strong> with the group, HR &lt; 135. Walk it if it feels rough.</span></li>
+        <li><span class="day">Thu 14</span><span class="session">8 km easy, HR &lt; 140</span></li>
+        <li><span class="day">Fri 15</span><span class="session"><span class="tag off">Off</span></span></li>
+        <li><span class="day">Sat 16</span><span class="session"><span class="tag long">Rebuild</span><strong>15 km easy</strong>, HR &lt; 140 — rebuilding, not a long run</span></li>
+        <li><span class="day">Sun 17</span><span class="session">8 km easy recovery, HR &lt; 135</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ───── WEEK 03 ───── -->
+  <article class="week">
+    <aside class="rail">
+      <div class="wknum">03</div>
+      <div class="phase-tag">Reintroduction</div>
+      <div class="dates">May 18 — May 24</div>
+      <div class="vol">target <strong>~62 km</strong> · first proper long since the race</div>
+    </aside>
+    <div class="body">
+      <p class="intent">First aerobic step up. The Saturday long is the test — if it feels labored or HR drifts hard in the back half, Block 1 absorbs another week of reintroduction before quality returns.</p>
+      <ul class="days">
+        <li><span class="day">Mon 18</span><span class="session"><span class="tag off">Off</span>or commute</span></li>
+        <li><span class="day">Tue 19</span><span class="session">10 km easy, HR &lt; 140 — no strides yet</span></li>
+        <li><span class="day">Wed 20</span><span class="session">12 km easy, HR &lt; 140</span></li>
+        <li><span class="day">Thu 21</span><span class="session">10 km easy, HR &lt; 140</span></li>
+        <li><span class="day">Fri 22</span><span class="session"><span class="tag off">Off</span></span></li>
+        <li><span class="day">Sat 23</span><span class="session"><span class="tag long">Long run</span><strong>22 km easy</strong>, HR &lt; 145 (trimmed from 24 — race-week stack already used the budget)</span></li>
+        <li><span class="day">Sun 24</span><span class="session">covered in next review window</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ───── WEEK 04 ───── -->
+  <article class="week">
+    <aside class="rail">
+      <div class="wknum">04</div>
+      <div class="phase-tag">First B2B weekend</div>
+      <div class="dates">May 25 — May 31</div>
+      <div class="vol">target <strong>~77 km</strong> · long + B2B partner, no quality yet</div>
+    </aside>
+    <div class="body">
+      <p class="intent">The first back-to-back since Tuscany. This week's stress is two long days stacked, not a midweek hard. Stockholm Marathon weekend — not racing it.</p>
+      <ul class="days">
+        <li><span class="day">Mon 25</span><span class="session"><span class="tag off">Off</span></span></li>
+        <li><span class="day">Tue 26</span><span class="session">14 km easy with the group, HR &lt; 140</span></li>
+        <li><span class="day">Wed 27</span><span class="session"><span class="tag off">Off</span></span></li>
+        <li><span class="day">Thu 28</span><span class="session">12 km easy, HR &lt; 140</span></li>
+        <li><span class="day">Fri 29</span><span class="session"><span class="tag long">Long</span><strong>28 km</strong>, HR &lt; 145 · hilly route if available · full nutrition rehearsal</span></li>
+        <li><span class="day">Sat 30</span><span class="session"><span class="tag b2b">B2B</span><strong>15 km easy</strong>, HR &lt; 140 — running on tired legs is the point</span></li>
+        <li><span class="day">Sun 31</span><span class="session">8 km easy recovery, HR &lt; 135</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ───── WEEK 05 ───── -->
+  <article class="week">
+    <aside class="rail">
+      <div class="wknum">05</div>
+      <div class="phase-tag">First quality back</div>
+      <div class="dates">Jun 1 — Jun 7</div>
+      <div class="vol">target <strong>~79 km</strong> · threshold + 32k long</div>
+    </aside>
+    <div class="body">
+      <p class="intent">If Week 4 went clean, Tuesday returns to a real work-group session. The 5 × 6 min threshold is the readiness test — abort if HR climbs above 165 at the prescribed pace.</p>
+      <ul class="days">
+        <li><span class="day">Mon  1</span><span class="session"><span class="tag off">Off</span></span></li>
+        <li><span class="day">Tue  2</span><span class="session"><span class="tag qual">Threshold</span><strong>5 × 6 min @ HR 158–163</strong>, 2 min jog · ~13 km total</span></li>
+        <li><span class="day">Wed  3</span><span class="session"><span class="tag off">Off</span></span></li>
+        <li><span class="day">Thu  4</span><span class="session">14 km steady aerobic, HR 140–150 — mid-week stimulus</span></li>
+        <li><span class="day">Fri  5</span><span class="session"><span class="tag long">Long</span><strong>32 km</strong>, HR &lt; 145 · last 5 km may drift to 150</span></li>
+        <li><span class="day">Sat  6</span><span class="session">12 km easy, HR &lt; 140</span></li>
+        <li><span class="day">Sun  7</span><span class="session">8 km easy recovery, HR &lt; 135</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ──────────────────────── BLOCK 02 NARRATIVE ──────────────────────── -->
+  <div class="block-heading">
+    <h3>Block 02 · <em>aerobic build → specificity → taper</em></h3>
+    <span class="meta">Jun 8 — Aug 15 · ten weeks</span>
+  </div>
+
+  <div class="narrative-grid">
+
+    <div class="narr-card">
+      <div class="nrange">Wks 06 — 08 · Jun 8 — Jun 28</div>
+      <h4>Aerobic <em>base build</em></h4>
+      <p>Long run climbs to 35–40 km. A second quality session enters as <strong>hill strength</strong> embedded in the Thursday medium-long, since Tuesday already owns threshold. First proper B2B at <strong>35 + 25 km</strong>.</p>
+      <div class="keys"><span>Long</span> 35 → 40 · <span>2nd quality</span> hills · <span>Peak</span> ~100 km</div>
+    </div>
+
+    <div class="narr-card hatched">
+      <div class="nrange">Wk 09 + Italy · Jun 29 — Jul 19</div>
+      <h4>Deload, then <em>unstructured</em></h4>
+      <p>Long drops to 25 km, Tuesday goes easy. The deload conveniently lands where the Italy travel block begins. Two weeks <strong>by feel</strong> — no quality required, no B2B required. Re-engage structure on return.</p>
+      <div class="keys"><span>Mode</span> maintenance · <span>Constraint</span> light schedule · <span>Volume</span> ~55 km/wk</div>
+    </div>
+
+    <div class="narr-card">
+      <div class="nrange">Wks 12 — 13 · Jul 20 — Aug 2</div>
+      <h4>Specificity — the <em>biggest weekends</em></h4>
+      <p>On work-leave: schedule fully flexible. Big back-to-backs (<strong>50 + 35</strong>, <strong>60 + 30</strong>, then <strong>70 + 40</strong>), night-running practice, race-pace shuffle, walking-the-hills practice. Nutrition rehearsed at race food.</p>
+      <div class="keys"><span>Peak B2B</span> 70 + 40 · <span>Night runs</span> ✓ · <span>Volume</span> ~110–115 km</div>
+    </div>
+
+    <div class="narr-card">
+      <div class="nrange">Wks 14 — 15 · Aug 3 — Aug 14</div>
+      <h4>Taper — <em>sharp, not deep</em></h4>
+      <p>Ultras taper less than marathons. Volume <strong>−40%</strong> in week 13, <strong>−60%</strong> in week 14, intensity preserved. Final week: short runs, gear check, sleep, carbs. Race Saturday Aug 15.</p>
+      <div class="keys"><span>Vol cut</span> −40 / −60 · <span>Intensity</span> held · <span>Sleep</span> the priority</div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- BERLIN BANNER                                                            -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="race-banner">
+  <div class="inner">
+    <div>
+      <div class="a-tag">A-Race · the centerpiece</div>
+      <h2>Berlin<br>Mauerweg<em>lauf</em></h2>
+      <div class="race-date">Saturday · 15 August 2026</div>
+      <div class="race-stats">
+        <div><div class="lbl">Distance</div><div class="val">161 km</div></div>
+        <div><div class="lbl">Days from today</div><div class="val">98</div></div>
+        <div><div class="lbl">Build length</div><div class="val">14 wks</div></div>
+        <div><div class="lbl">Goal pace shuffle</div><div class="val">walk/run</div></div>
+      </div>
+    </div>
+    <div>
+      <p class="creed">Everything else serves this. Lidingö is the sharpener. Stockholm is skipped. The half was a tune-up. <strong>Berlin is the year.</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- POSTSCRIPT                                                               -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="postscript">
+  <div class="ps-head">After Berlin · the second arc</div>
+  <h3>Five to six weeks between a 161k and a <em>fast 30k</em>.<br>The body decides what's possible.</h3>
+
+  <div class="ps-body">
+    <div>
+      <p>Weeks 1–2 post-Berlin are full recovery: walks, easy spinning, jogging only when it feels right. Weeks 3–4 rebuild aerobic and reintroduce one short tempo. Race week is light — Lidingö is run on whatever fitness remains.</p>
+      <p>The point is <em>not</em> to PR. It's to enjoy a fast 30k off ultra fitness while the body is still tuned. If recovery from Berlin runs longer than expected, Lidingöloppet drops to a hard long run with a finish line — Berlin was the year, and Lidingö is the cooldown.</p>
+    </div>
+
+    <div class="ps-finish">
+      <div class="label">B-Race</div>
+      <h4>Lidingö<br>loppet</h4>
+      <div class="when">Saturday · 26 September 2026 · 30 km</div>
+      <p>Finish line of the season. 5–6 weeks after Berlin — fits naturally as a recovery + sharpener block.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="foot-grid">
+    <div>
+      <h5>Source files · this snapshot</h5>
+      <ul>
+        <li><code>analyses/2026-05-03-season-plan-overview.md</code> — calendar, priorities, season arc</li>
+        <li><code>analyses/2026-05-03-block-1-rev2.md</code> — Block 1 day-by-day, Block 2 preview</li>
+        <li><code>analyses/2026-05-09-kungsholmen-race-review.md</code> — Weeks 2–3 amendments (latest)</li>
+        <li><code>config/training.json</code> — HR zones, max HR, pace anchors</li>
+      </ul>
+    </div>
+    <div>
+      <h5>About this page</h5>
+      <ul>
+        <li>Generated <strong>2026-05-09</strong> from the files above.</li>
+        <li>Regenerated by the <code>update-plan-visualization</code> skill whenever the plan changes.</li>
+        <li>Static HTML · no build · no telemetry · no live Strava data.</li>
+        <li>Block 2 weekly volumes are estimates derived from the season-plan narrative; refined as those weeks become real.</li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
