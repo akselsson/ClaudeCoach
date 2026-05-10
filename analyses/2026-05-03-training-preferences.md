@@ -21,10 +21,10 @@ Patrik runs 5 days/week by default; can push to 6 in peak weeks with a recovery 
 | **Wed** | Off | — | Work blocks morning runs. Bike commute fits here when it happens. |
 | **Thu** | Easy or medium-long | Afternoon/evening | Volume buffer day — flex up for higher-volume weeks, flex down for recovery. |
 | **Fri** | **Long run** | Morning | The week's anchor. B2B partner-day for big weekends. |
-| **Sat** | Medium-long / B2B continuation | Morning | Stacked the day after Friday long when the block calls for B2B; otherwise easy or off. |
-| **Sun** | Easy recovery | Flexible | The day-after-the-day-after the long run. Short, conversational. |
+| **Sat** | Medium-long / B2B continuation, or daughter run | Morning | Stacked the day after Friday long when the block calls for B2B; otherwise the daughter long run lands here (see below) or it's easy / off. |
+| **Sun** | Easy recovery, or daughter run | Flexible | Daughter long run lands here when she doesn't take Saturday; otherwise short conversational recovery. |
 
-**Stress-day spacing:** Tue and Fri are the two stress anchors. Wed off is the natural buffer between them. Sat is "the day after Friday" — only stacked into a real medium-long when the block explicitly says B2B; otherwise stays easy or off.
+**Stress-day spacing:** Tue and Fri are the two stress anchors. Wed off is the natural buffer between them. The weekend has one committed easy slot (the daughter run, see below) and one flex slot — the flex slot stays easy or off unless the block explicitly calls for a B2B continuation, in which case it stacks onto the Friday long.
 
 **Race-week and recovery-week exception:** in race weeks and immediate post-race weeks, Tuesday drops to easy and the long run shrinks or moves to accommodate the race day. The block plan controls; this file just pins the defaults.
 
@@ -46,6 +46,19 @@ These are the standing options. The block plan picks which one (or "easy with th
 - **Easy with the group** — when the plan calls for it. Same social value, no training cost beyond the run itself.
 
 If a Tuesday session goes off-script (group did something different, body felt off, weather forced a change), note the actual structure in Strava and let the next weekly review reconcile.
+
+## Weekend running partner — daughter
+
+Patrik's daughter does her weekend long run with him, on either Saturday or Sunday (her choice that week). She just finished a half marathon and is building toward Lidingöloppet (30 km), with her current long run sitting around 21 km. Her pace is 6:00–6:30 /km — comfortably easy for Patrik, conversational the whole way.
+
+Implications for the weekly plan:
+- **One weekend day is committed to ~21 km (and growing) at easy pace.** Counts as aerobic volume for Patrik, not a quality day.
+- **The other weekend day is the flex slot** — short recovery if Friday's long run was hard, off if needed, or a second easy session when the block calls for higher volume.
+- **B2B weekends:** the daughter run is a natural B2B partner for the Friday long run. Friday 30+ km / Saturday 21 km daughter-pace is a real B2B without forcing it. When the block calls for a bigger second leg (Saturday medium-long of 25–30+ km), the daughter run shifts to Sunday and Saturday is solo.
+- **Italy holiday (~late June / early July):** she's not there. The constraint lifts for those ~2 weeks.
+- **Work-leave window (Jun 18 – Aug 18):** more flexibility for stacking. The daughter run still anchors one weekend day; the other is wide open for the season-plan big weekends.
+
+Her own training is not tracked in this notebook — only its impact on Patrik's weekend shape is recorded here. If her race plans change (drops out, picks a different race, ramps faster than expected) update this section.
 
 ## Cross-training
 
