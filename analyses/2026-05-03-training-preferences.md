@@ -17,9 +17,9 @@ Patrik runs 5 days/week by default; can push to 6 in peak weeks with a recovery 
 | Day | Default role | Time of day | Notes |
 |---|---|---|---|
 | **Mon** | Off | — | Work blocks morning runs. Easy spin OK if legs are restless. |
-| **Tue** | **Quality — work-group session** | Evening | Standing menu: 4×4 min @ interval pace, or 5×6 min @ threshold. Easy with the group is allowed when the plan calls for recovery (deload weeks, post-race weeks, race weeks). |
+| **Tue** | **Quality — work-group session + heavy strength** | Evening | Standing menu: 4×4 min @ interval pace, or 5×6 min @ threshold. Easy with the group is allowed when the plan calls for recovery. Heavy strength stacks onto the run (see Strength section). |
 | **Wed** | Off | — | Work blocks morning runs. Bike commute fits here when it happens. |
-| **Thu** | Easy or medium-long | Afternoon/evening | Volume buffer day — flex up for higher-volume weeks, flex down for recovery. |
+| **Thu** | Easy or medium-long + maintenance strength | Afternoon/evening | Volume buffer day — flex up for higher-volume weeks, flex down for recovery. Light maintenance strength after the run (see Strength section). |
 | **Fri** | **Long run** | Morning | The week's anchor. B2B partner-day for big weekends. |
 | **Sat** | Medium-long / B2B continuation, or daughter run | Morning | Stacked the day after Friday long when the block calls for B2B; otherwise the daughter long run lands here (see below) or it's easy / off. |
 | **Sun** | Easy recovery, or daughter run | Flexible | Daughter long run lands here when she doesn't take Saturday; otherwise short conversational recovery. |
@@ -63,7 +63,23 @@ Her own training is not tracked in this notebook — only its impact on Patrik's
 ## Cross-training
 
 - **Bike commute:** target 1×/week, in practice often 1–2×/month. Treat as opportunistic recovery / commuting overhead, not weekly aerobic load. Don't double up the commute on a tired day.
-- **No structured strength work currently.** If you start adding gym sessions during the build, update this file.
+
+## Strength
+
+Adopted 2026-05-10 mid-Berlin-build. Two sessions per week — one heavy, one maintenance. Goal is running economy + injury prophylaxis under the rising volume of the specificity phase, not bodybuilding hypertrophy.
+
+| Slot | Day | Focus | Cost |
+|---|---|---|---|
+| **Heavy** | Tue (after work-group quality) | Squat / deadlift / lunge variations, 4–6 reps × 3–4 sets. Big-pattern, heavy-but-not-grindy. | Stacks on a day that's already a stress day — protects the rest of the week's recovery. |
+| **Maintenance** | Thu (after the easy/medium-long run) | Single-leg work, hip/core/calf integrity (split squats, step-ups, calf raises, planks/side-planks, hip thrusts). 2–3 sets, technique-focused, no chasing failure. | 20–30 min. Must stay light enough that Fri's long run isn't compromised — if Thu's run was harder than planned, drop the strength or trim it. |
+
+**Rules of thumb:**
+- Run first, lift after. Aerobic quality on Tue and the long run on Fri are the priorities; strength serves them.
+- Deload the strength when the run plan deloads. Race weeks: skip both. Post-race weeks: maintenance only, drop the heavy.
+- Italy holiday (~late June / early July): treat strength as opportunistic — bodyweight circuits if no gym, skip if logistics fight you.
+- If Thu's strength repeatedly leaves Fri's long run feeling heavy in the legs, that's the signal to move the maintenance session — flag it in the next weekly review and consider Sat-after-daughter-run as the alternative slot.
+
+If the program changes (new injury, drop to 1×/week, a coach steps in with a different protocol) update this section rather than burying it in a block plan.
 
 ## Calendar disruptions for the Berlin build
 
