@@ -3,5 +3,5 @@
   "assets": {
     "directory": "./viz",
     "not_found_handling": "404-page"
-  }
+  },"name": "akselsson-claude-coach"
 }
