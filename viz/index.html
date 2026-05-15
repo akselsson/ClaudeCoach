@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan history · 2026 Season</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0a0d0e;
+    --grid: rgba(255,255,255,0.045);
+    --bg-light: #f5f0e6;
+    --paper: #efe8d9;
+    --ink-dark: #e8e6e0;
+    --ink-dark-dim: #9aa5a5;
+    --ink-dark-faint: #5d6868;
+    --ink-light: #1f1f1d;
+    --ink-light-dim: #7c756a;
+    --rule-light: #d8cfba;
+    --amber: #ffb547;
+    --oxblood: #7a2e2e;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Sora", system-ui, sans-serif;
+    color: var(--ink-light);
+    background: var(--bg-light);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ───────────────────────────────────── HEADER STRIP ───────────────────────────────────── */
+  .head {
+    background: var(--bg-dark);
+    color: var(--ink-dark);
+    padding: 32px 48px 28px;
+    position: relative;
+    overflow: hidden;
+    background-image:
+      repeating-linear-gradient(to right, var(--grid) 0 1px, transparent 1px 80px),
+      radial-gradient(ellipse at top right, rgba(255,181,71,0.06), transparent 60%);
+  }
+  .head .topstrip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dark-dim);
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .head .title-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 28px;
+    align-items: end;
+    margin: 24px 0 12px;
+  }
+  .head h1 {
+    font-family: "Archivo Black", sans-serif;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--ink-dark);
+    text-transform: uppercase;
+  }
+  .head .sub {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-dark-dim);
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    text-align: right;
+    max-width: 320px;
+  }
+  .head .rule-bottom {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+    padding-top: 18px;
+    margin-top: 18px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* ───────────────────────────────────── EDITORIAL LIST ───────────────────────────────────── */
+  main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 72px 48px 64px;
+  }
+  .list-head {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+    margin-bottom: 28px;
+  }
+  ul.snapshots {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule-light);
+  }
+  ul.snapshots li {
+    display: grid;
+    grid-template-columns: 160px 1fr 280px;
+    gap: 32px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--rule-light);
+    align-items: baseline;
+  }
+  ul.snapshots .date {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 72;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 26px;
+    color: var(--ink-light);
+    letter-spacing: -0.005em;
+  }
+  ul.snapshots .body .type {
+    display: inline-block;
+    font-family: "Sora", sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+    margin-bottom: 8px;
+  }
+  ul.snapshots .body .type.current {
+    color: var(--amber);
+    background: rgba(255,181,71,0.10);
+    border: 1px solid rgba(255,181,71,0.35);
+    padding: 2px 10px;
+    border-radius: 2px;
+  }
+  ul.snapshots .body .summary {
+    font-family: "Sora", sans-serif;
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--ink-light);
+    margin: 0;
+    max-width: 620px;
+  }
+  ul.snapshots .link {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-light-dim);
+    text-align: right;
+    word-break: break-all;
+  }
+  ul.snapshots .link a {
+    color: var(--ink-light-dim);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--rule-light);
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  ul.snapshots .link a:hover {
+    color: var(--amber);
+    border-bottom-color: var(--amber);
+  }
+  ul.snapshots .link .arrow { margin-left: 6px; }
+
+  /* ─────────────────────────── FOOTER ─────────────────────────── */
+  footer {
+    background: var(--bg-dark);
+    color: var(--ink-dark-dim);
+    padding: 40px 48px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    line-height: 1.7;
+  }
+  footer .foot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  footer h5 {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+  footer code {
+    color: var(--amber);
+    font-size: 11px;
+  }
+  footer ul { padding-left: 18px; margin: 0; }
+  footer li { margin-bottom: 4px; }
+
+  /* ─────────────────────────── RESPONSIVE ─────────────────────────── */
+  @media (max-width: 920px) {
+    .head { padding: 24px 22px 22px; }
+    .head .title-row { grid-template-columns: 1fr; gap: 14px; }
+    .head .sub { text-align: left; max-width: none; }
+    main { padding: 48px 22px 40px; }
+    ul.snapshots li {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 22px 0;
+    }
+    ul.snapshots .link { text-align: left; }
+    footer { padding: 32px 22px; }
+    footer .foot-grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- HEADER STRIP                                                            -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="head">
+  <div class="topstrip">
+    <span>Plan archive · 2026 season</span>
+    <span>2026·05·15</span>
+  </div>
+  <div class="title-row">
+    <h1>Plan history</h1>
+    <div class="sub">
+      Versioned snapshots of <strong style="color:var(--ink-dark)">viz/plan.html</strong> —<br>
+      newest first.
+    </div>
+  </div>
+  <div class="rule-bottom">—— one snapshot per triggering analysis ——</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- EDITORIAL LIST                                                          -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<main>
+  <div class="list-head">Snapshots</div>
+  <ul class="snapshots">
+
+    <!-- ───── CURRENT ───── -->
+    <li>
+      <span class="date">2026-05-15</span>
+      <div class="body">
+        <span class="type current">Current</span>
+        <p class="summary">Three standing-schedule clarifications from Patrik — Thu May 14 was a no-run (correcting the May 12 sync's assumption), Tuesday is the group session with format set by Kundo and paces set by Patrik's training state, and Friday long is explicitly Z2 (HR 140–150) while the weekend daughter 21k is explicitly Z1 (HR &lt;140). Preferences file updated; Block 1 Weeks 3–5 re-prescribed.</p>
+      </div>
+      <div class="link"><a href="plan.html">plan.html<span class="arrow">→</span></a></div>
+    </li>
+
+    <!-- ───── 2026-05-15 schedule-clarifications ───── -->
+    <li>
+      <span class="date">2026-05-15</span>
+      <div class="body">
+        <span class="type">Schedule update</span>
+        <p class="summary">Three standing-schedule clarifications from Patrik — Thu May 14 was a no-run (correcting the May 12 sync's assumption), Tuesday is the group session with format set by Kundo and paces set by Patrik's training state, and Friday long is explicitly Z2 (HR 140–150) while the weekend daughter 21k is explicitly Z1 (HR &lt;140). Preferences file updated; Block 1 Weeks 3–5 re-prescribed.</p>
+      </div>
+      <div class="link"><a href="plan-2026-05-15-schedule-clarifications.html">plan-2026-05-15-schedule-clarifications.html<span class="arrow">→</span></a></div>
+    </li>
+
+  </ul>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="foot-grid">
+    <div>
+      <h5>About this archive</h5>
+      <ul>
+        <li>Each row is a frozen snapshot of <code>viz/plan.html</code> as it looked when the matching analysis landed.</li>
+        <li>Top row always points at <code>plan.html</code> — the live, latest plan.</li>
+        <li>Old snapshots are immutable. The design system shifts only on new snapshots.</li>
+        <li>Naming rule: <code>plan-YYYY-MM-DD-&lt;analysis-slug&gt;.html</code> — keyed to the triggering analysis, not the regeneration date.</li>
+      </ul>
+    </div>
+    <div>
+      <h5>Maintained by</h5>
+      <ul>
+        <li><code>.claude/skills/update-plan-visualization/SKILL.md</code> — rebuilds the index and the snapshots whenever a forward-plan analysis lands.</li>
+        <li>Static HTML · no build · no telemetry.</li>
+        <li>Source markdown lives under <code>analyses/</code> · zone config at <code>config/training.json</code>.</li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
