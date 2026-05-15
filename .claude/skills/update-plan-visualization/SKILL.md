@@ -1,6 +1,6 @@
 ---
 name: update-plan-visualization
-description: Regenerate the single-page training-plan visualization at `viz/plan.html` from the current state of `analyses/`. Use whenever an analysis file that changes the forward training plan has just been written or modified — weekly reviews, race reviews, training-block files, season-plan files. Always run this in a separate sub-agent because the regeneration produces a long HTML file whose content does not need to live in the main thread's context. Do **not** invoke this skill for files that don't change the forward plan (activity characterizations, niggle logs, observation-only notes).
+description: Regenerate the single-page training-plan visualization at `viz/plan.html` from the current state of `analyses/`, archive a dated snapshot at `viz/plan-YYYY-MM-DD-<analysis-slug>.html`, and refresh `viz/index.html` (the history landing page). Use whenever an analysis file that changes the forward training plan has just been written or modified — weekly reviews, race reviews, training-block files, season-plan files. Always run this in a separate sub-agent because the regeneration produces a long HTML file whose content does not need to live in the main thread's context. Do **not** invoke this skill for files that don't change the forward plan (activity characterizations, niggle logs, observation-only notes).
 ---
 
 # Update plan visualization
@@ -10,6 +10,8 @@ This skill regenerates `viz/plan.html` — a single self-contained HTML page tha
 The page exists because the forward plan is spread across several markdown files (a season-plan file, a current-block file, and any reviews dated after the block file). Reading the plan today means cross-referencing three docs. The page collapses them into one legible artifact.
 
 A stale visualization is worse than none — it looks authoritative while lying about what the plan actually says. The job of this skill is to keep `viz/plan.html` honest.
+
+Each regeneration also archives a dated snapshot at `viz/plan-YYYY-MM-DD-<analysis-slug>.html` (named after the triggering analysis file) and rebuilds `viz/index.html` — a styled landing page listing all snapshots newest-first. The archive makes plan evolution browsable directly from the `viz/` folder without falling back to `git log`. See "Versioning and history index" below.
 
 ## When to run
 
@@ -66,7 +68,25 @@ Full overwrite. Do **not** attempt incremental edits — the page is short enoug
 
 Preserve the design system (next section). The visual identity is stable across regenerations; the *data* is what changes.
 
-### 5. Report a short diff to the user
+### 5. Archive a dated snapshot
+
+After `viz/plan.html` is fully written, copy it byte-for-byte to `viz/plan-<analysis-slug>.html`, where `<analysis-slug>` is the triggering analysis file's basename without `.md` (e.g. an analysis `2026-05-15-week-of-may-12.md` produces `viz/plan-2026-05-15-week-of-may-12.html`).
+
+Determining the slug:
+
+- If the invoker passed the analysis filename as input, use it.
+- Otherwise inspect `git status` and `git diff --name-only` for changed files under `analyses/`. If exactly one forward-plan file (weekly review, race review, training block, season plan) is dirty or staged, use its basename.
+- If the trigger is ambiguous (multiple candidates, or none), ask the user before continuing — don't guess.
+
+If `viz/plan-<analysis-slug>.html` already exists (the skill is re-running for the same trigger), overwrite it. Same-trigger re-runs are corrections to the current snapshot, not new history. See "Versioning and history index" below for the full rationale.
+
+### 6. Regenerate `viz/index.html`
+
+Rebuild `viz/index.html` from scratch by globbing `viz/plan-*.html` and sorting newest-first by the `YYYY-MM-DD` prefix in the filename. For each snapshot, read the matching `analyses/<slug>.md` YAML header to pull `date`, `type`, and `summary` for the row. If the analysis file is missing (e.g. renamed or deleted), fall back to the snapshot's mtime and the bare filename.
+
+The first row is always `viz/plan.html` itself (labelled "Current"), using metadata from the most recent triggering analysis. Follow the design spec in "`index.html` design spec" below.
+
+### 7. Report a short diff to the user
 
 Run `git diff viz/plan.html` and summarize what changed in 3–6 bullets. Specifically call out:
 
@@ -75,17 +95,71 @@ Run `git diff viz/plan.html` and summarize what changed in 3–6 bullets. Specif
 - New "today" position (which week the today-rule lands on).
 - Any new races added or existing races removed/shifted.
 - The new total span (start date → final race).
+- The new row at the top of `viz/index.html` — the snapshot filename and the one-line summary the user will see in the history list.
 
 Surface anything that surprises you — if the plan shifted a long run by 2 weeks or moved a race, mention it explicitly so the user can confirm it was intentional.
 
-### 6. Stage `viz/plan.html` alongside the analysis change
+### 8. Stage `viz/plan.html`, the new snapshot, and `viz/index.html` alongside the analysis change
 
-The regeneration is downstream of an analysis edit, and the two must stay in lockstep — committing the analysis without the page (or vice versa) leaves the repo inconsistent. So:
+The regeneration is downstream of an analysis edit, and the four files (analysis + `plan.html` + new snapshot + `index.html`) must stay in lockstep — committing any subset leaves the repo internally inconsistent. So:
 
-- If the analysis change is **already staged** when this skill runs, run `git add viz/plan.html` so it joins the same commit. Don't run `git commit` itself — the user (or the calling skill) decides when to commit.
-- If the analysis change is **not yet staged**, leave `viz/plan.html` unstaged too. The next `git add` of the analysis file should include the page; mention this in the diff summary so the calling thread can stage them together.
+- If the analysis change is **already staged** when this skill runs, run `git add viz/plan.html viz/plan-<analysis-slug>.html viz/index.html` so they join the same commit. Don't run `git commit` itself — the user (or the calling skill) decides when to commit.
+- If the analysis change is **not yet staged**, leave the three `viz/` files unstaged too. The next `git add` of the analysis file should include all three; mention this in the diff summary so the calling thread can stage them together.
 
-Don't create the commit yourself. Skill output is artifact + staging + summary, not the commit itself.
+Don't create the commit yourself. Skill output is artifacts + staging + summary, not the commit itself.
+
+## Versioning and history index
+
+### Why version
+
+`git log viz/plan.html` is the source of truth for plan evolution, but the `viz/` folder is what the user actually opens in a browser. A flat archive of dated snapshots plus an index page makes plan evolution legible without the terminal — you can click backwards through history and see the page exactly as it looked when each analysis was written.
+
+### Layout
+
+- `viz/plan.html` — canonical current plan. Overwritten on every regeneration. Always reflects the latest authoritative trio (season-plan + training-block + most recent review).
+- `viz/plan-YYYY-MM-DD-<analysis-slug>.html` — immutable dated snapshot for each triggering analysis. Byte-identical to `viz/plan.html` at the moment of that regeneration.
+- `viz/index.html` — styled landing page listing all snapshots newest-first, with `plan.html` pinned at the top as "Current".
+
+### Naming rule
+
+The snapshot is named after the **triggering analysis file**, not the current date. So if a weekly review dated 2026-05-15 is what prompted this regeneration, the snapshot is `viz/plan-2026-05-15-week-of-may-12.html` — even if the regeneration itself happens days later. This keeps the archive aligned with the analyses chronology and makes it trivial to find "the plan as it looked after the May 15 review."
+
+### Same-trigger re-runs
+
+If the skill is invoked again for the same triggering analysis (e.g. the analysis was edited and the page needs to catch up), the existing snapshot for that trigger is overwritten in place. The archive records one snapshot per triggering analysis, not one per skill invocation.
+
+### Old snapshots are immutable
+
+`viz/plan-*.html` snapshots other than the one being written this run are **not** to be modified — not by this skill, not by design-system migrations, not by typo fixes. The archive's value is showing the page as it actually appeared when the plan was current; rewriting old snapshots to match a new design system would destroy that record.
+
+## `index.html` design spec
+
+The index page must preserve the two-register identity used by `plan.html` so the archive feels like a coherent product rather than a directory listing. The design tokens, font stack, and motion rules are inherited from the "Design system" section below — only the section structure differs.
+
+### Section structure (top to bottom)
+
+1. **Header strip** (dark, `--bg-dark` / `--ink-dark`)
+   - Title: `Plan history` in Archivo Black.
+   - Subtitle: `Versioned snapshots of viz/plan.html — newest first.` in JetBrains Mono.
+   - Right-aligned: today's date in JetBrains Mono.
+   - Single tracked-out caption rule below in `--ink-dark-dim` (matching `plan.html`'s transition strip aesthetic, scaled down).
+2. **Editorial list** (light, `--bg-light` / `--ink-light`)
+   - One row per snapshot, vertically stacked, separated by a thin `--ink-light-dim` hairline.
+   - **Left column**: Fraunces italic date — the snapshot's `YYYY-MM-DD`, large but not headline-sized.
+   - **Middle column**: the analysis `type` rendered as a small uppercase Sora tag (e.g. `WEEKLY REVIEW`, `RACE REVIEW`, `TRAINING BLOCK`, `SEASON PLAN`), followed beneath by the analysis `summary` line in Sora body weight.
+   - **Right column**: mono link `plan-YYYY-MM-DD-<slug>.html →` in JetBrains Mono, color `--ink-light-dim` with `--amber` on hover.
+   - **Top row** is always `viz/plan.html`, tagged "Current" (replacing the type tag), linking to `plan.html`. Use the most recent triggering analysis's metadata for the date and summary.
+3. **Footer** (dark) — source-files manifest pattern matching `plan.html`'s footer. One additional line noting that the archive is maintained by `.claude/skills/update-plan-visualization/SKILL.md`.
+
+### What the index intentionally does not have
+
+- No SVG charts, gantts, or volume bars — the index is a text-first navigational page, not a second dashboard.
+- No `today` rule or A-race accent — those belong on the actual plan pages.
+- No filtering, search, or JS interactivity — the archive is small and a static page is faster to read and less to maintain.
+
+### Responsive
+
+Single breakpoint at `920px`, matching `plan.html`. Below that, the three columns of each row stack vertically: date, then type + summary, then link.
 
 ## Design system — preserve across regenerations
 
@@ -168,6 +242,7 @@ Dark sections render with white background and black text via `@media print`. An
 - The **`viz/plan.html` location**. The `viz/` directory is intentional — keeps the analyses chronology pure markdown.
 - The **font stack**. If a font fails to load (Google Fonts outage etc.), let it fall back gracefully — don't substitute a different Google Font without flagging it.
 - The **A-race-only amber accent** convention. The B-race uses sage, not amber, on purpose.
+- **Old snapshot files** (`viz/plan-*.html` other than the one being created this run). They are immutable history. Don't modify them, don't reformat them, don't migrate them when the design system shifts. If the design system changes, only new snapshots reflect it — the archive intentionally shows the page as it looked when the plan was current.
 
 If the user asks to change any of these, do it — but treat it as a real design decision, not a regeneration detail, and update this skill file to reflect the new convention.
 
@@ -199,3 +274,6 @@ The data goes inline into the HTML — there is no JSON fetch, no script-driven 
 - Every week card's day-of-week labels match the actual calendar dates of that week.
 - The footer "Updated YYYY-MM-DD" reflects today.
 - A `git diff viz/plan.html` shows no unintended template-level changes — only content updates.
+- The new `viz/plan-<analysis-slug>.html` exists and is byte-identical to `viz/plan.html` (e.g. `diff viz/plan.html viz/plan-<analysis-slug>.html` is empty).
+- `viz/index.html` lists the new snapshot at the top of the editorial list (just below the "Current" row), with the correct date, type tag, summary line, and link target.
+- Older snapshot files (`viz/plan-*.html` from prior runs) appear in `git status` as unmodified — only the analysis file, `viz/plan.html`, the new snapshot, and `viz/index.html` should show in the diff.
