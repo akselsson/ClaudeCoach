@@ -1,6 +1,6 @@
 ---
 name: update-plan-visualization
-description: Regenerate the single-page training-plan visualization at `viz/plan.html` from the current state of `analyses/`, archive a dated snapshot at `viz/plan-YYYY-MM-DD-<analysis-slug>.html`, and refresh `viz/index.html` (the history landing page). Use whenever an analysis file that changes the forward training plan has just been written or modified — weekly reviews, race reviews, training-block files, season-plan files. Always run this in a separate sub-agent because the regeneration produces a long HTML file whose content does not need to live in the main thread's context. Do **not** invoke this skill for files that don't change the forward plan (activity characterizations, niggle logs, observation-only notes).
+description: Regenerate the single-page training-plan visualization at `viz/plan.html` from the current state of `analyses/`, archive a dated snapshot at `viz/plan-YYYY-MM-DD-<analysis-slug>.html`, and refresh `viz/index.html` (the history landing page). Use whenever an analysis file that changes the forward training plan has just been written or modified — weekly reviews, race reviews, training-block files, season-plan files. Normally run via a remote one-shot Claude Code session triggered from the local thread after the analysis commit is pushed — see the trigger procedure in the repo `CLAUDE.md`. The skill can also run locally in a sub-agent as a fallback when the remote path isn't available. Either way, the regeneration produces a long HTML file whose content does not need to live in the main thread's context. Do **not** invoke this skill for files that don't change the forward plan (activity characterizations, niggle logs, observation-only notes).
 ---
 
 # Update plan visualization
@@ -30,11 +30,15 @@ Run this skill in a sub-agent **immediately after** any of the following has bee
 
 The trigger rule is simple: if the change rewrites or extends what the user is going to *do* in the future, regenerate. If the change records something that has already happened or notes something to monitor, don't.
 
-## Why a sub-agent
+## Why a remote session (with sub-agent fallback)
 
-The page is ~1,000 lines of HTML. Authoring it pulls a lot of structured detail through context (week-by-week sessions, SVG coordinate computation, phase color tokens). Done in the main thread, it crowds out actual coaching work. Done in a sub-agent, the parent thread sees only the short diff summary and gets on with whatever follow-up the user actually asked for.
+The page is ~1,000 lines of HTML. Authoring it pulls a lot of structured detail through context (week-by-week sessions, SVG coordinate computation, phase color tokens). Done in the main thread, it crowds out actual coaching work *and* makes the user wait for a long regeneration after a sync.
 
-This mirrors the existing convention for `characterize-activity` — same justification, same pattern.
+The primary mechanism is therefore a **remote one-shot Claude Code session** fired by the local thread after the triggering analysis commit has been pushed. The local thread returns control to the user immediately; the remote session does the regeneration and pushes a follow-up commit. See the "Triggering the remote viz regeneration" subsection in the repo `CLAUDE.md` for the exact local-side procedure.
+
+A **local sub-agent fallback** is retained for offline / no-network situations: when the local thread can't push the analysis commit or the remote routine mechanism is unavailable, the calling thread invokes this skill via the `Agent` tool, the same way `characterize-activity` is used. Behaviour in fallback mode is described in "Workflow → 8. Stage and commit" below.
+
+Both modes keep the long HTML output off the main thread's context — that part of the justification hasn't changed.
 
 ## Workflow
 
@@ -99,14 +103,28 @@ Run `git diff viz/plan.html` and summarize what changed in 3–6 bullets. Specif
 
 Surface anything that surprises you — if the plan shifted a long run by 2 weeks or moved a race, mention it explicitly so the user can confirm it was intentional.
 
-### 8. Stage `viz/plan.html`, the new snapshot, and `viz/index.html` alongside the analysis change
+### 8. Stage and commit `viz/plan.html`, the new snapshot, and `viz/index.html`
 
-The regeneration is downstream of an analysis edit, and the four files (analysis + `plan.html` + new snapshot + `index.html`) must stay in lockstep — committing any subset leaves the repo internally inconsistent. So:
+Behaviour here depends on which mode the skill is running in (see "Why a remote session (with sub-agent fallback)" above).
+
+#### Remote-agent mode (primary)
+
+The triggering analysis commit is already on the branch when the remote session starts — it's why the remote session was scheduled. So this skill is responsible for *both* staging *and* committing the three `viz/` files as a follow-up commit, then pushing.
+
+1. `git add viz/plan.html viz/plan-<analysis-slug>.html viz/index.html`.
+2. `git commit -m "Regenerate viz/plan.html for <analysis-slug>"`. Use exactly that message format — it's the contract the calling local thread referenced when it scheduled the remote session.
+3. `git push` to the same branch the analysis commit landed on.
+
+The three `viz/` files travel as a single commit on top of the analysis commit. Don't squash, amend, or force-push.
+
+#### Local-fallback mode (offline / no remote routine)
+
+Behave the way the skill used to: stage the three files alongside the analysis change, but don't commit.
 
 - If the analysis change is **already staged** when this skill runs, run `git add viz/plan.html viz/plan-<analysis-slug>.html viz/index.html` so they join the same commit. Don't run `git commit` itself — the user (or the calling skill) decides when to commit.
 - If the analysis change is **not yet staged**, leave the three `viz/` files unstaged too. The next `git add` of the analysis file should include all three; mention this in the diff summary so the calling thread can stage them together.
 
-Don't create the commit yourself. Skill output is artifacts + staging + summary, not the commit itself.
+In fallback mode the skill's output is artifacts + staging + summary, not the commit itself.
 
 ## Versioning and history index
 
