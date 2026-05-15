@@ -398,6 +398,22 @@
     color: var(--oxblood);
     font-weight: 700;
   }
+  .week ul.days .day.done {
+    color: var(--ink-light-dim);
+    opacity: 0.85;
+  }
+  .week ul.days .day.today {
+    color: var(--amber);
+    font-weight: 700;
+  }
+  .week ul.days li.done .session { color: var(--ink-light-dim); }
+  .week ul.days li.done .session strong { color: var(--ink-light-dim); font-weight: 500; }
+  .week ul.days li.today {
+    background: linear-gradient(90deg, var(--amber-soft) 0%, transparent 80%);
+    border-left: 2px solid var(--amber);
+    padding-left: 10px;
+    margin-left: -12px;
+  }
   .week ul.days .session {
     font-size: 15.5px;
     line-height: 1.5;
@@ -422,6 +438,8 @@
   .week ul.days .session .tag.str { background: #2c3e3e; color: #d8c98a; border: 1px solid #d8c98a; }
   .week ul.days .session .tag.str.maint { background: transparent; color: #7c756a; border: 1px dashed #b9ad8c; }
   .week ul.days .session .tag.off { background: transparent; border: 1px solid var(--rule-light); }
+  .week ul.days .session .tag.done { background: transparent; color: var(--ink-light-dim); border: 1px dashed var(--rule-light); }
+  .week ul.days .session .tag.dev { background: transparent; color: var(--oxblood); border: 1px solid var(--oxblood); }
   .week ul.days .session strong { font-weight: 600; }
 
   /* Block 2 narrative cards */
@@ -741,9 +759,9 @@
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <section class="deck">
   <div class="topstrip">
-    <span class="signal">PLAN ACTIVE · BLOCK 01 · WEEK 02 STARTING</span>
+    <span class="signal">PLAN ACTIVE · BLOCK 01 · WEEK 02 · DAY 5</span>
     <span>2026 — RUNNING SEASON DASHBOARD</span>
-    <span>UPDATED 2026·05·10 · STRENGTH ADDED</span>
+    <span>UPDATED 2026·05·15 · SUN LONG BUMPED</span>
   </div>
 
   <div class="title-row">
@@ -756,9 +774,9 @@
   </div>
 
   <div class="chips">
-    <div class="chip"><div class="lbl">Today</div><div class="val">May 10<span class="unit">2026</span></div></div>
-    <div class="chip accent"><div class="lbl">→ Berlin Mauerweglauf</div><div class="val">97<span class="unit">days</span></div></div>
-    <div class="chip"><div class="lbl">→ Lidingöloppet</div><div class="val">139<span class="unit">days</span></div></div>
+    <div class="chip"><div class="lbl">Today</div><div class="val">May 15<span class="unit">2026</span></div></div>
+    <div class="chip accent"><div class="lbl">→ Berlin Mauerweglauf</div><div class="val">92<span class="unit">days</span></div></div>
+    <div class="chip"><div class="lbl">→ Lidingöloppet</div><div class="val">134<span class="unit">days</span></div></div>
     <div class="chip"><div class="lbl">Build phase</div><div class="val">02<span class="unit">/ 14 wks</span></div></div>
   </div>
 
@@ -894,11 +912,12 @@
         <text x="1171.5" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#a4baa8">30 km</text>
       </g>
 
-      <!-- ───── TODAY rule (May 10) — at end of W1, x ≈ 57.1 (W1/W2 boundary) ───── -->
+      <!-- ───── TODAY rule (Fri May 15) — day 5 of W2 (Mon May 11 .. Sun May 17)
+            W2 column spans x=57.1 .. 114.3 (width 57.2). Day 5/7 offset = 57.1 + 57.2 * (4.5/7) ≈ 93.9 ───── -->
       <g>
-        <line x1="57.1" y1="34" x2="57.1" y2="170" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.85"/>
-        <circle cx="57.1" cy="34" r="3" fill="#ffb547"/>
-        <text x="63.5" y="170" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700" letter-spacing="1">TODAY</text>
+        <line x1="93.9" y1="34" x2="93.9" y2="170" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.85"/>
+        <circle cx="93.9" cy="34" r="3" fill="#ffb547"/>
+        <text x="100.3" y="170" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700" letter-spacing="1">TODAY</text>
       </g>
     </svg>
   </div>
@@ -921,20 +940,15 @@
       </g>
 
       <!-- bars: x = w*57.14 + 8, width 41, y from baseline 160. scale: 1km = 1px -->
-      <!-- Volumes: w1-21
-        w1=40, w2=32, w3=62, w4=83, w5=88, w6=92, w7=100, w8=105,
-        w9=70, w10=55, w11=55, w12=110, w13=115, w14=70, w15=45,
-        w16=12, w17=30, w18=50, w19=60, w20=55, w21=42
-        (w4-w8 lifted by ~6-9 km vs prior estimate to absorb the
-         standing 21k weekend daughter run — one weekend day is now
-         a fixed easy ~21k slot, not a flex 8-15k.) -->
+      <!-- W2 trimmed to 31 (8k Fri actual + 0 Sat + 11k Sun planned + earlier days),
+           reflecting Fri's 8k vs planned 15k and Sun bump 8k → 10–12k. -->
       <g>
         <!-- W1 history -->
         <rect x="8"     y="120" width="41" height="40"  fill="#2c3539"/>
         <text x="28.5"  y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5d6868">40</text>
         <!-- W2 -->
-        <rect x="65.1"  y="128" width="41" height="32"  fill="#4a7a7a"/>
-        <text x="85.6"  y="123" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">32</text>
+        <rect x="65.1"  y="129" width="41" height="31"  fill="#4a7a7a"/>
+        <text x="85.6"  y="124" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">~31</text>
         <!-- W3 -->
         <rect x="122.3" y="98"  width="41" height="62"  fill="#7aa570"/>
         <text x="142.8" y="93"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">62</text>
@@ -996,8 +1010,8 @@
         <text x="1171.4" y="113" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700">42 + RACE</text>
       </g>
 
-      <!-- TODAY rule continues -->
-      <line x1="57.1" y1="20" x2="57.1" y2="160" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.7"/>
+      <!-- TODAY rule continues (Fri May 15, mid-W2) -->
+      <line x1="93.9" y1="20" x2="93.9" y2="160" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.7"/>
 
       <!-- week index strip at bottom -->
       <g font-family="JetBrains Mono, monospace" font-size="8" fill="#5d6868" letter-spacing="0.5" text-anchor="middle">
@@ -1080,18 +1094,18 @@
       <div class="wknum">02</div>
       <div class="phase-tag">Post-race recovery</div>
       <div class="dates">May 11 — May 17</div>
-      <div class="vol">target <strong>~32 km</strong> · no long, no quality · heavy strength skipped</div>
+      <div class="vol">target <strong>~31 km</strong> · Fri long cut to 8k · Sun bumped 8 → 10–12k</div>
     </aside>
     <div class="body">
-      <p class="intent">Recovery is the work this week. Race ran hotter than the model assumed; the cost is real and budgeted for. One extra non-running day at the front buys cleaner re-entry into Week 3. Post-race rule: maintenance strength only — heavy drops.</p>
+      <p class="intent">Recovery is the work this week. Friday's rebuild long was deliberately cut from 15 km to 8 km — legs still beat up from Tue's Kundo intervals on tired post-race legs. Sunday absorbs some of the missing volume at strict recovery pace, then Week 3 reintroduction holds as written.</p>
       <ul class="days">
-        <li><span class="day">Mon 11</span><span class="session"><span class="tag off">Off</span>or 30 min walk</span></li>
-        <li><span class="day">Tue 12</span><span class="session"><span class="tag off">Walk / spin</span>30–45 min, no running · <em>no heavy strength this week</em></span></li>
-        <li><span class="day">Wed 13</span><span class="session">5–6 km <strong>very easy</strong> with the group, HR &lt; 135. Walk it if it feels rough.</span></li>
-        <li><span class="day">Thu 14</span><span class="session">8 km easy, HR &lt; 140 <span class="tag str maint">+ Maint str</span><em>only if legs feel ready — skip if soreness lingers</em></span></li>
-        <li><span class="day">Fri 15</span><span class="session"><span class="tag off">Off</span></span></li>
-        <li><span class="day">Sat 16</span><span class="session"><span class="tag long">Rebuild</span><strong>15 km easy</strong>, HR &lt; 140 — solo rebuild · daughter run skipped this week (21 km too long for recovery)</span></li>
-        <li><span class="day">Sun 17</span><span class="session">8 km easy recovery, HR &lt; 135</span></li>
+        <li class="done"><span class="day done">Mon 11</span><span class="session"><span class="tag done">Done</span>Off ✓</span></li>
+        <li class="done"><span class="day done">Tue 12</span><span class="session"><span class="tag done">Done</span><span class="tag dev">Deviation</span>Kundo group: 7.1 km, 4 × 4 min "HM pace" intervals (max HR 163 wrist · plan was 5–6 km easy &lt; 135)</span></li>
+        <li class="done"><span class="day done">Wed 13</span><span class="session"><span class="tag done">Done</span>Off ✓ (full rest, not even spin)</span></li>
+        <li class="done"><span class="day done">Thu 14</span><span class="session"><span class="tag done">Done</span>8 km easy ✓ · maintenance strength skipped (legs still seg)</span></li>
+        <li class="today"><span class="day today">Fri 15</span><span class="session"><span class="tag done">Done</span><span class="tag dev">Cut</span><strong>8 km steady, avg HR 140, max 154</strong> · planned 15 km easy &lt; 140 (rebuild long). Deliberate downshift — Sun absorbs the volume.</span></li>
+        <li><span class="day">Sat 16</span><span class="session"><span class="tag off">Off</span>daughter run skipped this week</span></li>
+        <li><span class="day">Sun 17</span><span class="session"><span class="tag long">Recovery long</span><strong>10–12 km, HR &lt; 135 strict</strong> · pace falls out of the cap, don't watch it · Coros armband on · walk a bit if HR climbs to 138+. This is the recovery the week is meant to deliver.</span></li>
       </ul>
     </div>
   </article>
@@ -1105,10 +1119,10 @@
       <div class="vol">target <strong>~62 km</strong> · first proper long since the race · strength reintroduces</div>
     </aside>
     <div class="body">
-      <p class="intent">First aerobic step up. The Saturday long is the test — if it feels labored or HR drifts hard in the back half, Block 1 absorbs another week of reintroduction before quality returns. Strength program reintroduces this week — keep the first heavy session conservative on load (60–70% of working weight) since the run side is still rebuilding.</p>
+      <p class="intent">First aerobic step up. The Saturday long is the test — if it feels labored or HR drifts hard in the back half, Block 1 absorbs another week of reintroduction before quality returns. Strength program reintroduces this week — keep the first heavy session conservative on load (60–70% of working weight) since the run side is still rebuilding. Tuesday rule with the group: easy + strides; if Kundo does intervals (fourth Tuesday running), peel off when they start work and finish the cooldown solo.</p>
       <ul class="days">
         <li><span class="day">Mon 18</span><span class="session"><span class="tag off">Off</span>or commute</span></li>
-        <li><span class="day">Tue 19</span><span class="session">10 km easy, HR &lt; 140 — no strides yet <span class="tag str">+ Heavy str</span><em>first session, ease back in (squat / DL / lunge, 4–6 × 3 sets, sub-max)</em></span></li>
+        <li><span class="day">Tue 19</span><span class="session">10 km easy, HR &lt; 140 + 4 × 20s strides — no intervals yet <span class="tag str">+ Heavy str</span><em>first session, ease back in (squat / DL / lunge, 4–6 × 3 sets, sub-max)</em></span></li>
         <li><span class="day">Wed 20</span><span class="session">12 km easy, HR &lt; 140</span></li>
         <li><span class="day">Thu 21</span><span class="session">10 km easy, HR &lt; 140 <span class="tag str maint">+ Maint str</span><em>single-leg, hip / core / calf · 20–30 min</em></span></li>
         <li><span class="day">Fri 22</span><span class="session"><span class="tag off">Off</span></span></li>
@@ -1212,7 +1226,7 @@
       <div class="race-date">Saturday · 15 August 2026</div>
       <div class="race-stats">
         <div><div class="lbl">Distance</div><div class="val">161 km</div></div>
-        <div><div class="lbl">Days from today</div><div class="val">98</div></div>
+        <div><div class="lbl">Days from today</div><div class="val">92</div></div>
         <div><div class="lbl">Build length</div><div class="val">14 wks</div></div>
         <div><div class="lbl">Goal pace shuffle</div><div class="val">walk/run</div></div>
       </div>
@@ -1256,14 +1270,16 @@
         <li><code>analyses/2026-05-03-season-plan-overview.md</code> — calendar, priorities, season arc</li>
         <li><code>analyses/2026-05-03-block-1-rev2.md</code> — Block 1 day-by-day, Block 2 preview</li>
         <li><code>analyses/2026-05-03-training-preferences.md</code> — standing schedule, weekend partner, 2× / wk strength program (added May 10)</li>
-        <li><code>analyses/2026-05-09-kungsholmen-race-review.md</code> — Weeks 2–3 amendments (latest)</li>
+        <li><code>analyses/2026-05-09-kungsholmen-race-review.md</code> — Weeks 2–3 amendments</li>
+        <li><code>analyses/2026-05-12-activity-sync.md</code> — Tue Kundo deviation logged</li>
+        <li><code>analyses/2026-05-15-activity-sync.md</code> — Fri cut, Sun bumped to 10–12k (latest)</li>
         <li><code>config/training.json</code> — HR zones, max HR, pace anchors</li>
       </ul>
     </div>
     <div>
       <h5>About this page</h5>
       <ul>
-        <li>Generated <strong>2026-05-10</strong> from the files above.</li>
+        <li>Generated <strong>2026-05-15</strong> from the files above.</li>
         <li>Regenerated by the <code>update-plan-visualization</code> skill whenever the plan changes.</li>
         <li>Static HTML · no build · no telemetry · no live Strava data.</li>
         <li>Block 2 weekly volumes are estimates derived from the season-plan narrative; refined as those weeks become real.</li>
