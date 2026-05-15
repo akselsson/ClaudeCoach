@@ -17,10 +17,10 @@ Patrik runs 5 days/week by default; can push to 6 in peak weeks with a recovery 
 | Day | Default role | Time of day | Notes |
 |---|---|---|---|
 | **Mon** | Off | — | Work blocks morning runs. Easy spin OK if legs are restless. |
-| **Tue** | **Quality — work-group session + heavy strength** | Evening | Standing menu: 4×4 min @ interval pace, or 5×6 min @ threshold. Easy with the group is allowed when the plan calls for recovery. Heavy strength stacks onto the run (see Strength section). |
+| **Tue** | **Quality — work-group session + heavy strength** | Evening | The group (Kundo) sets the workout format each week; Patrik tunes the paces to where he is in the cycle. Build week → reps at prescribed effort. Recovery week → same reps jogged at recovery pace. Heavy strength stacks onto the run (see Strength section). |
 | **Wed** | Off | — | Work blocks morning runs. Bike commute fits here when it happens. |
 | **Thu** | Easy or medium-long + maintenance strength | Afternoon/evening | Volume buffer day — flex up for higher-volume weeks, flex down for recovery. Light maintenance strength after the run (see Strength section). |
-| **Fri** | **Long run** | Morning | The week's anchor. B2B partner-day for big weekends. |
+| **Fri** | **Long run — Z2 (HR 140–150)** | Morning | Patrik's preferred long-run day. The week's anchor. Z2 explicitly: aim for steady, not drift-up-from-easy. B2B partner-day for big weekends. |
 | **Sat** | Medium-long / B2B continuation, or daughter run | Morning | Stacked the day after Friday long when the block calls for B2B; otherwise the daughter long run lands here (see below) or it's easy / off. |
 | **Sun** | Easy recovery, or daughter run | Flexible | Daughter long run lands here when she doesn't take Saturday; otherwise short conversational recovery. |
 
@@ -37,22 +37,35 @@ Most volume at HR <145 (easy/conversational), with the Tue work-group session an
 - Matches the existing weekly rhythm (one quality + one long) — no need to invent a second hard day.
 - Patrik confirmed it as the right framework on 2026-05-03 when offered polarized vs. Norwegian sub-threshold-heavy vs. Lydiard hill block. Norwegian-style was rejected as too high-injury-risk to ramp into mid-build; Lydiard was rejected as too rigid for a build that has to accommodate 2 weeks of unstructured Italy training.
 
-## Tuesday work-group session menu
+## Tuesday work-group session
 
-These are the standing options. The block plan picks which one (or "easy with the group") for each week.
+**The group decides the format. Patrik decides the paces.** Kundo runs whatever Kundo runs — Patrik joins it and tunes the effort to where he is in the training cycle. The plan does not try to replace the group session with a different prescription.
 
-- **4×4 min @ interval pace** — VO2-ish, ~5k–10k effort. Used sparingly in the build (max 1×/2 weeks); not appropriate for ultra-specific weeks.
-- **5×6 min @ threshold** — sub-threshold to threshold (HR 158–163). The default quality session for the Berlin build. Aerobic-power-with-leg-speed. Use most weeks once quality is reintroduced.
-- **Easy with the group** — when the plan calls for it. Same social value, no training cost beyond the run itself.
+Formats Kundo cycles through:
 
-If a Tuesday session goes off-script (group did something different, body felt off, weather forced a change), note the actual structure in Strava and let the next weekly review reconcile.
+- **4×4 min** — Patrik's reference pace: interval (~5k–10k effort, HR up toward threshold) in a build week; recovery-pace jog with the same rep structure in a recovery week.
+- **5×6 min** — Patrik's reference pace: threshold (HR 158–163) in a build week; steady or easy in a recovery week.
+- **Easy group run** — straight easy night with no reps.
+
+How the plan uses this rule:
+
+- **Build week with quality budget available** → Patrik runs the reps at the prescribed effort. The group's choice IS the workout.
+- **Recovery week** → Patrik runs the reps at recovery pace. Same sawtooth structure, no cardiovascular stress. Gets the social run, skips the load.
+- **Race week or post-race week** → easy with the group or skip entirely; don't fake-jog the reps.
+- **VO2 (4×4 min) two weeks in a row in a build phase** → take the second one at threshold pace rather than interval pace, to avoid stacking VO2 stimulus when the plan's intent is aerobic-power.
+
+This rule replaces the earlier framing (where the block plan tried to dictate Tuesday's workout type). Three weekly reviews in a row — Apr 28, May 5, May 12 — showed the group session happening regardless of the plan's prescription. The plan now designs around that reality rather than against it.
+
+If Patrik chases the reps when the plan called for recovery, note it in Strava and let the next weekly review reconcile.
 
 ## Weekend running partner — daughter
 
 Patrik's daughter does her weekend long run with him, on either Saturday or Sunday (her choice that week). She just finished a half marathon and is building toward Lidingöloppet (30 km), with her current long run sitting around 21 km. Her pace is 6:00–6:30 /km — comfortably easy for Patrik, conversational the whole way.
 
+**Tag the daughter run as Z1 (HR <140) in block plans, not Z2.** It is aerobic volume, not stress. Daughter's pace lands the run in Z1 naturally; the explicit tag just removes any ambiguity that it might count as the week's long-run stimulus (it doesn't — Friday is the Z2 long run).
+
 Implications for the weekly plan:
-- **One weekend day is committed to ~21 km (and growing) at easy pace.** Counts as aerobic volume for Patrik, not a quality day.
+- **One weekend day is committed to ~21 km (and growing) at Z1 pace.** Counts as aerobic volume for Patrik, not a quality day.
 - **The other weekend day is the flex slot** — short recovery if Friday's long run was hard, off if needed, or a second easy session when the block calls for higher volume.
 - **B2B weekends:** the daughter run is a natural B2B partner for the Friday long run. Friday 30+ km / Saturday 21 km daughter-pace is a real B2B without forcing it. When the block calls for a bigger second leg (Saturday medium-long of 25–30+ km), the daughter run shifts to Sunday and Saturday is solo.
 - **Italy holiday (~late June / early July):** she's not there. The constraint lifts for those ~2 weeks.
