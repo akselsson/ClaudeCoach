@@ -2,7 +2,9 @@
 
 A running-coach memory for Claude.
 
-There's no app to run. Claude reads and writes markdown files in this repo, and that's how it remembers what training plan you're on, what you've done, and what it told you last time.
+This is my personal experiment in using Claude Code as a training partner while preparing for an ultra marathon.
+
+There's no app to run. Claude reads and writes markdown files in this repo, and that's how it remembers what training plan i'm on, what i've done, and what it told me last time.
 
 ## What's in here
 
@@ -27,13 +29,13 @@ After that, just talk to Claude. It picks up where the last session left off.
 
 You don't invoke skills by name — describe what you want and Claude will pick the right one.
 
-| Skill | When to use it | What you might say |
-| --- | --- | --- |
-| `setup-training-plan` | Starting fresh, or throwing out the current plan | "set up a plan for X", "I have a new race in N weeks" |
-| `weekly-training-review` | Routine ~2-week check-in | "weekly review", "how's the build going", "plan the next two weeks" |
-| `characterize-activity` | Take a closer look at one workout | "look at yesterday's run", "was that actually a tempo?" |
-| `update-plan-visualization` | Regenerate `viz/plan.html` | Usually runs automatically; ask for it if the page looks stale |
-| `strava` | Pull raw Strava data | "what did I do last week?", "show me Sunday's long run" |
+| Skill                       | When to use it                                   | What you might say                                                  |
+| --------------------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
+| `setup-training-plan`       | Starting fresh, or throwing out the current plan | "set up a plan for X", "I have a new race in N weeks"               |
+| `weekly-training-review`    | Routine ~2-week check-in                         | "weekly review", "how's the build going", "plan the next two weeks" |
+| `characterize-activity`     | Take a closer look at one workout                | "look at yesterday's run", "was that actually a tempo?"             |
+| `update-plan-visualization` | Regenerate `viz/plan.html`                       | Usually runs automatically; ask for it if the page looks stale      |
+| `strava`                    | Pull raw Strava data                             | "what did I do last week?", "show me Sunday's long run"             |
 
 ## Keeping plans up to date
 
@@ -44,7 +46,7 @@ Roughly:
 - When a review or new plan changes the forward training, `viz/plan.html` gets regenerated and committed alongside the analysis file. The page and the plan move together.
 - Notes that only describe what already happened (a workout characterization, a niggle log, a post-race recap that doesn't change anything going forward) don't trigger a regen.
 
-If the change affects what you'll *do* next, the visualization is updated. If it only records what's already done, it isn't.
+If the change affects what you'll _do_ next, the visualization is updated. If it only records what's already done, it isn't.
 
 ## Analysis file conventions
 
