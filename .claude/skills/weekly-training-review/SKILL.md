@@ -11,7 +11,7 @@ It assumes the conventions in the project's `CLAUDE.md` — analyses live as dat
 
 ## Why this skill exists
 
-A coach who only writes new plans and never compares them to reality drifts. The user has a calendar of races (most importantly Berlin Mauerweglauf as the A-race — see `analyses/2026-05-03-season-plan-overview.md` or whatever the most recent season-plan file is). Sticking to the season strategy depends on noticing **why** sessions were missed, swapped, or added — fatigue, travel, niggle, weather, life — because the right correction depends on the cause. Mechanically rewriting the plan without that conversation produces advice that looks confident but isn't grounded.
+A coach who only writes new plans and never compares them to reality drifts. The user has a calendar of races (most importantly Berlin Mauerweglauf as the A-race — see the current file in `analyses/season-plan/`). Sticking to the season strategy depends on noticing **why** sessions were missed, swapped, or added — fatigue, travel, niggle, weather, life — because the right correction depends on the cause. Mechanically rewriting the plan without that conversation produces advice that looks confident but isn't grounded.
 
 So the heart of this skill is the bit where you stop and ask. Do not skip it.
 
@@ -21,16 +21,17 @@ Follow these phases in order. Don't write the new plan before finishing phase 3.
 
 ### 1. Orient: read the most recent context
 
-Before fetching anything, read:
+Before fetching anything, read the active doc of each relevant type (newest file in each `analyses/<type>/` subfolder):
 
-- The most recent files in `analyses/` (sort by filename, newest first). At minimum read:
-  - The most recent **season-plan** or **race-plan** file (gives the macro structure and A-race date).
-  - The most recent **training-block** or **weekly-review** file (this is the plan we're reviewing against).
-- Anything else in the last 2–3 dated files that might mention niggles, recovery, or decisions the user committed to.
+- `ls analyses/season-plan/ | tail -1` → the season plan. Gives the macro structure and A-race date.
+- `ls analyses/schedule/ | tail -1` → **the plan we're reviewing against** — could be a training-block file or a prior weekly-review; both prescribe forward days, so the newest schedule file is the live one.
+- `ls analyses/preferences/ | tail -1` → standing schedule, style, constraints. Overrides day-of-week assumptions in older block plans.
+- `ls analyses/syncs/` — list everything dated within the review window. Activity-sync files record mid-block corrections (a session swap, a cut-short run, an HR-cap miss) and are easy to miss if you only read the schedule file. Read each sync that falls inside the review period — they tell you what was actually decided session-by-session before this review.
+- `ls analyses/races/ | tail -1` → if a race fell inside the review window, read its review/plan.
 
-If there is no prior plan in `analyses/` at all, this skill doesn't apply — tell the user and offer to write a first season plan or training block instead.
+If there is no prior plan in `analyses/schedule/` or `analyses/season-plan/` at all, this skill doesn't apply — tell the user and offer to write a first season plan or training block instead.
 
-State briefly to the user which prior files you're using as the baseline (e.g. "Reviewing against `2026-05-03-block-1-weeks-may4-jun7.md`, which covered May 4 – Jun 7"). This makes the review legible and lets the user correct you if they have a newer plan you missed.
+State briefly to the user which prior files you're using as the baseline (e.g. "Reviewing against `schedule/2026-05-03-block-1-weeks-may4-jun7.md`, which covered May 4 – Jun 7, with syncs from May 12 and May 15 layered on top"). This makes the review legible and lets the user correct you if they have a newer plan you missed.
 
 ### 2. Pull what actually happened
 
@@ -100,7 +101,7 @@ Wait for the user's answers. Then proceed.
 
 ### 4. Write the new analysis file
 
-Filename: `analyses/YYYY-MM-DD-weekly-review.md` using today's date. If today already has a weekly review, add a short slug suffix (e.g. `-evening`) — don't overwrite.
+Filename: `analyses/schedule/YYYY-MM-DD-weekly-review.md` using today's date. The file goes in `schedule/` because the next-14-days block inside it is the new active detailed schedule. If today already has a weekly review, add a short slug suffix (e.g. `-evening`) — don't overwrite.
 
 Structure:
 
@@ -191,6 +192,6 @@ Then summarize for the user in chat: 1–2 sentences on what the review conclude
 ## Edge cases
 
 - **No Strava data in the period (injury, illness, deload).** Skip phase 3's volume comparison; ask about the cause. The new 14-day plan is a return-to-running plan, not a continuation.
-- **The most recent plan in `analyses/` is older than 14 days.** Cover whatever range the prior plan addressed, not a strict 14 days. State the actual range you're reviewing.
+- **The most recent plan in `analyses/schedule/` is older than 14 days.** Cover whatever range the prior plan addressed, not a strict 14 days. State the actual range you're reviewing.
 - **A race happened in the window.** Read the race-day plan if there is one; review against bail criteria and pacing rules, not just volume.
 - **The user asks for a review but credentials aren't set up.** Follow the strava skill's bootstrap instructions in `.claude/skills/strava/SKILL.md` first. Don't fake the data.

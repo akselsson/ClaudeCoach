@@ -44,21 +44,23 @@ Both modes keep the long HTML output off the main thread's context — that part
 
 ### 1. Orient
 
-List `analyses/` newest-first. Identify the **authoritative trio** for today's forward plan:
+`analyses/` is organised by type (see `CLAUDE.md` "Folder layout"). The active doc of each type is the newest file in its subfolder. Identify the **authoritative trio** for today's forward plan:
 
-- The most recent **season-plan** file — provides the macro arc, race calendar, A-race date, season priorities.
-- The most recent **training-block** file — provides the current block's day-by-day sessions, weekly volume targets, Block 2 preview.
-- Any **weekly-review** or **race-review** dated *after* the block file — these supersede the block's session detail in their date range.
+- `ls analyses/season-plan/ | tail -1` → **season-plan**: macro arc, race calendar, A-race date, season priorities.
+- `ls analyses/schedule/ | tail -1` → **current schedule**: the live day-by-day prescription. Could be a training-block file or a weekly-review file (both prescribe forward days; the newest one in `schedule/` wins).
+- `ls analyses/races/ | tail -1` → **most recent race plan/review** if it falls within the visualization window. Race reviews can include forward-plan amendments.
+
+Also walk back through older files in `schedule/` if needed — when the newest schedule file is a weekly review covering only 14 days, the underlying training-block file (an older entry in the same folder) still provides session detail for the days *after* the review's range.
 
 Read each in full. Note the date ranges they cover.
 
 ### 2. Resolve conflicts
 
-If a review (weekly or race) covers a date range that overlaps the block file's day grid, **the review wins for that range**. State the resolution to the user before regenerating, e.g.:
+If a review (weekly or race) covers a date range that overlaps an older training-block file's day grid, **the review wins for that range**. State the resolution to the user before regenerating, e.g.:
 
-> Reviewing against `block-1-rev2.md` (May 4 – Jun 7) with `kungsholmen-race-review.md` superseding May 11–23 (Weeks 2–3). Will regenerate `viz/plan.html` from these.
+> Reviewing against `schedule/2026-05-03-block-1-rev2.md` (May 4 – Jun 7) with `races/2026-05-09-kungsholmen-race-review.md` superseding May 11–23 (Weeks 2–3). Will regenerate `viz/plan.html` from these.
 
-If two files of the same type cover overlapping ranges (rare), the later-dated file wins.
+If two files in the same subfolder cover overlapping ranges (rare), the later-dated file wins.
 
 ### 3. Read the HR zone config
 
@@ -78,15 +80,15 @@ After `viz/plan.html` is fully written, copy it byte-for-byte to `viz/plan-<anal
 
 Determining the slug:
 
-- If the invoker passed the analysis filename as input, use it.
-- Otherwise inspect `git status` and `git diff --name-only` for changed files under `analyses/`. If exactly one forward-plan file (weekly review, race review, training block, season plan) is dirty or staged, use its basename.
+- If the invoker passed the analysis filename as input, use its basename (strip any subfolder path and the `.md` extension).
+- Otherwise inspect `git status` and `git diff --name-only` for changed files under `analyses/` (across all subfolders). If exactly one forward-plan file (weekly review, race review, training block, season plan) is dirty or staged, use its basename.
 - If the trigger is ambiguous (multiple candidates, or none), ask the user before continuing — don't guess.
 
 If `viz/plan-<analysis-slug>.html` already exists (the skill is re-running for the same trigger), overwrite it. Same-trigger re-runs are corrections to the current snapshot, not new history. See "Versioning and history index" below for the full rationale.
 
 ### 6. Regenerate `viz/index.html`
 
-Rebuild `viz/index.html` from scratch by globbing `viz/plan-*.html` and sorting newest-first by the `YYYY-MM-DD` prefix in the filename. For each snapshot, read the matching `analyses/<slug>.md` YAML header to pull `date`, `type`, and `summary` for the row. If the analysis file is missing (e.g. renamed or deleted), fall back to the snapshot's mtime and the bare filename.
+Rebuild `viz/index.html` from scratch by globbing `viz/plan-*.html` and sorting newest-first by the `YYYY-MM-DD` prefix in the filename. For each snapshot, locate the matching analysis file by globbing `analyses/*/<slug>.md` (basename-only — analyses now live under typed subfolders) and read its YAML header to pull `date`, `type`, and `summary` for the row. If the analysis file is missing (e.g. renamed or deleted), fall back to the snapshot's mtime and the bare filename.
 
 The first row is always `viz/plan.html` itself (labelled "Current"), using metadata from the most recent triggering analysis. Follow the design spec in "`index.html` design spec" below.
 

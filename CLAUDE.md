@@ -10,15 +10,46 @@ There is no application code here — Claude is the "runtime." The repo is a str
 
 ## Conventions
 
+### Folder layout under `analyses/`
+
+`analyses/` is organised by type so that "what is currently active?" is always a single sort, never a slug-guessing exercise. The dated filename (`YYYY-MM-DD-<slug>.md`) is preserved; the subfolder tells Claude which question the file answers.
+
+```
+analyses/
+  preferences/    # training-preferences — standing schedule, style, constraints
+  season-plan/    # season-level macro plans (phases, race calendar)
+  schedule/       # forward-prescribing files: training-block, weekly-review, schedule-update
+  syncs/          # activity-sync — single-day / single-session post-hoc records
+  races/          # race-plan and race-review files
+```
+
+**The active doc of each type is the newest file in its subfolder** (lexicographic sort on the `YYYY-MM-DD` prefix). No symlinks, no INDEX file — the sort *is* the query. So to orient at the start of a session:
+
+- Current preferences: `ls analyses/preferences/ | tail -1`
+- Current season plan: `ls analyses/season-plan/ | tail -1`
+- Current detailed schedule for the upcoming period: `ls analyses/schedule/ | tail -1`
+- Latest activity sync: `ls analyses/syncs/ | tail -1`
+
+**Where to write a new file:** decide which question it answers.
+
+- New standing-schedule / preference fact → `preferences/`
+- New season-level plan → `season-plan/`
+- New forward-prescribing file (block, weekly review, mid-block re-prescription) → `schedule/`
+- Post-hoc record of a single training day / week's actual execution → `syncs/`
+- Race-day plan or post-race review → `races/`
+
+Weekly reviews combine "what happened" and "next 14 days" in one file in `schedule/` — they prescribe upcoming days, so they live with the schedule. Don't split them.
+
+If a preference is being **updated in place** (not adding a new dated entry), edit the latest file in `preferences/` directly — same pattern `2026-05-15-schedule-clarifications.md` used for standing-schedule clarifications.
+
 ### Storing analyses and recommendations
-- Write each analysis or recommendation as its own markdown file under `analyses/`.
-- Filename: `YYYY-MM-DD-short-slug.md` (e.g. `analyses/2026-05-03-weekly-volume.md`). Dated filenames give a natural chronological history and let Claude locate prior notes without folder-routing decisions.
-- Start each file with a short YAML-ish header: date, type (e.g. `weekly-review`, `race-plan`, `recommendation`), and a one-line summary. Keep the body focused on observations, reasoning, and the recommendation itself.
-- Before producing a new recommendation, read the most recent files in `analyses/` so the advice is continuous with what was said before. Note explicitly when changing prior guidance and why.
+- Filename: `YYYY-MM-DD-short-slug.md`. Dated filenames give a natural chronological history; the subfolder (see "Folder layout" above) decides where it goes.
+- Start each file with a short YAML-ish header: date, type (e.g. `weekly-review`, `race-plan`, `training-preferences`), and a one-line summary. Keep the body focused on observations, reasoning, and the recommendation itself.
+- Before producing a new recommendation, read the active doc of each relevant type (newest per subfolder) so the advice is continuous with what was said before. Note explicitly when changing prior guidance and why.
 
 ### Strava data
 - When training data from Strava is needed, use the `stravalib` Python package (auth via Strava OAuth tokens — ask the user where credentials live before assuming).
-- Prefer pulling raw activity data into a short scratch session, then summarising into an analysis file under `analyses/`. Don't commit raw activity dumps.
+- Prefer pulling raw activity data into a short scratch session, then summarising into a file in the relevant `analyses/` subfolder (usually `syncs/` for single-session records). Don't commit raw activity dumps.
 - After downloading an activity, always run the `characterize-activity` skill on it before classifying or writing it up. Averages alone routinely mislabel sessions (an "easy" run with a long surge, a tempo masked as steady, etc.) — the skill's zone breakdown and load metrics are what catch this.
 - Always run `characterize-activity` in a **separate sub-agent** (Agent tool) and have it report back a short characterization — effort tag, primary focus, key zone percentages, load relative to other recent sessions, and any structural notes. Don't run the CLI in the main thread; the JSON dump and per-session number-crunching belong off the main context. The sub-agent's summary is what the analysis is written from.
 
@@ -31,10 +62,10 @@ There is no application code here — Claude is the "runtime." The repo is a str
 
 #### Triggering the remote viz regeneration
 After writing a forward-plan-changing analysis file:
-1. Stage + commit the analysis file by itself: `git add analyses/<slug>.md && git commit -m "<msg>"`. Do not include `viz/` in this commit.
+1. Stage + commit the analysis file by itself: `git add analyses/<type>/<slug>.md && git commit -m "<msg>"`. Do not include `viz/` in this commit.
 2. `git push` so the remote agent can see the analysis.
 3. Invoke the `schedule` skill in **one-shot mode** with a prompt like:
-   > Run the `update-plan-visualization` skill in repo `akselsson/ClaudeCoach` on branch `<branch>`. Triggering analysis: `analyses/<slug>.md`. After the skill stages the viz files, create a commit with message `Regenerate viz/plan.html for <slug>` and push.
+   > Run the `update-plan-visualization` skill in repo `akselsson/ClaudeCoach` on branch `<branch>`. Triggering analysis: `analyses/<type>/<slug>.md`. After the skill stages the viz files, create a commit with message `Regenerate viz/plan.html for <slug>` and push.
 4. Report back to the user that the viz regeneration is queued in a remote session and will land as a follow-up commit. Don't wait.
 
 ### Training profile and project-scoped config
@@ -46,5 +77,5 @@ After writing a forward-plan-changing analysis file:
 ## Working in this repo
 
 - This is a notebook, not a codebase. There are no build, lint, or test commands.
-- Updates are almost always: read recent `analyses/` files → fetch any new data → write a new dated analysis file.
+- Updates are almost always: read the active doc of each relevant type (newest in each `analyses/<type>/` subfolder) → fetch any new data → write a new dated analysis file into the matching subfolder.
 - Keep markdown lean and skimmable — these files are read by future Claude sessions, not just the user.

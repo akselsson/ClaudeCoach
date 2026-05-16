@@ -29,15 +29,18 @@ Follow these phases in order. Resist the urge to draft the plan before phase 4.
 
 ### 1. Orient: read the prior context
 
-Before fetching anything or asking anything, read what's already in the notebook:
+Before fetching anything or asking anything, read what's already in the notebook. `analyses/` is organised by type — the active doc of each type is the newest file in its subfolder.
 
-- List `analyses/` and read at least the most recent **season-plan**, **race-plan**, and **training-block** files (sort by filename, newest first). If a season plan exists and the user is asking for a sub-block within it, the season plan is your strongest constraint.
-- Read this repo's `CLAUDE.md` for repo conventions (file naming, the no-JSON-dumps rule, the analyses-folder convention).
+- `ls analyses/season-plan/ | tail -1` → read the current season plan (if any). If one exists and the user is asking for a sub-block within it, the season plan is your strongest constraint.
+- `ls analyses/schedule/ | tail -1` → read the current detailed schedule (training block or latest weekly review). Tells you what the user is doing right now.
+- `ls analyses/preferences/ | tail -1` → read the current training preferences. Standing schedule, style, constraints — these *override* day-of-week defaults in older block plans.
+- `ls analyses/races/ | tail -1` → if there's a recent race plan/review, skim it for context on where the user just was fitness-wise.
+- Read this repo's `CLAUDE.md` for repo conventions (folder layout, file naming, the no-JSON-dumps rule).
 - Note the user's stated A-race(s) and any commitments already on the calendar.
 
 If a plan that already covers the requested goal exists, **stop and ask** before starting a parallel plan: "There's already a plan for X in `<file>`. Do you want to replace it, extend it, or build something separate alongside it?" Plans collide silently otherwise.
 
-If `analyses/` is empty (first-ever plan), say so and skip the prior-plan reading — you'll just need a slightly longer interview to fill in the missing context.
+If the relevant subfolders are empty (first-ever plan), say so and skip the prior-plan reading — you'll just need a slightly longer interview to fill in the missing context.
 
 ### 2. Pull long-term Strava data to build a profile
 
@@ -114,13 +117,14 @@ This is cheap and prevents writing a whole plan around a misread.
 
 ### 5. Write the plan file
 
-Filename: `analyses/YYYY-MM-DD-<slug>.md` using today's date. Slug should reflect what the plan is — `season-plan`, `berlin-build`, `first-marathon-block`, `base-build-jul-aug`, etc. Don't overwrite — if today already has a file for this plan, suffix the slug.
+Filename: `YYYY-MM-DD-<slug>.md` using today's date, placed in the subfolder that matches the file type (see `CLAUDE.md` "Folder layout"). Don't overwrite — if today already has a file with the same slug, suffix it.
 
 #### Pick the right structure for the horizon
 
-- **Season-plan file** (12+ weeks, race-anchored): macro structure only. Phases, weekly volume targets per phase, key weekends, taper outline. Day-by-day not required. See `analyses/2026-05-03-season-plan-overview.md` for the template.
-- **Training-block file** (4–6 weeks, detailed): day-by-day tables, HR targets, specific sessions. See `analyses/2026-05-03-block-1-weeks-may4-jun7.md` for the template.
-- **Both.** If the user is starting fresh and has a far-off A-race, write a season-plan file *and* a first training-block file. Cross-reference between them. This is often the right answer — don't shy away from it just because it's two files.
+- **Season-plan file** (12+ weeks, race-anchored): macro structure only. Phases, weekly volume targets per phase, key weekends, taper outline. Day-by-day not required. Write to `analyses/season-plan/<date>-<slug>.md`. See `analyses/season-plan/2026-05-03-season-plan-overview.md` for the template.
+- **Training-block file** (4–6 weeks, detailed): day-by-day tables, HR targets, specific sessions. Write to `analyses/schedule/<date>-<slug>.md`. See `analyses/schedule/2026-05-03-block-1-weeks-may4-jun7.md` for the template.
+- **Race-plan file**: race-day pacing, fuelling, bail criteria. Write to `analyses/races/<date>-<slug>.md`.
+- **Multiple files.** If the user is starting fresh and has a far-off A-race, write a season-plan file *and* a first training-block file. Cross-reference between them by full path. This is often the right answer — don't shy away from it just because it's two files.
 
 #### File header
 
@@ -145,7 +149,7 @@ summary: <one-line summary>
 - **What I'm watching for** — 3–5 signals that would prompt a course correction at the next review (resting HR drift, niggle escalation, sleep, motivation).
 - **Open questions / decisions deferred** — things you and the user agreed to revisit later. This prevents future-you from having to reverse-engineer "wait, did we decide on Stockholm Marathon?".
 
-If you wrote both a season plan and a first block, link them ("First block detail: `analyses/YYYY-MM-DD-block-1-...md`").
+If you wrote both a season plan and a first block, link them ("First block detail: `analyses/schedule/YYYY-MM-DD-block-1-...md`").
 
 ### 6. Reality-check before handing back
 
