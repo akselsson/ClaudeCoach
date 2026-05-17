@@ -215,6 +215,16 @@ Body (editorial):
 
 All four loaded from Google Fonts in one `<link>` with `display=swap`.
 
+### Favicon
+
+Both `viz/plan.html` and `viz/index.html` link to `viz/favicon.svg` — a hand-authored two-tone CC monogram (amber back-C nested over an inner oxblood C). The SVG is a checked-in static asset; this skill does **not** regenerate it. Just emit the link tag in each page's `<head>`, immediately after `<title>`:
+
+```html
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+```
+
+Dated snapshots (`plan-<slug>.html`) inherit the tag for free because step 5 of the workflow copies `plan.html` byte-for-byte.
+
 ### Color tokens
 
 ```
