@@ -77,7 +77,7 @@ Her own training is not tracked in this notebook — only its impact on Patrik's
 
 ## Cross-training
 
-- **Bike commute:** target 1×/week, in practice often 1–2×/month. Treat as opportunistic recovery / commuting overhead, not weekly aerobic load. Don't double up the commute on a tired day.
+- **Bike commute:** target 1×/week, in practice often 1–2×/month. 17 km each way (34 km round trip), ridden fairly hard — mostly Z2 with Z3 on uphills. This is real aerobic load, not commuting overhead. Count it as a training day when planning weekly load. Don't double up on a day before a quality run session or on legs that are already tired.
 
 ## Strength
 
