@@ -16,9 +16,9 @@ Patrik runs 5 days/week by default; can push to 6 in peak weeks with a recovery 
 
 | Day | Default role | Time of day | Notes |
 |---|---|---|---|
-| **Mon** | Off | — | Work blocks morning runs. Easy spin OK if legs are restless. |
-| **Tue** | **Quality — work-group session + heavy strength** | Evening | The group (Kundo) sets the workout format each week; Patrik tunes the paces to where he is in the cycle. Build week → reps at prescribed effort. Recovery week → same reps jogged at recovery pace. Heavy strength stacks onto the run (see Strength section). |
-| **Wed** | Off | — | Work blocks morning runs. Bike commute fits here when it happens. |
+| **Mon** | Off | — | Work blocks morning runs; evenings are available if the plan needs a light run. Easy spin OK if legs are restless. |
+| **Tue** | **Quality — work-group session + heavy strength** | Evening | The group (Kundo) sets the workout format each week; Patrik tunes the paces to where he is in the cycle. Build week → reps at prescribed effort. Recovery week → same reps jogged at recovery pace. Heavy strength stacks onto the run (see Strength section). Group runs are always 8–10 km — never more. |
+| **Wed** | Off | — | Work blocks morning runs; evenings are available if the plan needs a light run. Bike commute fits here when it happens. |
 | **Thu** | Easy or medium-long + maintenance strength | Afternoon/evening | Volume buffer day — flex up for higher-volume weeks, flex down for recovery. Light maintenance strength after the run (see Strength section). |
 | **Fri** | **Long run — Z2 (HR 140–150)** | Morning | Patrik's preferred long-run day. The week's anchor. Z2 explicitly: aim for steady, not drift-up-from-easy. B2B partner-day for big weekends. |
 | **Sat** | Medium-long / B2B continuation, or daughter run | Morning | Stacked the day after Friday long when the block calls for B2B; otherwise the daughter long run lands here (see below) or it's easy / off. |
@@ -40,6 +40,8 @@ Most volume at HR <145 (easy/conversational), with the Tue work-group session an
 ## Tuesday work-group session
 
 **The group decides the format. Patrik decides the paces.** Kundo runs whatever Kundo runs — Patrik joins it and tunes the effort to where he is in the training cycle. The plan does not try to replace the group session with a different prescription.
+
+The group run is always **8–10 km**, never more. Plan accordingly — Tuesday is not a distance day.
 
 Formats Kundo cycles through:
 
