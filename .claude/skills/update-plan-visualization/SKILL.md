@@ -197,7 +197,7 @@ The page has a deliberate **two-register** identity. Don't change these without 
 2. **Transition strip** — gradient half-dark / half-light with an amber hairline rule and a single tracked-out caption (`—— BLOCK NN · WEEK-BY-WEEK ——`).
 3. **Editorial training journal** (light, warm off-white)
    - Centered preamble paragraph (Fraunces display headline + Sora body) framing the current block's *why*.
-   - Block 1 (current block): one `<article class="week">` per week with a left rail (big italic Fraunces week number, phase tag, dates, volume target) and a right column (intent pull-quote + day-by-day list with session tags).
+   - Block 1 (current block): one `<article class="week">` per week with a left rail (big italic Fraunces week number, phase tag, dates, volume target) and a right column (intent pull-quote + day-by-day list with session tags). **Week ordering: current week first, then future weeks in chronological order, then past/done weeks.** The current week is the one whose date range contains today. Past weeks are those that ended before today. This ordering ensures the actionable content (now + future) is immediately visible after the preamble, with the historical record below it.
    - Block 2 (next block): 4 narrative cards in a 2-column grid — phases, not days. Italy / unstructured weeks rendered with a hatched diagonal-line background.
 4. **A-race banner** (full-bleed dark) — race name in Archivo Black with one word italicized in amber, race date in mono, 4-stat grid, italic Fraunces creed pull-quote on the right.
 5. **Postscript** (light) — post-A-race recovery + B-race description, ends with a left-rule callout for the B-race finish.
@@ -299,6 +299,7 @@ The data goes inline into the HTML — there is no JSON fetch, no script-driven 
 ## Sanity checks before reporting done
 
 - The today rule on the gantt visibly lands on the correct week column.
+- The first `<article class="week">` in the editorial section is the **current week** (the one containing today), not week 1 of the block. Past weeks appear after future weeks.
 - The two header SVGs use the same x-coordinate scheme so the today rule and week index strip line up between gantt and volume chart.
 - Race pins are in the right week columns. (Check by counting weeks from the start date.)
 - Every week card's day-of-week labels match the actual calendar dates of that week.
