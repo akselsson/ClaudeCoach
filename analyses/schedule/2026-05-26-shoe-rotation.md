@@ -34,10 +34,15 @@ Megablast's case for race day: more total foam = more impact protection on road 
 
 An upsized shoe can feel sloppy on short runs — foot slides without the swell to fill it, blistering from the *opposite* cause. Don't put Evo SL into short-easy duty.
 
-**Fit check: Thu Jun 4 (Week 5's mid-week 14 km steady, HR 140–150).** Long enough for real load, short enough that a fit problem is recoverable. Watch for heel lift, midfoot slop, toe-box movement on downhills.
+**Primary fit-check slot: Thu Jun 4 (Week 5's mid-week 14 km steady, HR 140–150).** Long enough for real load, short enough that a fit problem is recoverable. Watch for heel lift, midfoot slop, toe-box movement on downhills.
+
+**Caveat — Jun 4 is at risk.** Per `schedule/2026-05-24-schedule-notes.md`, Jun 2–4 is socially packed and Thursday Jun 4 may not happen. Fallback ladder if Thursday is lost:
+
+1. **Sat Jun 6 or Sun Jun 7 weekend easy** (if Week 5 ends up with an easy weekend slot in lieu of Thursday). Lower load than 14 km steady but still 10+ km on real terrain — adequate fit check.
+2. **Thu Jun 11 (Week 6 mid-week)** as the latest acceptable fit check before Block 2 specificity starts Jun 22. Block 2 long runs cannot be the *first* Evo SL test — that's how blisters at km 30 of a 50 km destroy a build week.
 
 - **If clean** → promote Evo SL to Block 2 long-run-only duty starting Jun 22 onward.
-- **If sloppy** → re-lace, try heel-lock lacing, retest on Sun Jun 7 easy. If still sloppy after that, the size-up was too aggressive and the ultra shoe decision narrows to Megablast (with Superblast 3 still in reserve as the backup).
+- **If sloppy** → re-lace, try heel-lock lacing, retest on the next available easy day. If still sloppy after a relace test, the size-up was too aggressive and the ultra shoe decision narrows to Megablast (with Superblast 3 still in reserve as the backup).
 
 ## Mileage tracking — both pairs
 
