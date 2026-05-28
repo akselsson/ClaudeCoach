@@ -53,7 +53,7 @@ def main() -> None:
         size="distance_km",
         size_max=22,
         hover_name="name",
-        custom_data=["date", "distance_km", "elev_gain_m", "pace_label", "gap_label", "avg_hr", "max_hr", "gear_label"],
+        custom_data=["date", "distance_km", "elev_gain_m", "pace_label", "gap_label", "avg_hr", "max_hr", "gear_label", "id"],
         title=f"Shoe speed vs. effort — last {payload.get('window_days', '?')} days",
     )
     fig.update_traces(
@@ -62,7 +62,8 @@ def main() -> None:
             "%{customdata[0]} · %{customdata[1]:.1f} km · +%{customdata[2]:.0f} m<br>"
             "Pace %{customdata[3]} · GAP %{customdata[4]}<br>"
             "HR avg %{customdata[5]:.0f} (max %{customdata[6]:.0f})<br>"
-            "Gear: %{customdata[7]}<extra></extra>"
+            "Gear: %{customdata[7]}<br>"
+            "<i>click to open in Strava</i><extra></extra>"
         ),
         marker=dict(line=dict(width=0.5, color="rgba(255,255,255,0.35)")),
     )
@@ -88,8 +89,26 @@ def main() -> None:
         margin=dict(l=70, r=30, t=110, b=70),
     )
 
+    # Open the corresponding Strava activity in a new tab when a point is clicked.
+    # The Strava activity id is the last entry of customdata per the array above.
+    click_handler = """
+    var gd = document.getElementById('{plot_id}');
+    gd.style.cursor = 'pointer';
+    gd.on('plotly_click', function(data) {
+        var pt = data.points[0];
+        if (!pt || !pt.customdata) return;
+        var id = pt.customdata[pt.customdata.length - 1];
+        if (id) window.open('https://www.strava.com/activities/' + id, '_blank');
+    });
+    """
+
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    fig.write_html(str(OUTPUT_PATH), include_plotlyjs="cdn", full_html=True)
+    fig.write_html(
+        str(OUTPUT_PATH),
+        include_plotlyjs="cdn",
+        full_html=True,
+        post_script=click_handler,
+    )
     print(f"Wrote {OUTPUT_PATH}", file=sys.stderr)
 
 
