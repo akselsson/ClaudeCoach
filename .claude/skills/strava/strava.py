@@ -225,6 +225,10 @@ def build_detail_dict(activity) -> dict:
     detail["average_cadence"] = getattr(activity, "average_cadence", None)
     detail["average_watts"] = getattr(activity, "average_watts", None)
     detail["weighted_average_watts"] = getattr(activity, "weighted_average_watts", None)
+    # Strava attaches a gear_id (shoe/bike) to most activities. Surface it raw —
+    # resolution to a friendly name happens via config/training.json's `gear` array,
+    # so we don't burn an extra get_gear() call per activity.
+    detail["gear_id"] = getattr(activity, "gear_id", None)
     detail["splits_metric"] = [
         {
             "split": s.split,
@@ -467,6 +471,67 @@ def cmd_streams(args: argparse.Namespace) -> None:
     sys.stdout.write("\n")
 
 
+def _gear_summary(item) -> dict:
+    """Shape a SummaryGear (shoe/bike from get_athlete()) into our JSON output.
+    Use getattr defensively — fields vary by stravalib version and gear type."""
+    return {
+        "id": getattr(item, "id", None),
+        "name": getattr(item, "name", None),
+        "nickname": getattr(item, "nickname", None),
+        "primary": getattr(item, "primary", None),
+        "distance_m": to_meters(getattr(item, "distance", None)),
+        "retired": getattr(item, "retired", None),
+    }
+
+
+def _gear_detail(g) -> dict:
+    """Shape a DetailedGear (single-id lookup via get_gear()) into our JSON output."""
+    return {
+        "id": getattr(g, "id", None),
+        "name": getattr(g, "name", None),
+        "brand_name": getattr(g, "brand_name", None),
+        "model_name": getattr(g, "model_name", None),
+        "nickname": getattr(g, "nickname", None),
+        "description": getattr(g, "description", None),
+        "primary": getattr(g, "primary", None),
+        "distance_m": to_meters(getattr(g, "distance", None)),
+        "retired": getattr(g, "retired", None),
+        "frame_type": str(getattr(g, "frame_type", None)) if getattr(g, "frame_type", None) is not None else None,
+    }
+
+
+def cmd_gear(args: argparse.Namespace) -> None:
+    """Look up gear from Strava.
+
+    With no `id`: list the authenticated athlete's shoes and bikes. Requires
+    the `profile:read_all` OAuth scope; if the token was issued without it,
+    both arrays come back empty and a warning is printed to stderr.
+
+    With an `id` (e.g. `g31149428`): fetch a single gear's full detail. Works
+    with the default scope and is the cheaper path when an unknown gear_id
+    pops up on an activity — usually one new shoe per rotation.
+    """
+    client = authed_client(Path(args.env_file).expanduser(), Path(args.token_cache).expanduser())
+    if args.id:
+        g = client.get_gear(args.id)
+        json.dump(_gear_detail(g), sys.stdout, indent=2, default=str)
+        sys.stdout.write("\n")
+        return
+
+    athlete = client.get_athlete()
+    shoes = [_gear_summary(s) for s in (getattr(athlete, "shoes", None) or [])]
+    bikes = [_gear_summary(b) for b in (getattr(athlete, "bikes", None) or [])]
+    if not shoes and not bikes:
+        print(
+            "warning: athlete.shoes and athlete.bikes are empty. The most likely cause is "
+            "that the OAuth token lacks the `profile:read_all` scope. Either re-authorize "
+            "with that scope, or resolve gear ids one at a time via `gear <id>`.",
+            file=sys.stderr,
+        )
+    json.dump({"shoes": shoes, "bikes": bikes}, sys.stdout, indent=2, default=str)
+    sys.stdout.write("\n")
+
+
 def cmd_weekly_volume(args: argparse.Namespace) -> None:
     client = authed_client(Path(args.env_file).expanduser(), Path(args.token_cache).expanduser())
     after = datetime.now(timezone.utc) - timedelta(weeks=args.weeks)
@@ -546,6 +611,13 @@ def main() -> None:
     p.add_argument("--refresh", action="store_true",
                    help="Force-refetch from Strava, ignoring any cached entry")
     p.set_defaults(func=cmd_streams)
+
+    p = sub.add_parser("gear", help="List athlete shoes/bikes, or look up one gear by id "
+                                    "(resolves unknown gear_ids from activity output)")
+    p.add_argument("id", nargs="?", default=None,
+                   help="Optional gear id (e.g. g31149428). Omit to list all athlete gear "
+                        "(requires profile:read_all scope).")
+    p.set_defaults(func=cmd_gear)
 
     p = sub.add_parser("weekly-volume", help="Bucket activities into ISO weeks and total volume per week")
     p.add_argument("--weeks", type=int, default=8, help="How many weeks back to include (default: 8)")

@@ -33,5 +33,19 @@
     {"name": "threshold",     "min_per_km": "4:20", "max_per_km": "4:30"},
     {"name": "interval",      "min_per_km": "4:05", "max_per_km": "4:15"},
     {"name": "vo2",           "min_per_km": "3:55", "max_per_km": "4:05"}
+  ],
+  "gear": [
+    {"id": "g31397925", "type": "shoe", "name": "Adidas Evo SL Silver",      "nickname": null, "retired": false, "notes": ""},
+    {"id": "g31149428", "type": "shoe", "name": "ASICS Megablast",            "nickname": null, "retired": false, "notes": ""},
+    {"id": "g29334468", "type": "shoe", "name": "Altra Torin 8",              "nickname": null, "retired": false, "notes": ""},
+    {"id": "g27836907", "type": "shoe", "name": "Altra Lone Peak",            "nickname": null, "retired": false, "notes": "trail"},
+    {"id": "g27772770", "type": "shoe", "name": "HOKA Tecton X3",             "nickname": null, "retired": false, "notes": "trail"},
+    {"id": "g24914475", "type": "shoe", "name": "Adidas Boston 13",           "nickname": null, "retired": false, "notes": ""},
+    {"id": "g24895470", "type": "shoe", "name": "Adidas Evo SL",              "nickname": null, "retired": false, "notes": ""},
+    {"id": "g19811829", "type": "shoe", "name": "Saucony Endorphin Speed 4",  "nickname": null, "retired": false, "notes": ""},
+    {"id": "g14961105", "type": "shoe", "name": "HOKA Carbon X3",             "nickname": null, "retired": false, "notes": ""},
+    {"id": "g13342225", "type": "shoe", "name": "Altra Torin 6",              "nickname": null, "retired": false, "notes": ""},
+    {"id": "g1902237",  "type": "shoe", "name": "Unbranded Okategoriserat",   "nickname": null, "retired": false, "notes": "Strava 'uncategorised' placeholder — historical default"},
+    {"id": "b4697980",  "type": "bike", "name": "Superior X-Road Team Elite", "nickname": null, "retired": false, "notes": ""}
   ]
 }

@@ -53,6 +53,19 @@ If a preference is being **updated in place** (not adding a new dated entry), ed
 - After downloading an activity, always run the `characterize-activity` skill on it before classifying or writing it up. Averages alone routinely mislabel sessions (an "easy" run with a long surge, a tempo masked as steady, etc.) — the skill's zone breakdown and load metrics are what catch this.
 - Always run `characterize-activity` in a **separate sub-agent** (Agent tool) and have it report back a short characterization — effort tag, primary focus, key zone percentages, load relative to other recent sessions, and any structural notes. Don't run the CLI in the main thread; the JSON dump and per-session number-crunching belong off the main context. The sub-agent's summary is what the analysis is written from.
 
+### Gear tracking on activity syncs
+Every new file in `analyses/syncs/` records which shoe (or bike) was used, so that gear-related patterns (a shoe delivering free pace, a niggle correlating with one model, the rotation drifting) are visible across the history without re-deriving them.
+
+Workflow when writing a sync:
+1. `strava activity <id>` already returns `gear_id` (e.g. `g31149428`). Read it.
+2. Look the id up in `config/training.json`'s `gear` array.
+   - **Found** → put a one-line `Gear:` field in the sync header alongside the existing distance/HR/etc. line. Format: `Gear: <name>` (or `<name> (<nickname>)` when a nickname is set). Example: `Gear: Adidas Evo SL Silver (Evo SL)`.
+   - **Not found** (new shoes since the last seed) → run `strava gear <id>` to fetch the friendly name, append a new entry to the `gear` array in `config/training.json` (`{id, type, name, nickname: null, retired: false, notes: ""}`), and commit that config change **separately from the sync file**. The sync still gets the `Gear:` line populated from the just-added entry.
+   - **`gear_id` is null/missing** (Strava allows this) → write `Gear: unspecified` and move on.
+3. Retiring or replacing gear is an in-place edit on the relevant `gear` entry (flip `retired`, set `nickname`, add `notes`). The `git log` of `config/training.json` is the gear-rotation history — same convention HR zones already get.
+
+The `gear` array is an id↔name mapping plus light rotation context; it is **not** a distance ledger. Strava already tracks total km per shoe — pull it from `strava gear <id>` when needed (`distance_m`), don't mirror it in config.
+
 ### Keeping the plan visualization in sync
 - A human-readable single-page visualization of the forward training plan lives at `viz/plan.html`. It is generated from the current state of `analyses/` (latest season-plan + current training-block + any newer weekly/race reviews) plus `config/training.json`. A stale visualization is worse than none — it looks authoritative while lying about what the plan actually says.
 - Whenever an analysis file is added or modified that changes the **forward** training plan — weekly reviews, race reviews, training-block files, season-plan files — regenerate `viz/plan.html` via a **remote one-shot Claude Code session** fired from the local thread after the analysis commit is pushed (procedure below). The remote agent runs the `update-plan-visualization` skill and pushes a follow-up commit. Don't run the skill locally — neither in the main thread nor in a local sub-agent — because the regeneration is slow and blocks the local session. The point of the remote path is that the local sync returns control immediately.
@@ -70,7 +83,7 @@ After writing a forward-plan-changing analysis file:
 
 ### Training profile and project-scoped config
 - Project-scoped training settings live in `config/` at the repo root and are checked in. The change history of those files is itself part of the coaching record — when zones shift between blocks or max HR is recalibrated, that's a training event worth a commit message.
-- Currently this is just `config/training.json` (max HR, resting HR, HR zone bands), used by the `characterize-activity` skill. Future training-data settings (pace zones, lifetime PRs, threshold history) belong here too.
+- Currently this is just `config/training.json` (max HR, resting HR, HR zone bands, pace anchors and zones, gear rotation). HR data is consumed by the `characterize-activity` skill; the `gear` array maps Strava `gear_id`s to friendly names for activity-sync writes (see "Gear tracking on activity syncs"). Future training-data settings (lifetime PRs, threshold history) belong here too.
 - Strava API credentials live in `<project_root>/.env` as `STRAVA_CLIENT_ID` / `STRAVA_CLIENT_SECRET` (and an optional bootstrap `STRAVA_REFRESH_TOKEN`). `.env` is gitignored — see `.env.example` for the template. The rotating OAuth tokens (access/refresh/expires) are cached at `.cache/strava/token.json`, also gitignored and treated as regenerable state.
 - When an analysis cites HR zones (e.g. "threshold session at 158–163"), it is implicitly written against whatever `config/training.json` said at the time. Old analyses are not retroactively wrong when zones change — they were correct in their moment.
 
