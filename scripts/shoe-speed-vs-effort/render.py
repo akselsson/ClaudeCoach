@@ -48,8 +48,13 @@ def main() -> None:
         df["hr_suspect"] = False
         df["hr_suspect_reason"] = ""
 
+    # Suspect (low-HR wrist-optical) runs live in their OWN trace, not the
+    # per-shoe traces, so unchecking "Suspect HR" in the legend actually removes
+    # them — and a dropout never pollutes a shoe's cluster.
+    df_clean = df[~df["hr_suspect"]]
+
     fig = px.scatter(
-        df,
+        df_clean,
         x="avg_gap_min_per_km",
         y="avg_hr",
         color="model_label",
@@ -77,10 +82,10 @@ def main() -> None:
     )
     fig.update_yaxes(title="Average heart rate (bpm)")
 
-    # Overlay a toggleable red ring on runs flagged as low-HR wrist-optical
-    # dropouts (see build_dataset.annotate_hr_suspects). The shoe-colored dot
-    # stays underneath; the ring is sized just outside it. Same area-sizeref as
-    # px.scatter (so rings track dot size) scaled up 1.6× → ~1.26× diameter.
+    # Flagged low-HR wrist-optical dropouts as their own toggleable trace (red
+    # rings). Uncheck it in the legend to view the chart without outliers. Size
+    # uses the same area-sizeref as the per-shoe dots so distances stay
+    # comparable; sizemin keeps short runs visible next to the 100km+ ultras.
     suspect = df[df["hr_suspect"]]
     hr_meta = payload.get("hr_outliers", {})
     if not suspect.empty:
@@ -100,7 +105,7 @@ def main() -> None:
                 size=suspect["distance_km"] * 1.6,
                 sizemode="area",
                 sizeref=sizeref,
-                sizemin=6,
+                sizemin=9,
                 color="rgba(255,80,80,0.95)",
                 line=dict(width=2, color="rgba(255,80,80,0.95)"),
             ),
@@ -123,7 +128,8 @@ def main() -> None:
     if not suspect.empty:
         footnote += (
             f" · {len(suspect)} flagged low-HR "
-            f"(wrist optical, pre-{hr_meta.get('wrist_optical_until', '?')})"
+            f"(wrist optical, pre-{hr_meta.get('wrist_optical_until', '?')}) — "
+            f"uncheck “Suspect HR” in the legend to hide them"
         )
 
     fig.update_layout(
