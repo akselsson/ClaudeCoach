@@ -78,6 +78,19 @@ R1_GAP_MAX, R1_HR_MAX = 5.0, 140    # easy-low:  GAP ≤ 5:00 and avg HR < easy-
 R2_GAP_MAX, R2_HR_MAX = 4.75, 150   # fast-low:  GAP ≤ 4:45 and avg HR < steady-zone ceiling
 R4_GAP_MAX, R4_MAXHR_MAX = 5.0, 155  # max-hr sanity: GAP ≤ 5:00 and max HR < 155
 
+# --- Cardiac-drift HR adjustment (long-run decoupling) ----------------------
+# Longer-DURATION runs show a higher whole-run average HR for the same GAP
+# (cardiac drift: HR creeps up with time on feet). On the chart that pushes long
+# runs rightward, so they can only be compared within one distance band. The fix
+# is a duration-driven adjustment, avg_hr_adj = avg_hr − c·(minutes − ref_min),
+# where the drift coefficient c (bpm/min) is FITTED from the athlete's own trusted
+# runs — never a textbook constant — and ref_min recenters on the median trusted
+# duration so the cloud doesn't shift wholesale. See fit_hr_drift(). Defaults to
+# on whenever HR-correction is on (it shares the same trusted population), gated on
+# `shoe_chart.hr_drift.enabled`.
+HR_DRIFT_ENABLED = True
+DRIFT_MIN_TRUSTED = 8               # too few trusted runs ⇒ don't fit, leave HR raw
+
 # --- Interval / workout detection (dynamic, relative to each run) -----------
 # A whole-run avg GAP/HR is meaningless for interval sessions — fast reps + slow
 # recovery jogs + standing time blend into a fastish pace at a low HR, landing in
@@ -135,6 +148,7 @@ def configure(config: dict) -> None:
     global FAST_GAP_MAX, RESID_DROP_FAST, RESID_Z
     global R1_GAP_MAX, R1_HR_MAX, R2_GAP_MAX, R2_HR_MAX, R4_GAP_MAX, R4_MAXHR_MAX
     global REP_DROP_BELOW_BEST, REP_FAST_PACE, REP_FAST_MAXHR, REP_EASY_PACE, REP_EASY_MAXHR
+    global HR_DRIFT_ENABLED, DRIFT_MIN_TRUSTED
 
     sc = config.get("shoe_chart") or {}
     WINDOW_DAYS = sc.get("window_days", WINDOW_DAYS)
@@ -168,6 +182,13 @@ def configure(config: dict) -> None:
     REP_FAST_MAXHR = rep_fast.get("maxhr", REP_FAST_MAXHR)
     REP_EASY_PACE = rep_easy.get("pace", REP_EASY_PACE)
     REP_EASY_MAXHR = rep_easy.get("maxhr", REP_EASY_MAXHR)
+
+    # Cardiac-drift adjustment shares the trusted population with HR-correction,
+    # so it defaults to on whenever that is and off otherwise — but can be flipped
+    # independently via `shoe_chart.hr_drift.enabled`.
+    drift = sc.get("hr_drift") or {}
+    HR_DRIFT_ENABLED = bool(drift.get("enabled", HR_CORRECTION_ENABLED))
+    DRIFT_MIN_TRUSTED = drift.get("min_trusted", DRIFT_MIN_TRUSTED)
 
 
 def run_strava(*args: str) -> dict | list:
@@ -568,6 +589,66 @@ def _date_plus_days(date_str: str, days: int) -> str:
     return (date.fromisoformat(date_str) + timedelta(days=days)).isoformat()
 
 
+def _percentile(values: list[float], pct: float) -> float:
+    """Linear-interpolated percentile (pct in 0..100) of a non-empty list."""
+    s = sorted(values)
+    if len(s) == 1:
+        return s[0]
+    rank = (pct / 100.0) * (len(s) - 1)
+    lo = int(rank)
+    frac = rank - lo
+    hi = min(lo + 1, len(s) - 1)
+    return s[lo] + frac * (s[hi] - s[lo])
+
+
+def fit_hr_drift(
+    rows: list[dict], cutoff: str
+) -> tuple[float, float, int, float, float] | None:
+    """Fit cardiac-drift coefficient c (bpm/min), ref duration, and clamp bounds.
+
+    Two robust passes on the SAME trusted population that anchors HR-suspect
+    detection (post-cutoff steady runs with HR + GAP + duration, not flagged):
+
+      1. HR ≈ a + b·GAP via Theil–Sen — the normal HR-for-pace trend.
+      2. (HR − predicted) regressed on duration via Theil–Sen → slope c, the bpm
+         the average rises per extra minute on feet, with the pace effect already
+         removed (so c isn't just long-runs-are-slower leaking back in).
+
+    ref_min = median trusted duration, so normalising to it recenters rather than
+    shifts the whole cloud. We also return (lo_min, hi_min) = the 5th/95th-percentile
+    trusted durations: the adjustment clamps each run's duration into this band
+    before shifting, so the linear coefficient is never extrapolated past the range
+    it was fit on (otherwise a 14-hour ultra would get a −30 bpm fantasy shift).
+    Theil–Sen itself is robust to such outliers, but the clamp keeps the *applied*
+    correction inside the data's support too.
+
+    Returns None when there are too few trusted runs to fit (caller leaves HR
+    unadjusted). Must run AFTER annotate_hr_suspects so hr_suspect flags exist.
+    """
+    trusted = [
+        r for r in rows
+        if r.get("avg_hr") and r.get("avg_gap_min_per_km") and r.get("moving_time_s")
+        and not r.get("is_interval") and not r.get("hr_suspect")
+        and r["date"] >= cutoff
+    ]
+    if len(trusted) < DRIFT_MIN_TRUSTED:
+        return None
+
+    a, b = theil_sen(
+        [r["avg_gap_min_per_km"] for r in trusted],
+        [float(r["avg_hr"]) for r in trusted],
+    )
+    minutes = [r["moving_time_s"] / 60.0 for r in trusted]
+    residuals = [
+        float(r["avg_hr"]) - (a + b * r["avg_gap_min_per_km"]) for r in trusted
+    ]
+    _, c = theil_sen(minutes, residuals)
+    ref_min = _median(minutes)
+    lo_min = _percentile(minutes, 5)
+    hi_min = _percentile(minutes, 95)
+    return round(c, 4), round(ref_min, 1), len(trusted), round(lo_min, 1), round(hi_min, 1)
+
+
 def main() -> None:
     if not CONFIG_PATH.exists():
         sys.exit(
@@ -671,6 +752,40 @@ def main() -> None:
             r["hr_residual"] = None
         wrist_optical_until = None
 
+    # Cardiac-drift adjustment: fit c (bpm/min) + ref duration from trusted runs,
+    # then store a duration-normalised avg_hr_adj (and work_maxhr_mean_adj for
+    # intervals) per row so render.py can offer a drift-adjusted HR axis. The fit
+    # excludes suspects, so it must run after annotate_hr_suspects; when correction
+    # is off there's no cutoff, so every row is trusted (cutoff = "").
+    drift = fit_hr_drift(rows, wrist_optical_until or "") if HR_DRIFT_ENABLED else None
+    if drift:
+        c, ref_min, n_trusted, lo_min, hi_min = drift
+        for r in rows:
+            mins = (r.get("moving_time_s") or 0) / 60.0
+            if r.get("avg_hr") and mins:
+                # Clamp duration into the fitted band before shifting so the linear
+                # coefficient is never extrapolated beyond the data's support. A run
+                # past the ceiling (a long run / ultra) is therefore deliberately
+                # under-corrected — flag it so render.py can mark it as out-of-regime.
+                clamped = min(hi_min, max(lo_min, mins))
+                shift = c * (clamped - ref_min)
+                r["avg_hr_adj"] = round(r["avg_hr"] - shift, 1)
+                r["drift_clamped"] = mins > hi_min
+                if r.get("work_maxhr_mean") is not None:
+                    r["work_maxhr_mean_adj"] = round(r["work_maxhr_mean"] - shift, 1)
+            else:
+                r["avg_hr_adj"] = None
+        print(
+            f"      drift fit: c={c:+.3f} bpm/min, ref={ref_min:.0f} min, "
+            f"clamp=[{lo_min:.0f},{hi_min:.0f}] min, n_trusted={n_trusted}",
+            file=sys.stderr,
+        )
+    else:
+        for r in rows:
+            r["avg_hr_adj"] = None
+        if HR_DRIFT_ENABLED:
+            print("      drift fit skipped: too few trusted runs", file=sys.stderr)
+
     suspects = [r for r in rows if r.get("hr_suspect")]
     intervals = [r for r in rows if r.get("is_interval")]
     interval_drops = [r for r in intervals if r.get("interval_hr_suspect")]
@@ -692,6 +807,14 @@ def main() -> None:
             "n_interval": len(intervals),
             "n_rep_dropout": len(interval_drops),
             "note": "interval runs are plotted at work-rep pace × mean per-rep max HR",
+        },
+        "hr_drift": {
+            "enabled": bool(drift),
+            "driver": "duration_min",
+            "c_bpm_per_min": drift[0] if drift else None,
+            "ref_min": drift[1] if drift else None,
+            "n_trusted": drift[2] if drift else None,
+            "clamp_min": [drift[3], drift[4]] if drift else None,
         },
         "activities": rows,
     }

@@ -58,6 +58,11 @@
       "rep_fast": {"pace": 4.25, "maxhr": 150},
       "rep_easy": {"pace": 5.0, "maxhr": 135},
       "_note": "Drives the shoe-speed-vs-effort chart's low-HR dropout detection. enabled=true because this athlete's wrist-optical monitor under-read pre-Coros (see hr_data). The R1/R2 avg-HR ceilings are NOT here — they're read live from hr_zones (easy/steady ceilings, 140/150). Only the GAP cutoffs and R4 max-HR, which don't sit on a zone boundary, are explicit. Set enabled=false to remove dropout detection entirely."
+    },
+    "hr_drift": {
+      "enabled": true,
+      "min_trusted": 8,
+      "_note": "Cardiac-drift HR adjustment for the shoe-speed-vs-effort chart. Longer-DURATION runs read a higher whole-run avg HR for the same pace (HR creeps up with time on feet), so without this they only compare within one distance band. When enabled, build_dataset fits a drift coefficient c (bpm/min) from the same trusted runs that anchor hr_correction — a Theil–Sen of the HR-vs-GAP residual on duration — and stores a duration-normalised avg_hr_adj per run; the chart then offers a 'HR axis: Raw / Drift-adjusted' toggle that composes with the distance dropdown. No coefficient is hardcoded: c and the reference duration are always fitted/derived. Needs at least min_trusted trusted runs to fit, else HR stays raw and the toggle is hidden. Defaults to hr_correction.enabled when omitted."
     }
   },
   "gear": [

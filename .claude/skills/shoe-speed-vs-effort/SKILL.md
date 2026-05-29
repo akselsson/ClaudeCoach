@@ -22,6 +22,10 @@ keep the comparison honest and are the reason this is a skill rather than a one-
 2. **Interval/workout handling** (always on). A whole-run average for an interval session is a
    meaningless blend of fast reps and slow recoveries that lands in the "free pace" corner.
    Interval runs are re-plotted at their *work-rep* pace × mean per-rep max HR instead.
+3. **Cardiac-drift HR adjustment** (optional — see Bootstrap). Longer-*duration* runs read a
+   higher whole-run average HR for the same pace (HR creeps up with time on feet), pushing them
+   rightward so they only compare fairly within one distance band. When on, the chart gains a
+   **"HR axis: Raw / Drift-adjusted"** toggle that composes with the distance dropdown; see below.
 
 The two CLIs do the work; this skill describes the first-run configuration and how to invoke
 them. Output is an HTML file plus verbose stderr — run the build in a sub-agent (see
@@ -93,6 +97,13 @@ Offer defaults: `window_days` (520 ≈ 18 months of history), `min_distance_km` 
 `distance_bands_km` (`[12, 20, 35]` → the dropdown's ≤12 / 12–20 / 20–35 / >35 km bands). Adjust
 to the user's typical distances if they have a strong opinion.
 
+Also offer the **cardiac-drift adjustment** (`hr_drift`): when on, the chart fits a drift
+coefficient (bpm per minute on feet) from the user's own trusted runs and adds a "HR axis:
+Raw / Drift-adjusted" toggle so runs of different distances compare on one effort scale. It
+defaults to `hr_correction.enabled` (it shares the same trusted population), needs at least
+`min_trusted` (default 8) trusted runs to fit, and never hardcodes a coefficient. Leave it on
+unless the user only ever compares same-distance runs.
+
 ### Step 4 — write and commit
 
 Write the `shoe_chart` block into `config/training.json` and commit it
@@ -119,12 +130,17 @@ A complete block:
     "rep_drop_below_best": 20,
     "rep_fast": {"pace": 4.25, "maxhr": 150},
     "rep_easy": {"pace": 5.0, "maxhr": 135}
+  },
+  "hr_drift": {
+    "enabled": true,
+    "min_trusted": 8
   }
 }
 ```
 
 For a user with no monitor history, the whole `hr_correction` block collapses to
-`{"enabled": false}` — the other keys are ignored.
+`{"enabled": false}` — the other keys are ignored — and `hr_drift` likewise defaults off (so the
+HR-axis toggle is hidden).
 
 ## Invocation
 
@@ -167,6 +183,17 @@ cache (`.cache/strava/`) just work — if `strava whoami` works, these work. The
   when HR correction is enabled — click them in the legend to reveal. They're flagged precisely
   because they'd otherwise sit at a misleadingly easy spot.
 - **Distance-band dropdown** (top-left) filters every series to a band.
+- **HR-axis toggle** (next to the distance dropdown, only when `hr_drift` is on): switches x
+  between raw average HR and **drift-adjusted HR** — every run normalised to the reference
+  duration (shown in the axis title) using the fitted bpm/min coefficient, so long and short
+  runs sit on one comparable effort scale. The adjustment clamps each run's duration to the
+  fitted range, so an ultra isn't shifted by a fantasy amount. The two controls compose
+  (band ∩ HR-mode), and the **hover always shows the real measured HR**, not the adjusted value —
+  the adjustment is a plotting-axis transform, not a claim about what the watch recorded.
+- **Faint halo on very long runs.** A run longer than the drift fit's duration ceiling had its
+  adjustment capped, so it's under-corrected and genuinely out of regime (GAP also can't capture
+  an ultra's walking/terrain/fuelling cost). Such runs get a subtle open ring — read their
+  position with caution; it's not a shoe verdict. Toggle "drift adj. capped" in the legend.
 - **Click any point** to open that activity in Strava.
 
 When summarising for the user, lean on the steady per-shoe clusters and the interval diamonds;

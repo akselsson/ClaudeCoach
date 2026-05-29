@@ -27,6 +27,60 @@ OUTPUT_PATH = PROJECT_ROOT / "viz" / "shoe-speed-vs-effort.html"
 # Default distance-band cut points (km) when config doesn't set them.
 DEFAULT_DISTANCE_CUTS = [12, 20, 35]
 
+# In-browser controller for the drift-adjusted-HR build. Both dropdowns are
+# method="skip" UI; this is the SOLE writer of x/y/customdata/marker, so the band
+# filter and the HR-axis toggle compose (two static restyle menus would clobber
+# each other's x). It never touches `visible`, so legend toggles on the hidden
+# ⚠ series survive a filter change. Placeholders (__SHOE_DATA__ etc.) are filled
+# by str.replace; `{plot_id}` is left for Plotly's own post_script substitution.
+_DRIFT_CONTROLLER = """
+    var gd = document.getElementById('{plot_id}');
+    gd.style.cursor = 'pointer';
+    var SHOE_DATA = __SHOE_DATA__;
+    var BAND_LABELS = __BAND_LABELS__;
+    var BANDS = __BANDS__;
+    var X_TITLES = __X_TITLES__;
+    var state = { bandIdx: 0, hrMode: 'raw' };
+
+    function pickX(t) {
+        if (state.hrMode === 'adj') {
+            return t.xAdj.map(function(v, i) { return v == null ? t.xRaw[i] : v; });
+        }
+        return t.xRaw;
+    }
+    function applyState() {
+        var lo = BANDS[state.bandIdx][0], hi = BANDS[state.bandIdx][1];
+        var X = [], Y = [], CD = [], S = [], C = [];
+        for (var ti = 0; ti < SHOE_DATA.length; ti++) {
+            var t = SHOE_DATA[ti], xs = pickX(t), keep = [];
+            for (var k = 0; k < t.dist.length; k++) {
+                if (t.dist[k] > lo && t.dist[k] <= hi) keep.push(k);
+            }
+            X.push(keep.map(function(k) { return xs[k]; }));
+            Y.push(keep.map(function(k) { return t.y[k]; }));
+            CD.push(keep.map(function(k) { return t.cd[k]; }));
+            S.push(Array.isArray(t.size) ? keep.map(function(k) { return t.size[k]; }) : t.size);
+            C.push(Array.isArray(t.color) ? keep.map(function(k) { return t.color[k]; }) : t.color);
+        }
+        Plotly.restyle(gd, {x: X, y: Y, customdata: CD, 'marker.size': S, 'marker.color': C});
+        Plotly.relayout(gd, {'xaxis.title.text': X_TITLES[state.hrMode]});
+    }
+    gd.on('plotly_buttonclicked', function(e) {
+        var label = e.button.label;
+        if (label === 'Raw HR') { state.hrMode = 'raw'; }
+        else if (label === 'Drift-adjusted HR') { state.hrMode = 'adj'; }
+        else { var idx = BAND_LABELS.indexOf(label); if (idx >= 0) state.bandIdx = idx; }
+        applyState();
+    });
+    applyState();
+    gd.on('plotly_click', function(data) {
+        var pt = data.points[0];
+        if (!pt || !pt.customdata) return;
+        var id = pt.customdata[pt.customdata.length - 1];
+        if (id) window.open('https://www.strava.com/activities/' + id, '_blank');
+    });
+"""
+
 
 def pace_to_label(min_per_km: float) -> str:
     m = int(min_per_km)
@@ -56,6 +110,46 @@ def build_distance_bands(cuts: list[float]) -> list[tuple]:
 def _is_array(v) -> bool:
     """True if a marker prop is per-point (a sequence) rather than a scalar."""
     return hasattr(v, "__len__") and not isinstance(v, str)
+
+
+def _native(v):
+    """Coerce numpy scalars to JSON-serialisable Python natives (no-op otherwise)."""
+    return v.item() if hasattr(v, "item") else v
+
+
+def build_trace_payload(fig, adj_by_id: dict) -> list[dict]:
+    """Snapshot every trace's per-point arrays for the in-browser filter controller.
+
+    The drift toggle and the distance filter must COMPOSE, which two static Plotly
+    restyle menus can't do (each rebuilds x from scratch, clobbering the other). So
+    instead of precomputing button payloads we hand the browser one uniform
+    structure per trace and let a single JS controller own the restyle.
+
+    Each entry mirrors what the old `distance_band_buttons` read off `fig.data`:
+    dist (customdata[0], the band key), the raw x, y, full customdata rows, and the
+    marker size/colour (array or scalar). It adds `xAdj` — the drift-adjusted x —
+    looked up per point by the Strava id at customdata[-1], so a trace's HR mode can
+    flip without touching its hovertemplate (which keeps reading the real measured
+    HR from its existing customdata index). Heterogeneous trace layouts (steady /
+    suspect / interval) need no special-casing because raw x is read straight off
+    the trace and adj x is keyed by id.
+    """
+    payload = []
+    for tr in fig.data:
+        cd = [[_native(v) for v in row] for row in (tr.customdata if tr.customdata is not None else [])]
+        ids = [row[-1] for row in cd]
+        msize = tr.marker.size
+        mcolor = tr.marker.color
+        payload.append({
+            "dist": [row[0] for row in cd],
+            "xRaw": [_native(v) for v in (tr.x if tr.x is not None else [])],
+            "xAdj": [adj_by_id.get(int(i)) if i is not None else None for i in ids],
+            "y": [_native(v) for v in (tr.y if tr.y is not None else [])],
+            "cd": cd,
+            "size": [_native(v) for v in msize] if _is_array(msize) else msize,
+            "color": [_native(v) for v in mcolor] if _is_array(mcolor) else mcolor,
+        })
+    return payload
 
 
 def distance_band_buttons(fig, bands: list[tuple]) -> list[dict]:
@@ -99,16 +193,24 @@ def main() -> None:
     cuts = (config.get("shoe_chart") or {}).get("distance_bands_km", DEFAULT_DISTANCE_CUTS)
     bands = build_distance_bands(cuts)
 
+    # Cardiac-drift HR adjustment (build_dataset fits it from trusted runs). When
+    # on, the chart gains a "HR axis: Raw / Drift-adjusted" toggle that composes
+    # with the distance dropdown; when off (disabled or too few trusted runs) the
+    # chart renders exactly as before, with no HR-axis control.
+    hr_drift = payload.get("hr_drift") or {}
+    drift_on = bool(hr_drift.get("enabled"))
+
     df = pd.DataFrame(activities)
     df["pace_label"] = df["avg_pace_min_per_km"].map(pace_to_label)
     df["gap_label"] = df["avg_gap_min_per_km"].map(pace_to_label)
     for col, default in (("hr_suspect", False), ("hr_suspect_reason", ""),
-                         ("is_interval", False), ("interval_hr_suspect", False)):
+                         ("is_interval", False), ("interval_hr_suspect", False),
+                         ("drift_clamped", False)):
         if col not in df.columns:
             df[col] = default
     # These flags are absent on rows they don't apply to → object dtype with NaN.
     # Cast to real bool so `~`/`&` do boolean (not bitwise-int) ops.
-    for col in ("hr_suspect", "is_interval", "interval_hr_suspect"):
+    for col in ("hr_suspect", "is_interval", "interval_hr_suspect", "drift_clamped"):
         df[col] = df[col].fillna(False).astype(bool)
 
     # Explicit shoe→colour map (sorted, stable) so the per-shoe circles and the
@@ -278,6 +380,36 @@ def main() -> None:
                 ),
             ))
 
+    # Very subtle halo on runs longer than the drift fit's ceiling: their HR
+    # adjustment was capped (we don't extrapolate the linear coefficient to a
+    # 14-hour ultra), so they're under-corrected and out of the chart's regime —
+    # and GAP can't capture an ultra's walking/terrain/fuelling cost anyway. A faint
+    # open ring just outside the dot marks them without stealing the dot's hover
+    # (hoverinfo skipped). Added before build_trace_payload so the controller filters
+    # and HR-switches it with everything else; sits exactly on the underlying point.
+    clamped = df[df["drift_clamped"]] if drift_on else df.iloc[0:0]
+    if not clamped.empty:
+        cx = clamped.apply(
+            lambda r: r["work_maxhr_mean"] if r["is_interval"] else r["avg_hr"], axis=1)
+        cy = clamped.apply(
+            lambda r: r["work_gap_min_per_km"] if r["is_interval"] else r["avg_gap_min_per_km"],
+            axis=1)
+        fig.add_trace(go.Scatter(
+            x=cx, y=cy, mode="markers",
+            name="drift adj. capped (long run)",
+            hoverinfo="skip",
+            customdata=clamped[["distance_km", "id"]].values,
+            marker=dict(
+                symbol="circle-open",
+                size=clamped["distance_km"] * 1.8,  # ~1.3× dot diameter → faint halo
+                sizemode="area",
+                sizeref=base_sizeref,
+                sizemin=base_sizemin,
+                color="rgba(220,220,220,0.28)",
+                line=dict(width=1.0, color="rgba(220,220,220,0.28)"),
+            ),
+        ))
+
     footnote = (
         f"Minetti GAP from altitude+distance streams · "
         f"runs ≥ {payload.get('min_distance_km', 0)} km with HR · "
@@ -296,30 +428,67 @@ def main() -> None:
         if not rep_drop.empty:
             footnote += f", + {len(rep_drop)} with rep-HR dropouts (orange)"
     footnote += " — flagged (⚠) series are hidden by default; click them in the legend to show"
+    ref_min = hr_drift.get("ref_min")
+    if drift_on:
+        footnote += (
+            f" · drift-adjusted HR available ({hr_drift.get('c_bpm_per_min'):+.2f} "
+            f"bpm/min vs {ref_min:.0f}-min reference — toggle above)"
+        )
+
+    # The x-axis title travels with the toggle, so the axis label never lies about
+    # which HR is plotted. Both strings are baked into the controller below.
+    x_titles = {
+        "raw": "Average heart rate (bpm)",
+        "adj": f"Drift-adjusted HR (bpm, @ {ref_min:.0f}-min ref)" if drift_on else "",
+    }
+
+    annotations = [
+        dict(
+            xref="paper", yref="paper", x=0, y=1.10, showarrow=False,
+            text=footnote,
+            font=dict(size=11, color="rgba(255,255,255,0.65)"),
+        ),
+        dict(
+            xref="paper", yref="paper", x=0, y=1.20, showarrow=False,
+            text="Distance band:", xanchor="left",
+            font=dict(size=12, color="rgba(255,255,255,0.85)"),
+        ),
+    ]
+    _menu_style = dict(
+        bgcolor="#2a2a2a", bordercolor="#666", font=dict(color="#eee", size=12),
+    )
+
+    if drift_on:
+        # Both dropdowns are pure UI (method="skip"): a single JS controller owns
+        # the restyle so the band filter and HR mode compose. The button order here
+        # must match BAND_LABELS/BANDS handed to the controller.
+        updatemenus = [
+            dict(type="dropdown", direction="down", x=0.085, xanchor="left",
+                 y=1.235, yanchor="top", showactive=True, active=0, **_menu_style,
+                 buttons=[dict(label=b[0], method="skip", args=[]) for b in bands]),
+            dict(type="dropdown", direction="down", x=0.40, xanchor="left",
+                 y=1.235, yanchor="top", showactive=True, active=0, **_menu_style,
+                 buttons=[dict(label="Raw HR", method="skip", args=[]),
+                          dict(label="Drift-adjusted HR", method="skip", args=[])]),
+        ]
+        annotations.append(dict(
+            xref="paper", yref="paper", x=0.40, y=1.20, showarrow=False,
+            text="HR axis:", xanchor="left",
+            font=dict(size=12, color="rgba(255,255,255,0.85)"),
+        ))
+    else:
+        # No drift adjustment: keep the original static restyle dropdown.
+        updatemenus = [dict(
+            type="dropdown", direction="down", x=0.085, xanchor="left",
+            y=1.235, yanchor="top", showactive=True, **_menu_style,
+            buttons=distance_band_buttons(fig, bands),
+        )]
 
     fig.update_layout(
         legend_title="Shoe model",
         template="plotly_dark",
-        annotations=[
-            dict(
-                xref="paper", yref="paper", x=0, y=1.10, showarrow=False,
-                text=footnote,
-                font=dict(size=11, color="rgba(255,255,255,0.65)"),
-            ),
-            dict(
-                xref="paper", yref="paper", x=0, y=1.20, showarrow=False,
-                text="Distance band:", xanchor="left",
-                font=dict(size=12, color="rgba(255,255,255,0.85)"),
-            ),
-        ],
-        updatemenus=[dict(
-            type="dropdown",
-            direction="down",
-            x=0.085, xanchor="left", y=1.235, yanchor="top",
-            bgcolor="#2a2a2a", bordercolor="#666", font=dict(color="#eee", size=12),
-            showactive=True,
-            buttons=distance_band_buttons(fig, bands),
-        )],
+        annotations=annotations,
+        updatemenus=updatemenus,
         margin=dict(l=70, r=30, t=150, b=70),
     )
 
@@ -336,12 +505,31 @@ def main() -> None:
     });
     """
 
+    if drift_on:
+        # Map each Strava id to its drift-adjusted x (intervals carry their own
+        # adjusted work-rep value); the controller looks this up per point.
+        adj_by_id: dict[int, float] = {}
+        for _, r in df.iterrows():
+            adj = r.get("work_maxhr_mean_adj") if r.get("is_interval") else r.get("avg_hr_adj")
+            if pd.notna(adj):
+                adj_by_id[int(r["id"])] = float(adj)
+        shoe_data = build_trace_payload(fig, adj_by_id)
+        post_script = (
+            _DRIFT_CONTROLLER
+            .replace("__SHOE_DATA__", json.dumps(shoe_data))
+            .replace("__BAND_LABELS__", json.dumps([b[0] for b in bands]))
+            .replace("__BANDS__", json.dumps([[b[1], b[2]] for b in bands]))
+            .replace("__X_TITLES__", json.dumps(x_titles))
+        )
+    else:
+        post_script = click_handler
+
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     fig.write_html(
         str(OUTPUT_PATH),
         include_plotlyjs="cdn",
         full_html=True,
-        post_script=click_handler,
+        post_script=post_script,
     )
     print(f"Wrote {OUTPUT_PATH}", file=sys.stderr)
 
