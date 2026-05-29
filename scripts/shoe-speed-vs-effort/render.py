@@ -48,8 +48,10 @@ def main() -> None:
                          ("is_interval", False), ("interval_hr_suspect", False)):
         if col not in df.columns:
             df[col] = default
-    df["is_interval"] = df["is_interval"].fillna(False)
-    df["interval_hr_suspect"] = df["interval_hr_suspect"].fillna(False)
+    # These flags are absent on rows they don't apply to → object dtype with NaN.
+    # Cast to real bool so `~`/`&` do boolean (not bitwise-int) ops.
+    for col in ("hr_suspect", "is_interval", "interval_hr_suspect"):
+        df[col] = df[col].fillna(False).astype(bool)
 
     # Explicit shoe→colour map (sorted, stable) so the per-shoe circles and the
     # interval diamonds drawn later share the same colour per shoe.
@@ -131,30 +133,34 @@ def main() -> None:
             ),
         ))
 
-    # Interval/workout runs: one toggleable diamond trace, plotted at the work-rep
-    # pace × mean per-rep max HR (rest laps removed) so they sit at their true
-    # effort instead of the misleading lower-right blend. Shoe-coloured via a
-    # per-point colour array (single trace → one "Interval" legend toggle).
+    # Interval/workout runs at the work-rep pace × mean per-rep max HR (rest laps
+    # removed) so they sit at their true effort, not the misleading lower-right
+    # blend. Split into TWO traces — clean reps vs rep-dropouts — so the dropout
+    # series is the dropouts' SOLE home and unchecking it removes them outright
+    # (same pattern as the steady "Suspect HR" toggle), not just a ring overlay.
     interval = df[df["is_interval"]].copy()
-    if not interval.empty:
-        interval["work_gap_label"] = interval["work_gap_min_per_km"].map(pace_to_label)
+    interval["work_gap_label"] = interval["work_gap_min_per_km"].map(pace_to_label)
+    interval_clean = interval[~interval["interval_hr_suspect"]]
+    rep_drop = interval[interval["interval_hr_suspect"]]
+
+    if not interval_clean.empty:
         fig.add_trace(go.Scatter(
-            x=interval["work_gap_min_per_km"],
-            y=interval["work_maxhr_mean"],
+            x=interval_clean["work_gap_min_per_km"],
+            y=interval_clean["work_maxhr_mean"],
             mode="markers",
             name="◆ Interval (work-rep)",
-            hovertext=interval["name"],
-            customdata=interval[[
+            hovertext=interval_clean["name"],
+            customdata=interval_clean[[
                 "date", "n_work_reps", "work_gap_label", "work_maxhr_mean",
                 "gear_label", "description", "id",
             ]].values,
             marker=dict(
                 symbol="diamond",
-                size=interval["distance_km"],
+                size=interval_clean["distance_km"],
                 sizemode="area",
                 sizeref=sizeref,
                 sizemin=8,
-                color=[cmap.get(m, "#888") for m in interval["model_label"]],
+                color=[cmap.get(m, "#888") for m in interval_clean["model_label"]],
                 line=dict(width=1.2, color="rgba(255,255,255,0.55)"),
             ),
             hovertemplate=(
@@ -167,11 +173,11 @@ def main() -> None:
             ),
         ))
 
-        # Ring the interval runs whose work reps had impossible HR (sensor drops
-        # the whole-run average/max hide). Toggleable, like the steady suspects.
-        rep_drop = interval[interval["interval_hr_suspect"]]
-        if not rep_drop.empty:
-            fig.add_trace(go.Scatter(
+    if not rep_drop.empty:
+        # Their own trace (orange diamonds) → uncheck "Interval rep dropout" to
+        # drop them entirely. These are runs whose work reps had impossible HR
+        # (sensor drops the whole-run average/max hide).
+        fig.add_trace(go.Scatter(
                 x=rep_drop["work_gap_min_per_km"],
                 y=rep_drop["work_maxhr_mean"],
                 mode="markers",
@@ -182,13 +188,13 @@ def main() -> None:
                     "interval_hr_reason", "id",
                 ]].values,
                 marker=dict(
-                    symbol="diamond-open",
-                    size=rep_drop["distance_km"] * 1.7,
+                    symbol="diamond",
+                    size=rep_drop["distance_km"],
                     sizemode="area",
                     sizeref=sizeref,
-                    sizemin=13,
+                    sizemin=8,
                     color="rgba(255,165,0,0.95)",
-                    line=dict(width=2, color="rgba(255,165,0,0.95)"),
+                    line=dict(width=1.5, color="rgba(120,70,0,0.9)"),
                 ),
                 hovertemplate=(
                     "<b>%{hovertext}</b> — ⚠ interval rep dropout<br>"
@@ -211,10 +217,12 @@ def main() -> None:
         )
     if not interval.empty:
         footnote += (
-            f" · {len(interval)} interval/workout runs shown as ◆ at work-rep pace × "
-            f"mean per-rep max-HR (rest laps removed)"
+            f" · {len(interval_clean)} interval/workout ◆ at work-rep pace × mean "
+            f"per-rep max-HR (rest laps removed)"
         )
-    footnote += " — toggle any series in the legend"
+        if not rep_drop.empty:
+            footnote += f", + {len(rep_drop)} with rep-HR dropouts (orange)"
+    footnote += " — uncheck any series in the legend to hide it"
 
     fig.update_layout(
         legend_title="Shoe model",
