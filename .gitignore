@@ -4,4 +4,3 @@ __pycache__
 .wrangler
 scripts/shoe-speed-vs-effort/dataset.json
 scripts/shoe-speed-vs-effort/gear_cache.json
-viz/shoe-speed-vs-effort.html
