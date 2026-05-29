@@ -77,10 +77,16 @@ INTERVAL_MAX_WORKOUT_S = 95 * 60  # >95 min ⇒ long run/race (aid stops mimic r
 INTERVAL_MIN_REC = 2            # need ≥2 recovery laps…
 INTERVAL_MIN_WORK = 2           # …and ≥2 work reps
 INTERVAL_REC_FALLBACK = 3       # ≥3 rests classifies even without a workout-keyword description
-# Work-rep HR dropout (wrist drops on hard reps; whole-run avg/max hide them):
+# Work-rep HR dropout (wrist drops on hard reps; whole-run avg/max hide them).
+# The pace→max-HR floor is two-tier: faster reps demand a higher peak. A uniform
+# drop (every rep low) won't trip the intra-run spread test, so the absolute
+# floors are what catch easy-paced sessions like 4x4min "lugnt" at 4:45/km whose
+# reps read max 110–123 — impossible for this athlete (easy HR ~135–145).
 REP_DROP_BELOW_BEST = 20        # a rep ≥20 bpm below the run's best rep-max = intra-run drop
 REP_FAST_PACE = 4.25            # a sub-4:15/km rep…
 REP_FAST_MAXHR = 150            # …whose max HR stays under this is implausible
+REP_EASY_PACE = 5.0             # an easy/sub-threshold rep (≤5:00/km, still faster than easy)…
+REP_EASY_MAXHR = 135            # …whose max HR sits below easy-run HR is implausibly low
 WORKOUT_KW = re.compile(
     r"(\d\s*[x×]\s*\d|[x×]\s*\d|\bmin\b|tröskel|threshold|interval|intervall"
     r"|tempo|fartlek|\brep|vila|vo2|backe|halvmara)",
@@ -351,7 +357,11 @@ def work_rep_dropout(work_laps: list[tuple]) -> str:
     reasons: list[str] = []
     if any(best - m >= REP_DROP_BELOW_BEST for _, _, m in reps):
         reasons.append("rep-spread")
-    if any(p <= REP_FAST_PACE and m < REP_FAST_MAXHR for p, _, m in reps):
+    if any(
+        (p <= REP_FAST_PACE and m < REP_FAST_MAXHR)
+        or (p <= REP_EASY_PACE and m < REP_EASY_MAXHR)
+        for p, _, m in reps
+    ):
         reasons.append("rep-floor")
     return "+".join(reasons)
 
