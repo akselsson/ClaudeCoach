@@ -14,6 +14,7 @@ not yet have. The resulting dataset.json is what render.py consumes.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -60,6 +61,31 @@ RESID_Z = -2.0                     # ~2σ below trend at any pace → catastroph
 R1_GAP_MAX, R1_HR_MAX = 5.0, 140    # easy-low:  GAP ≤ 5:00 and avg HR < 140
 R2_GAP_MAX, R2_HR_MAX = 4.75, 150   # fast-low:  GAP ≤ 4:45 and avg HR < 150
 R4_GAP_MAX, R4_MAXHR_MAX = 5.0, 155  # max-hr sanity: GAP ≤ 5:00 and max HR < 155
+
+# --- Interval / workout detection (dynamic, relative to each run) -----------
+# A whole-run avg GAP/HR is meaningless for interval sessions — fast reps + slow
+# recovery jogs + standing time blend into a fastish pace at a low HR, landing in
+# the "free pace at low effort" corner. We instead represent an interval run by
+# its WORK reps. Classification is entirely relative to the run's own laps, so it
+# works whether reps are 3:55/km or a deliberately-easy 5:00/km; thresholds keyed
+# off absolute pace would miss sub-threshold sessions.
+INTERVAL_SUBST_M = 400          # a "substantial" lap (excludes jog/standing rests)
+INTERVAL_REST_RATIO = 1.5       # lap slower than 1.5× the run's median substantial pace…
+INTERVAL_REST_MIN_M = 200       # …or shorter than this ⇒ a recovery/standing lap
+INTERVAL_WORK_MARGIN = 0.5      # work reps lie within this (min/km) of the fastest sub. lap
+INTERVAL_MAX_WORKOUT_S = 95 * 60  # >95 min ⇒ long run/race (aid stops mimic rests), not intervals
+INTERVAL_MIN_REC = 2            # need ≥2 recovery laps…
+INTERVAL_MIN_WORK = 2           # …and ≥2 work reps
+INTERVAL_REC_FALLBACK = 3       # ≥3 rests classifies even without a workout-keyword description
+# Work-rep HR dropout (wrist drops on hard reps; whole-run avg/max hide them):
+REP_DROP_BELOW_BEST = 20        # a rep ≥20 bpm below the run's best rep-max = intra-run drop
+REP_FAST_PACE = 4.25            # a sub-4:15/km rep…
+REP_FAST_MAXHR = 150            # …whose max HR stays under this is implausible
+WORKOUT_KW = re.compile(
+    r"(\d\s*[x×]\s*\d|[x×]\s*\d|\bmin\b|tröskel|threshold|interval|intervall"
+    r"|tempo|fartlek|\brep|vila|vo2|backe|halvmara)",
+    re.I,
+)
 
 
 def run_strava(*args: str) -> dict | list:
@@ -246,6 +272,90 @@ def compute_gap(streams: dict) -> tuple[float | None, float | None]:
     return avg_pace_min_per_km, avg_gap_min_per_km
 
 
+def _lap_pace(lap: dict) -> float | None:
+    s = lap.get("average_speed_mps")
+    return (1000.0 / s) / 60.0 if s and s > 0 else None
+
+
+def classify_workout(detail: dict) -> tuple[bool, list[tuple], int]:
+    """Decide if a run is an interval/workout, relative to its own lap structure.
+
+    Returns (is_interval, work_laps, recovery_count) where each work lap is a
+    (pace_min_per_km, distance_m, max_heartrate) tuple. Recovery laps are laps
+    dramatically slower than this run's own median rep pace (7–27 min/km standing/
+    jog rests never occur in a steady run) or very short. Work reps are the
+    substantial laps within INTERVAL_WORK_MARGIN of the run's fastest substantial
+    lap — so warm-up/cool-down (slower) drop out. The dynamic median anchor is why
+    this catches sub-threshold reps at 5:00/km as well as 3:55/km track reps.
+    """
+    laps = detail.get("laps") or []
+    parsed = [
+        (_lap_pace(l), l.get("distance_m") or 0, l.get("max_heartrate"))
+        for l in laps
+    ]
+    parsed = [(p, d, m) for (p, d, m) in parsed if p is not None and d > 20]
+    subst = [t for t in parsed if t[1] >= INTERVAL_SUBST_M]
+    if len(subst) < 2:
+        return False, [], 0
+
+    median_pace = _median([p for p, _, _ in subst])
+    rest_pace = INTERVAL_REST_RATIO * median_pace
+    recoveries = [t for t in parsed if t[0] > rest_pace or t[1] < INTERVAL_REST_MIN_M]
+    fastest = min(p for p, _, _ in subst)
+    work = [t for t in subst if t[0] <= fastest + INTERVAL_WORK_MARGIN and t[0] <= rest_pace]
+
+    moving_s = detail.get("moving_time_s") or 0
+    has_keyword = bool(WORKOUT_KW.search(detail.get("description") or ""))
+    is_interval = (
+        moving_s < INTERVAL_MAX_WORKOUT_S
+        and len(recoveries) >= INTERVAL_MIN_REC
+        and len(work) >= INTERVAL_MIN_WORK
+        and (has_keyword or len(recoveries) >= INTERVAL_REC_FALLBACK)
+    )
+    return is_interval, work, len(recoveries)
+
+
+def work_rep_point(
+    work_laps: list[tuple], avg_pace: float, avg_gap: float
+) -> tuple[float, float, int] | None:
+    """Collapse work reps into one comparable point: (work_gap, mean rep-max HR, n).
+
+    x = distance-weighted work-rep pace, scaled by the run's overall GAP/pace ratio
+    so it lands on the same grade-adjusted-pace axis as steady runs without the
+    fragility of slicing streams per lap (flat/treadmill reps → ratio ≈ 1).
+    y = mean of per-rep MAX HR — a work rep's *average* HR understates effort
+    because HR lags at rep start, so the per-rep max is the closest apples-to-apples
+    to a steady run's average HR.
+    """
+    reps = [(p, d, m) for (p, d, m) in work_laps if p and d > 0 and m]
+    if len(reps) < INTERVAL_MIN_WORK:
+        return None
+    total_d = sum(d for _, d, _ in reps)
+    work_pace = sum(p * d for p, d, _ in reps) / total_d
+    gap_factor = (avg_gap / avg_pace) if avg_pace else 1.0
+    work_gap = work_pace * gap_factor
+    maxhr_mean = sum(m for _, _, m in reps) / len(reps)
+    return work_gap, maxhr_mean, len(reps)
+
+
+def work_rep_dropout(work_laps: list[tuple]) -> str:
+    """Reason string if any work rep's max HR is implausibly low (else "").
+
+    Era-agnostic: a sub-4:15/km rep that never clears 150, or a rep whose max sits
+    far below the run's best rep, is a sensor drop whenever it happens — and the
+    whole-run average/max hide it."""
+    reps = [(p, d, m) for (p, d, m) in work_laps if m]
+    if len(reps) < 2:
+        return ""
+    best = max(m for _, _, m in reps)
+    reasons: list[str] = []
+    if any(best - m >= REP_DROP_BELOW_BEST for _, _, m in reps):
+        reasons.append("rep-spread")
+    if any(p <= REP_FAST_PACE and m < REP_FAST_MAXHR for p, _, m in reps):
+        reasons.append("rep-floor")
+    return "+".join(reasons)
+
+
 def _median(values: list[float]) -> float:
     s = sorted(values)
     n = len(s)
@@ -287,7 +397,13 @@ def annotate_hr_suspects(rows: list[dict]) -> str:
         r["hr_suspect_reason"] = ""
         r["hr_residual"] = None
 
-    usable = [r for r in rows if r.get("avg_hr") and r.get("avg_gap_min_per_km")]
+    # Interval runs are excluded: their whole-run avg GAP/HR is a meaningless blend,
+    # so they neither anchor the trend nor get judged by the steady rules. They are
+    # handled separately via the work-rep transform.
+    usable = [
+        r for r in rows
+        if r.get("avg_hr") and r.get("avg_gap_min_per_km") and not r.get("is_interval")
+    ]
     if len(usable) < 5:
         return COROS_ORDER_DATE  # too little data to model — flag nothing
 
@@ -399,10 +515,11 @@ def main() -> None:
         model_label = resolve_model_label(gear_id, gear_lookup, gear_cache)
 
         start = s.get("start_date_local") or ""
-        rows.append({
+        row = {
             "id": aid,
             "date": start[:10],
             "name": s.get("name"),
+            "description": detail.get("description") or "",
             "distance_km": s.get("distance_km"),
             "moving_time_s": s.get("moving_time_s"),
             "avg_hr": s.get("average_heartrate"),
@@ -414,13 +531,36 @@ def main() -> None:
             "gear_id": gear_id,
             "gear_label": gear_label,
             "model_label": model_label,
-        })
+            "is_interval": False,
+        }
+
+        # Interval/workout runs: represent by their work reps instead of the
+        # meaningless whole-run blend. A classified-interval run with no usable
+        # work reps falls back to a steady point.
+        is_interval, work_laps, _ = classify_workout(detail)
+        if is_interval:
+            point = work_rep_point(work_laps, avg_pace, avg_gap)
+            if point:
+                work_gap, work_maxhr_mean, n_reps = point
+                dropout = work_rep_dropout(work_laps)
+                row.update({
+                    "is_interval": True,
+                    "n_work_reps": n_reps,
+                    "work_gap_min_per_km": round(work_gap, 3),
+                    "work_maxhr_mean": round(work_maxhr_mean, 1),
+                    "interval_hr_suspect": bool(dropout),
+                    "interval_hr_reason": dropout,
+                })
+
+        rows.append(row)
         if i % 5 == 0:
             print(f"      processed {i}/{len(summaries)}", file=sys.stderr)
 
     print("[3/3] Flagging low-HR outliers + writing dataset.json...", file=sys.stderr)
     wrist_optical_until = annotate_hr_suspects(rows)
     suspects = [r for r in rows if r.get("hr_suspect")]
+    intervals = [r for r in rows if r.get("is_interval")]
+    interval_drops = [r for r in intervals if r.get("interval_hr_suspect")]
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -433,6 +573,11 @@ def main() -> None:
             "anchor_window_days": HR_ANCHOR_WINDOW_DAYS,
             "resid_drop_bpm": RESID_DROP_FAST,
             "n_suspect": len(suspects),
+        },
+        "intervals": {
+            "n_interval": len(intervals),
+            "n_rep_dropout": len(interval_drops),
+            "note": "interval runs are plotted at work-rep pace × mean per-rep max HR",
         },
         "activities": rows,
     }
@@ -454,6 +599,19 @@ def main() -> None:
             f"  {r['date']}  HR {r['avg_hr']:.0f} (max {r.get('max_hr') or 0:.0f})  "
             f"GAP {r['avg_gap_min_per_km']:.2f}  resid {r['hr_residual']:+.0f}  "
             f"[{r['hr_suspect_reason']}]  {r.get('name', '')} ({r['id']})",
+            file=sys.stderr,
+        )
+
+    print(
+        f"\nClassified {len(intervals)} interval/workout run(s); "
+        f"{len(interval_drops)} with a work-rep HR dropout:",
+        file=sys.stderr,
+    )
+    for r in sorted(intervals, key=lambda x: x["date"]):
+        drop = f"  <DROP {r['interval_hr_reason']}>" if r.get("interval_hr_suspect") else ""
+        print(
+            f"  {r['date']}  {r['n_work_reps']}×reps  workGAP {r['work_gap_min_per_km']:.2f}  "
+            f"repMaxHR̄ {r['work_maxhr_mean']:.0f}  ({(r.get('description') or '')[:24]}){drop}",
             file=sys.stderr,
         )
     print(f"\nWrote {OUTPUT_PATH}", file=sys.stderr)

@@ -44,21 +44,32 @@ def main() -> None:
     df = pd.DataFrame(activities)
     df["pace_label"] = df["avg_pace_min_per_km"].map(pace_to_label)
     df["gap_label"] = df["avg_gap_min_per_km"].map(pace_to_label)
-    if "hr_suspect" not in df.columns:
-        df["hr_suspect"] = False
-        df["hr_suspect_reason"] = ""
+    for col, default in (("hr_suspect", False), ("hr_suspect_reason", ""),
+                         ("is_interval", False), ("interval_hr_suspect", False)):
+        if col not in df.columns:
+            df[col] = default
+    df["is_interval"] = df["is_interval"].fillna(False)
+    df["interval_hr_suspect"] = df["interval_hr_suspect"].fillna(False)
 
-    # Suspect (low-HR wrist-optical) runs live in their OWN trace, not the
-    # per-shoe traces, so unchecking "Suspect HR" in the legend actually removes
-    # them — and a dropout never pollutes a shoe's cluster.
-    df_clean = df[~df["hr_suspect"]]
+    # Explicit shoe→colour map (sorted, stable) so the per-shoe circles and the
+    # interval diamonds drawn later share the same colour per shoe.
+    palette = px.colors.qualitative.Light24
+    models = sorted(df["model_label"].dropna().unique())
+    cmap = {m: palette[i % len(palette)] for i, m in enumerate(models)}
+
+    # Three populations, each in its own trace(s) so they're independently
+    # toggleable: steady runs (per-shoe circles), wrist-optical suspects (red
+    # rings), and interval/workout runs (work-rep diamonds). A run is never in
+    # more than one — interval and suspect runs are pulled out of the per-shoe
+    # scatter so they don't pollute a shoe's cluster or sit at a misleading point.
+    df_steady = df[~df["hr_suspect"] & ~df["is_interval"]]
 
     fig = px.scatter(
-        df_clean,
+        df_steady,
         x="avg_gap_min_per_km",
         y="avg_hr",
         color="model_label",
-        color_discrete_sequence=px.colors.qualitative.Light24,
+        color_discrete_map=cmap,
         size="distance_km",
         size_max=22,
         hover_name="name",
@@ -86,10 +97,10 @@ def main() -> None:
     # rings). Uncheck it in the legend to view the chart without outliers. Size
     # uses the same area-sizeref as the per-shoe dots so distances stay
     # comparable; sizemin keeps short runs visible next to the 100km+ ultras.
+    sizeref = 2.0 * df["distance_km"].max() / (22.0 ** 2)
     suspect = df[df["hr_suspect"]]
     hr_meta = payload.get("hr_outliers", {})
     if not suspect.empty:
-        sizeref = 2.0 * df["distance_km"].max() / (22.0 ** 2)
         fig.add_trace(go.Scatter(
             x=suspect["avg_gap_min_per_km"],
             y=suspect["avg_hr"],
@@ -120,6 +131,74 @@ def main() -> None:
             ),
         ))
 
+    # Interval/workout runs: one toggleable diamond trace, plotted at the work-rep
+    # pace × mean per-rep max HR (rest laps removed) so they sit at their true
+    # effort instead of the misleading lower-right blend. Shoe-coloured via a
+    # per-point colour array (single trace → one "Interval" legend toggle).
+    interval = df[df["is_interval"]].copy()
+    if not interval.empty:
+        interval["work_gap_label"] = interval["work_gap_min_per_km"].map(pace_to_label)
+        fig.add_trace(go.Scatter(
+            x=interval["work_gap_min_per_km"],
+            y=interval["work_maxhr_mean"],
+            mode="markers",
+            name="◆ Interval (work-rep)",
+            hovertext=interval["name"],
+            customdata=interval[[
+                "date", "n_work_reps", "work_gap_label", "work_maxhr_mean",
+                "gear_label", "description", "id",
+            ]].values,
+            marker=dict(
+                symbol="diamond",
+                size=interval["distance_km"],
+                sizemode="area",
+                sizeref=sizeref,
+                sizemin=8,
+                color=[cmap.get(m, "#888") for m in interval["model_label"]],
+                line=dict(width=1.2, color="rgba(255,255,255,0.55)"),
+            ),
+            hovertemplate=(
+                "<b>%{hovertext}</b> — ◆ interval/workout<br>"
+                "%{customdata[0]} · %{customdata[1]} work reps<br>"
+                "Work GAP %{customdata[2]} · mean rep max-HR %{customdata[3]:.0f}<br>"
+                "Gear: %{customdata[4]}<br>"
+                "%{customdata[5]}<br>"
+                "<i>click to open in Strava</i><extra></extra>"
+            ),
+        ))
+
+        # Ring the interval runs whose work reps had impossible HR (sensor drops
+        # the whole-run average/max hide). Toggleable, like the steady suspects.
+        rep_drop = interval[interval["interval_hr_suspect"]]
+        if not rep_drop.empty:
+            fig.add_trace(go.Scatter(
+                x=rep_drop["work_gap_min_per_km"],
+                y=rep_drop["work_maxhr_mean"],
+                mode="markers",
+                name="⚠ Interval rep dropout",
+                hovertext=rep_drop["name"],
+                customdata=rep_drop[[
+                    "date", "n_work_reps", "work_gap_label", "work_maxhr_mean",
+                    "interval_hr_reason", "id",
+                ]].values,
+                marker=dict(
+                    symbol="diamond-open",
+                    size=rep_drop["distance_km"] * 1.7,
+                    sizemode="area",
+                    sizeref=sizeref,
+                    sizemin=13,
+                    color="rgba(255,165,0,0.95)",
+                    line=dict(width=2, color="rgba(255,165,0,0.95)"),
+                ),
+                hovertemplate=(
+                    "<b>%{hovertext}</b> — ⚠ interval rep dropout<br>"
+                    "%{customdata[0]} · %{customdata[1]} work reps<br>"
+                    "Work GAP %{customdata[2]} · mean rep max-HR %{customdata[3]:.0f}<br>"
+                    "Flagged: %{customdata[4]} · a work rep's HR is implausibly low<br>"
+                    "<i>click to open in Strava</i><extra></extra>"
+                ),
+            ))
+
     footnote = (
         f"Minetti GAP from altitude+distance streams · "
         f"runs ≥ {payload.get('min_distance_km', 0)} km with HR · "
@@ -128,9 +207,14 @@ def main() -> None:
     if not suspect.empty:
         footnote += (
             f" · {len(suspect)} flagged low-HR "
-            f"(wrist optical, pre-{hr_meta.get('wrist_optical_until', '?')}) — "
-            f"uncheck “Suspect HR” in the legend to hide them"
+            f"(wrist optical, pre-{hr_meta.get('wrist_optical_until', '?')})"
         )
+    if not interval.empty:
+        footnote += (
+            f" · {len(interval)} interval/workout runs shown as ◆ at work-rep pace × "
+            f"mean per-rep max-HR (rest laps removed)"
+        )
+    footnote += " — toggle any series in the legend"
 
     fig.update_layout(
         legend_title="Shoe model",
