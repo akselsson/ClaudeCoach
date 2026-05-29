@@ -6,7 +6,7 @@
 """Render the shoe-speed-vs-effort scatter from dataset.json.
 
 Reads dataset.json (produced by build_dataset.py) and writes a self-contained
-HTML file with a Plotly scatter plot: x = grade-adjusted pace, y = average HR,
+HTML file with a Plotly scatter plot: x = average HR, y = grade-adjusted pace,
 color = shoe. Hover shows the per-run context.
 """
 from __future__ import annotations
@@ -68,8 +68,8 @@ def main() -> None:
 
     fig = px.scatter(
         df_steady,
-        x="avg_gap_min_per_km",
-        y="avg_hr",
+        x="avg_hr",
+        y="avg_gap_min_per_km",
         color="model_label",
         color_discrete_map=cmap,
         size="distance_km",
@@ -89,25 +89,36 @@ def main() -> None:
         ),
         marker=dict(line=dict(width=0.5, color="rgba(255,255,255,0.35)")),
     )
-    fig.update_xaxes(
-        title="Grade-adjusted pace (min/km, faster →)",
+    fig.update_xaxes(title="Average heart rate (bpm)")
+    fig.update_yaxes(
+        title="Grade-adjusted pace (min/km, faster ↑)",
         autorange="reversed",
     )
-    fig.update_yaxes(title="Average heart rate (bpm)")
 
-    # Flagged low-HR wrist-optical dropouts as their own toggleable trace (red
-    # rings). Uncheck it in the legend to view the chart without outliers. Size
-    # uses the same area-sizeref as the per-shoe dots so distances stay
-    # comparable; sizemin keeps short runs visible next to the 100km+ ultras.
-    sizeref = 2.0 * df["distance_km"].max() / (22.0 ** 2)
+    # Match the overlay traces to the exact marker scale px computed for the
+    # steady dots (same sizeref + sizemin), so a given distance renders at the
+    # same size in every series — no inflated rings/diamonds.
+    base_sizeref = next(
+        (t.marker.sizeref for t in fig.data if getattr(t.marker, "sizeref", None)),
+        2.0 * df_steady["distance_km"].max() / (22.0 ** 2),
+    )
+    base_sizemin = next(
+        (t.marker.sizemin for t in fig.data if getattr(t.marker, "sizemin", None)),
+        0,
+    )
+
+    # Flagged low-HR wrist-optical dropouts as their own trace (red rings),
+    # hidden by default (visible="legendonly") — click the legend entry to show
+    # them. Same marker scale as the steady dots so a distance reads the same size.
     suspect = df[df["hr_suspect"]]
     hr_meta = payload.get("hr_outliers", {})
     if not suspect.empty:
         fig.add_trace(go.Scatter(
-            x=suspect["avg_gap_min_per_km"],
-            y=suspect["avg_hr"],
+            x=suspect["avg_hr"],
+            y=suspect["avg_gap_min_per_km"],
             mode="markers",
             name="⚠ Suspect HR (wrist optical)",
+            visible="legendonly",
             hovertext=suspect["name"],
             customdata=suspect[[
                 "date", "distance_km", "elev_gain_m", "pace_label", "gap_label",
@@ -115,10 +126,10 @@ def main() -> None:
             ]].values,
             marker=dict(
                 symbol="circle-open",
-                size=suspect["distance_km"] * 1.6,
+                size=suspect["distance_km"],
                 sizemode="area",
-                sizeref=sizeref,
-                sizemin=9,
+                sizeref=base_sizeref,
+                sizemin=base_sizemin,
                 color="rgba(255,80,80,0.95)",
                 line=dict(width=2, color="rgba(255,80,80,0.95)"),
             ),
@@ -145,8 +156,8 @@ def main() -> None:
 
     if not interval_clean.empty:
         fig.add_trace(go.Scatter(
-            x=interval_clean["work_gap_min_per_km"],
-            y=interval_clean["work_maxhr_mean"],
+            x=interval_clean["work_maxhr_mean"],
+            y=interval_clean["work_gap_min_per_km"],
             mode="markers",
             name="◆ Interval (work-rep)",
             hovertext=interval_clean["name"],
@@ -158,8 +169,8 @@ def main() -> None:
                 symbol="diamond",
                 size=interval_clean["distance_km"],
                 sizemode="area",
-                sizeref=sizeref,
-                sizemin=8,
+                sizeref=base_sizeref,
+                sizemin=base_sizemin,
                 color=[cmap.get(m, "#888") for m in interval_clean["model_label"]],
                 line=dict(width=1.2, color="rgba(255,255,255,0.55)"),
             ),
@@ -178,10 +189,11 @@ def main() -> None:
         # drop them entirely. These are runs whose work reps had impossible HR
         # (sensor drops the whole-run average/max hide).
         fig.add_trace(go.Scatter(
-                x=rep_drop["work_gap_min_per_km"],
-                y=rep_drop["work_maxhr_mean"],
+                x=rep_drop["work_maxhr_mean"],
+                y=rep_drop["work_gap_min_per_km"],
                 mode="markers",
                 name="⚠ Interval rep dropout",
+                visible="legendonly",
                 hovertext=rep_drop["name"],
                 customdata=rep_drop[[
                     "date", "n_work_reps", "work_gap_label", "work_maxhr_mean",
@@ -191,8 +203,8 @@ def main() -> None:
                     symbol="diamond",
                     size=rep_drop["distance_km"],
                     sizemode="area",
-                    sizeref=sizeref,
-                    sizemin=8,
+                    sizeref=base_sizeref,
+                    sizemin=base_sizemin,
                     color="rgba(255,165,0,0.95)",
                     line=dict(width=1.5, color="rgba(120,70,0,0.9)"),
                 ),
@@ -222,7 +234,7 @@ def main() -> None:
         )
         if not rep_drop.empty:
             footnote += f", + {len(rep_drop)} with rep-HR dropouts (orange)"
-    footnote += " — uncheck any series in the legend to hide it"
+    footnote += " — flagged (⚠) series are hidden by default; click them in the legend to show"
 
     fig.update_layout(
         legend_title="Shoe model",
