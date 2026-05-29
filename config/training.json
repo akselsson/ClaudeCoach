@@ -5,7 +5,7 @@
     "monitor_order_date": "2025-09-19",
     "wrist_optical_until": "2025-09-19",
     "reliable_source_after": "Coros HR armband (upper-arm optical)",
-    "note": "Wrist-based optical HR under-read on cold days through late 2024 → Sep 2025. Coros armband ordered 2025-09-19 (delivery uncertain) is the reliable source after. wrist_optical_until is detected from HR-vs-GAP residuals bounded by the order date (see scripts/shoe-speed-vs-effort/build_dataset.py); the 2026-05-29 detection run found no flag-worthy dropout after the order date, so it resolved to the order date itself. Cf. memory project_hr_monitor_wrist_unreliable."
+    "note": "Wrist-based optical HR under-read on cold days through late 2024 → Sep 2025. Coros armband ordered 2025-09-19 (delivery uncertain) is the reliable source after. wrist_optical_until is detected from HR-vs-GAP residuals bounded by the order date (see .claude/skills/shoe-speed-vs-effort/build_dataset.py); the 2026-05-29 detection run found no flag-worthy dropout after the order date, so it resolved to the order date itself. Cf. memory project_hr_monitor_wrist_unreliable."
   },
   "hr_zones": [
     {"name": "easy",          "min": 0,   "max": 140},
@@ -40,6 +40,26 @@
     {"name": "interval",      "min_per_km": "4:05", "max_per_km": "4:15"},
     {"name": "vo2",           "min_per_km": "3:55", "max_per_km": "4:05"}
   ],
+  "shoe_chart": {
+    "window_days": 520,
+    "min_distance_km": 2.0,
+    "distance_bands_km": [12, 20, 35],
+    "hr_correction": {
+      "enabled": true,
+      "anchor_window_days": 120,
+      "resid_drop_bpm": 10.0,
+      "resid_z": -2.0,
+      "fast_gap_max": 5.0,
+      "r1_gap_max": 5.0,
+      "r2_gap_max": 4.75,
+      "r4_gap_max": 5.0,
+      "r4_maxhr": 155,
+      "rep_drop_below_best": 20,
+      "rep_fast": {"pace": 4.25, "maxhr": 150},
+      "rep_easy": {"pace": 5.0, "maxhr": 135},
+      "_note": "Drives the shoe-speed-vs-effort chart's low-HR dropout detection. enabled=true because this athlete's wrist-optical monitor under-read pre-Coros (see hr_data). The R1/R2 avg-HR ceilings are NOT here — they're read live from hr_zones (easy/steady ceilings, 140/150). Only the GAP cutoffs and R4 max-HR, which don't sit on a zone boundary, are explicit. Set enabled=false to remove dropout detection entirely."
+    }
+  },
   "gear": [
     {"id": "g31397925", "type": "shoe", "name": "Adidas Evo SL Silver",      "nickname": null, "retired": false, "notes": ""},
     {"id": "g31149428", "type": "shoe", "name": "ASICS Megablast",            "nickname": null, "retired": false, "notes": ""},

@@ -19,9 +19,13 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATASET_PATH = Path(__file__).resolve().parent / "dataset.json"
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+CONFIG_PATH = PROJECT_ROOT / "config" / "training.json"
+DATASET_PATH = PROJECT_ROOT / ".cache" / "shoe-speed-vs-effort" / "dataset.json"
 OUTPUT_PATH = PROJECT_ROOT / "viz" / "shoe-speed-vs-effort.html"
+
+# Default distance-band cut points (km) when config doesn't set them.
+DEFAULT_DISTANCE_CUTS = [12, 20, 35]
 
 
 def pace_to_label(min_per_km: float) -> str:
@@ -32,14 +36,21 @@ def pace_to_label(min_per_km: float) -> str:
     return f"{m}:{s:02d}/km"
 
 
-# Distance bands for the filter dropdown: (label, lower-exclusive, upper-inclusive) km.
-DISTANCE_BANDS = [
-    ("All distances", -1.0, 1e9),
-    ("≤ 12 km", -1.0, 12.0),
-    ("12–20 km", 12.0, 20.0),
-    ("20–35 km", 20.0, 35.0),
-    ("> 35 km", 35.0, 1e9),
-]
+def build_distance_bands(cuts: list[float]) -> list[tuple]:
+    """Turn a list of cut points into dropdown bands: (label, lo-excl, hi-incl) km.
+
+    Cuts [12, 20, 35] → "All distances", "≤ 12 km", "12–20 km", "20–35 km", "> 35 km".
+    "All distances" always leads so the chart opens unfiltered."""
+    cuts = sorted(float(c) for c in cuts) if cuts else []
+    bands = [("All distances", -1.0, 1e9)]
+    prev = -1.0
+    for c in cuts:
+        label = f"≤ {c:g} km" if prev < 0 else f"{prev:g}–{c:g} km"
+        bands.append((label, prev, c))
+        prev = c
+    if prev >= 0:
+        bands.append((f"> {prev:g} km", prev, 1e9))
+    return bands
 
 
 def _is_array(v) -> bool:
@@ -47,14 +58,14 @@ def _is_array(v) -> bool:
     return hasattr(v, "__len__") and not isinstance(v, str)
 
 
-def distance_band_buttons(fig) -> list[dict]:
+def distance_band_buttons(fig, bands: list[tuple]) -> list[dict]:
     """Build native Plotly dropdown buttons that filter every trace to a distance
     band. Each point carries its distance at customdata[0], so for a band we keep
     the matching indices and emit a `restyle` that rebuilds x / y / customdata
     (and the per-point marker.size / marker.color arrays) for all traces at once.
     """
     buttons = []
-    for label, lo, hi in DISTANCE_BANDS:
+    for label, lo, hi in bands:
         xs, ys, cds, sizes, colors = [], [], [], [], []
         for tr in fig.data:
             cd = list(tr.customdata) if tr.customdata is not None else []
@@ -83,6 +94,10 @@ def main() -> None:
     activities = payload.get("activities", [])
     if not activities:
         sys.exit("dataset has no activities")
+
+    config = json.loads(CONFIG_PATH.read_text()) if CONFIG_PATH.exists() else {}
+    cuts = (config.get("shoe_chart") or {}).get("distance_bands_km", DEFAULT_DISTANCE_CUTS)
+    bands = build_distance_bands(cuts)
 
     df = pd.DataFrame(activities)
     df["pace_label"] = df["avg_pace_min_per_km"].map(pace_to_label)
@@ -303,7 +318,7 @@ def main() -> None:
             x=0.085, xanchor="left", y=1.235, yanchor="top",
             bgcolor="#2a2a2a", bordercolor="#666", font=dict(color="#eee", size=12),
             showactive=True,
-            buttons=distance_band_buttons(fig),
+            buttons=distance_band_buttons(fig, bands),
         )],
         margin=dict(l=70, r=30, t=150, b=70),
     )

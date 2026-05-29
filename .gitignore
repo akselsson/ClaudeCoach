@@ -2,5 +2,3 @@ __pycache__
 .cache/
 .env
 .wrangler
-scripts/shoe-speed-vs-effort/dataset.json
-scripts/shoe-speed-vs-effort/gear_cache.json

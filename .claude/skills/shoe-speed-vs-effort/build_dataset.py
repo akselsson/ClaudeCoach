@@ -20,29 +20,39 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 STRAVA_CLI = PROJECT_ROOT / ".claude" / "skills" / "strava" / "strava.py"
 CACHE_DIR = PROJECT_ROOT / ".cache" / "strava"
 CONFIG_PATH = PROJECT_ROOT / "config" / "training.json"
-OUTPUT_PATH = Path(__file__).resolve().parent / "dataset.json"
-GEAR_CACHE_PATH = Path(__file__).resolve().parent / "gear_cache.json"
+ARTIFACT_DIR = PROJECT_ROOT / ".cache" / "shoe-speed-vs-effort"
+OUTPUT_PATH = ARTIFACT_DIR / "dataset.json"
+GEAR_CACHE_PATH = ARTIFACT_DIR / "gear_cache.json"
 
-WINDOW_DAYS = 520
 STREAM_RESOLUTION = "medium"
 STREAM_TYPES = "time,distance,altitude,heartrate"
-MIN_DISTANCE_KM = 2.0
 ALT_SMOOTH_WINDOW = 5
 GRADE_CLAMP = 0.30  # ±30%, well past where Minetti's polynomial stays sane
 
+# --- Configurable knobs (config/training.json → `shoe_chart`) ----------------
+# Everything in this section is athlete-specific and loaded from config at
+# startup by configure(), with these literals as fallback defaults so a missing
+# or partial `shoe_chart` block still runs. configure() overwrites these module
+# globals so the rest of the file keeps referring to them by name. See SKILL.md
+# for the bootstrap interview that proposes and writes them.
+WINDOW_DAYS = 520
+MIN_DISTANCE_KM = 2.0
+
 # --- Low-HR outlier detection (wrist-optical cold-day dropouts) -------------
-# The watch's wrist-based optical HR under-read on cold days through late 2024
-# → Sep 2025. A Coros HR armband (upper-arm optical) was ordered 2025-09-19 and
-# is the reliable source after delivery. Dropouts make a run look like "fast
-# pace at low effort", which would wrongly flatter whatever shoe was on that
-# day — so we flag them before the chart is read. See config/training.json
+# Only relevant for athletes whose monitor under-reads — the whole block is gated
+# on `shoe_chart.hr_correction.enabled`. A dropout makes a run look like "fast
+# pace at low effort", which would wrongly flatter whatever shoe was on that day,
+# so we flag them before the chart is read. The watch's wrist-based optical HR
+# under-read on cold days until a Coros armband (upper-arm optical) was adopted;
+# the switch date comes from `hr_data.monitor_order_date`. See config/training.json
 # `hr_data` and the project memory project_hr_monitor_wrist_unreliable.
-COROS_ORDER_DATE = "2025-09-19"
-SWITCH_SEARCH_END = "2025-11-03"   # order date + ~6 weeks: latest plausible adoption
+HR_CORRECTION_ENABLED = True
+COROS_ORDER_DATE = "2025-09-19"    # = hr_data.monitor_order_date
+SWITCH_SEARCH_END = "2025-11-03"   # order date + ~6 weeks: latest plausible adoption (derived)
 HR_ANCHOR_WINDOW_DAYS = 120        # most-recent trusted runs used to fit HR≈a+b·GAP
 # Residual rule (R3): the linear HR≈a+b·GAP trend over-predicts HR on slow easy
 # runs, so a moderate negative residual is only a dropout signal in the fast band
@@ -58,8 +68,14 @@ RESID_Z = -2.0                     # ~2σ below trend at any pace → catastroph
 # max-152 run are instead caught by R4 (low max for a fast effort, now covering
 # GAP ≤ 5:00) and R3 (below trend), which key off the actual dropout signature:
 # a suppressed peak, not just a low average.
-R1_GAP_MAX, R1_HR_MAX = 5.0, 140    # easy-low:  GAP ≤ 5:00 and avg HR < 140
-R2_GAP_MAX, R2_HR_MAX = 4.75, 150   # fast-low:  GAP ≤ 4:45 and avg HR < 150
+#
+# The R1/R2 avg-HR ceilings are NOT stored in `shoe_chart`: they coincide exactly
+# with the easy- and steady-zone ceilings in `hr_zones`, so configure() reads them
+# live from there (one source of truth — retuning a zone moves the rule). The GAP
+# cutoffs and R4's max-HR don't sit on any zone boundary, so they are explicit
+# `shoe_chart.hr_correction` numbers.
+R1_GAP_MAX, R1_HR_MAX = 5.0, 140    # easy-low:  GAP ≤ 5:00 and avg HR < easy-zone ceiling
+R2_GAP_MAX, R2_HR_MAX = 4.75, 150   # fast-low:  GAP ≤ 4:45 and avg HR < steady-zone ceiling
 R4_GAP_MAX, R4_MAXHR_MAX = 5.0, 155  # max-hr sanity: GAP ≤ 5:00 and max HR < 155
 
 # --- Interval / workout detection (dynamic, relative to each run) -----------
@@ -68,7 +84,9 @@ R4_GAP_MAX, R4_MAXHR_MAX = 5.0, 155  # max-hr sanity: GAP ≤ 5:00 and max HR < 
 # the "free pace at low effort" corner. We instead represent an interval run by
 # its WORK reps. Classification is entirely relative to the run's own laps, so it
 # works whether reps are 3:55/km or a deliberately-easy 5:00/km; thresholds keyed
-# off absolute pace would miss sub-threshold sessions.
+# off absolute pace would miss sub-threshold sessions. Classification + the
+# work-rep transform are always on (a representation fix, not error correction);
+# only the rep-HR-dropout *flagging* is gated on hr_correction.enabled.
 INTERVAL_SUBST_M = 400          # a "substantial" lap (excludes jog/standing rests)
 INTERVAL_REST_RATIO = 1.5       # lap slower than 1.5× the run's median substantial pace…
 INTERVAL_REST_MIN_M = 200       # …or shorter than this ⇒ a recovery/standing lap
@@ -92,6 +110,64 @@ WORKOUT_KW = re.compile(
     r"|tempo|fartlek|\brep|vila|vo2|backe|halvmara)",
     re.I,
 )
+
+
+def _zone_ceiling(hr_zones: list[dict], name: str, fallback: float) -> float:
+    """Return the `max` of the named HR zone (case-insensitive), else fallback.
+
+    R1/R2's avg-HR ceilings are the easy/steady zone tops — read them live so the
+    rule tracks the configured zones instead of duplicating their numbers."""
+    for z in hr_zones or []:
+        if str(z.get("name", "")).lower() == name and z.get("max") is not None:
+            return float(z["max"])
+    return fallback
+
+
+def configure(config: dict) -> None:
+    """Overwrite the athlete-specific module globals from config/training.json.
+
+    Reads `shoe_chart` (window, HR-correction knobs) with the literal module
+    defaults as fallback, the R1/R2 HR ceilings live from `hr_zones`, and the
+    monitor switch date from `hr_data`. Leaves everything at its default when a
+    key is absent, so a partial or missing `shoe_chart` block still runs."""
+    global WINDOW_DAYS, MIN_DISTANCE_KM
+    global HR_CORRECTION_ENABLED, COROS_ORDER_DATE, SWITCH_SEARCH_END, HR_ANCHOR_WINDOW_DAYS
+    global FAST_GAP_MAX, RESID_DROP_FAST, RESID_Z
+    global R1_GAP_MAX, R1_HR_MAX, R2_GAP_MAX, R2_HR_MAX, R4_GAP_MAX, R4_MAXHR_MAX
+    global REP_DROP_BELOW_BEST, REP_FAST_PACE, REP_FAST_MAXHR, REP_EASY_PACE, REP_EASY_MAXHR
+
+    sc = config.get("shoe_chart") or {}
+    WINDOW_DAYS = sc.get("window_days", WINDOW_DAYS)
+    MIN_DISTANCE_KM = sc.get("min_distance_km", MIN_DISTANCE_KM)
+
+    hr = sc.get("hr_correction") or {}
+    hr_data = config.get("hr_data") or {}
+    # Disabled when explicitly off, or when there's no monitor history to model.
+    HR_CORRECTION_ENABLED = bool(hr.get("enabled", bool(hr_data.get("monitor_order_date"))))
+
+    COROS_ORDER_DATE = hr_data.get("monitor_order_date", COROS_ORDER_DATE)
+    SWITCH_SEARCH_END = _date_plus_days(COROS_ORDER_DATE, 45)  # ~6 weeks after the switch
+    HR_ANCHOR_WINDOW_DAYS = hr.get("anchor_window_days", HR_ANCHOR_WINDOW_DAYS)
+    FAST_GAP_MAX = hr.get("fast_gap_max", FAST_GAP_MAX)
+    RESID_DROP_FAST = hr.get("resid_drop_bpm", RESID_DROP_FAST)
+    RESID_Z = hr.get("resid_z", RESID_Z)
+
+    R1_GAP_MAX = hr.get("r1_gap_max", R1_GAP_MAX)
+    R2_GAP_MAX = hr.get("r2_gap_max", R2_GAP_MAX)
+    R4_GAP_MAX = hr.get("r4_gap_max", R4_GAP_MAX)
+    R4_MAXHR_MAX = hr.get("r4_maxhr", R4_MAXHR_MAX)
+    # R1/R2 avg-HR ceilings come straight from the configured zones.
+    hr_zones = config.get("hr_zones") or []
+    R1_HR_MAX = _zone_ceiling(hr_zones, "easy", R1_HR_MAX)
+    R2_HR_MAX = _zone_ceiling(hr_zones, "steady", R2_HR_MAX)
+
+    rep_fast = hr.get("rep_fast") or {}
+    rep_easy = hr.get("rep_easy") or {}
+    REP_DROP_BELOW_BEST = hr.get("rep_drop_below_best", REP_DROP_BELOW_BEST)
+    REP_FAST_PACE = rep_fast.get("pace", REP_FAST_PACE)
+    REP_FAST_MAXHR = rep_fast.get("maxhr", REP_FAST_MAXHR)
+    REP_EASY_PACE = rep_easy.get("pace", REP_EASY_PACE)
+    REP_EASY_MAXHR = rep_easy.get("maxhr", REP_EASY_MAXHR)
 
 
 def run_strava(*args: str) -> dict | list:
@@ -493,8 +569,26 @@ def _date_plus_days(date_str: str, days: int) -> str:
 
 
 def main() -> None:
+    if not CONFIG_PATH.exists():
+        sys.exit(
+            f"error: training config not found at {CONFIG_PATH}\n"
+            "Run the shoe-speed-vs-effort skill's bootstrap (see SKILL.md) to create it."
+        )
+    config = json.loads(CONFIG_PATH.read_text())
+    configure(config)
+    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+
     gear_lookup = load_gear_lookup()
     gear_cache = load_gear_cache()
+
+    if HR_CORRECTION_ENABLED:
+        print(
+            f"      HR-dropout correction ON (monitor switch {COROS_ORDER_DATE}, "
+            f"R1 HR<{R1_HR_MAX:.0f}, R2 HR<{R2_HR_MAX:.0f})",
+            file=sys.stderr,
+        )
+    else:
+        print("      HR-dropout correction OFF (shoe_chart.hr_correction disabled)", file=sys.stderr)
 
     print(f"[1/3] Listing runs in the last {WINDOW_DAYS} days...", file=sys.stderr)
     summaries = run_strava("recent", "--since", f"{WINDOW_DAYS}d", "--type", "Run")
@@ -552,7 +646,7 @@ def main() -> None:
             point = work_rep_point(work_laps, avg_pace, avg_gap)
             if point:
                 work_gap, work_maxhr_mean, n_reps = point
-                dropout = work_rep_dropout(work_laps)
+                dropout = work_rep_dropout(work_laps) if HR_CORRECTION_ENABLED else ""
                 row.update({
                     "is_interval": True,
                     "n_work_reps": n_reps,
@@ -566,8 +660,17 @@ def main() -> None:
         if i % 5 == 0:
             print(f"      processed {i}/{len(summaries)}", file=sys.stderr)
 
-    print("[3/3] Flagging low-HR outliers + writing dataset.json...", file=sys.stderr)
-    wrist_optical_until = annotate_hr_suspects(rows)
+    if HR_CORRECTION_ENABLED:
+        print("[3/3] Flagging low-HR outliers + writing dataset.json...", file=sys.stderr)
+        wrist_optical_until = annotate_hr_suspects(rows)
+    else:
+        print("[3/3] Writing dataset.json (HR correction off, nothing flagged)...", file=sys.stderr)
+        for r in rows:
+            r["hr_suspect"] = False
+            r["hr_suspect_reason"] = ""
+            r["hr_residual"] = None
+        wrist_optical_until = None
+
     suspects = [r for r in rows if r.get("hr_suspect")]
     intervals = [r for r in rows if r.get("is_interval")]
     interval_drops = [r for r in intervals if r.get("interval_hr_suspect")]
@@ -578,8 +681,9 @@ def main() -> None:
         "stream_resolution": STREAM_RESOLUTION,
         "min_distance_km": MIN_DISTANCE_KM,
         "hr_outliers": {
+            "enabled": HR_CORRECTION_ENABLED,
             "wrist_optical_until": wrist_optical_until,
-            "monitor_order_date": COROS_ORDER_DATE,
+            "monitor_order_date": COROS_ORDER_DATE if HR_CORRECTION_ENABLED else None,
             "anchor_window_days": HR_ANCHOR_WINDOW_DAYS,
             "resid_drop_bpm": RESID_DROP_FAST,
             "n_suspect": len(suspects),
@@ -599,22 +703,26 @@ def main() -> None:
         f"no_streams={skipped['no_streams']}.",
         file=sys.stderr,
     )
-    print(
-        f"\nWrist-optical cutoff detected at {wrist_optical_until} "
-        f"(order date {COROS_ORDER_DATE}). Flagged {len(suspects)} low-HR run(s):",
-        file=sys.stderr,
-    )
-    for r in sorted(suspects, key=lambda x: x["date"]):
+    if HR_CORRECTION_ENABLED:
         print(
-            f"  {r['date']}  HR {r['avg_hr']:.0f} (max {r.get('max_hr') or 0:.0f})  "
-            f"GAP {r['avg_gap_min_per_km']:.2f}  resid {r['hr_residual']:+.0f}  "
-            f"[{r['hr_suspect_reason']}]  {r.get('name', '')} ({r['id']})",
+            f"\nWrist-optical cutoff detected at {wrist_optical_until} "
+            f"(order date {COROS_ORDER_DATE}). Flagged {len(suspects)} low-HR run(s):",
             file=sys.stderr,
         )
+        for r in sorted(suspects, key=lambda x: x["date"]):
+            print(
+                f"  {r['date']}  HR {r['avg_hr']:.0f} (max {r.get('max_hr') or 0:.0f})  "
+                f"GAP {r['avg_gap_min_per_km']:.2f}  resid {r['hr_residual']:+.0f}  "
+                f"[{r['hr_suspect_reason']}]  {r.get('name', '')} ({r['id']})",
+                file=sys.stderr,
+            )
 
+    drop_suffix = (
+        f"; {len(interval_drops)} with a work-rep HR dropout"
+        if HR_CORRECTION_ENABLED else ""
+    )
     print(
-        f"\nClassified {len(intervals)} interval/workout run(s); "
-        f"{len(interval_drops)} with a work-rep HR dropout:",
+        f"\nClassified {len(intervals)} interval/workout run(s){drop_suffix}:",
         file=sys.stderr,
     )
     for r in sorted(intervals, key=lambda x: x["date"]):
