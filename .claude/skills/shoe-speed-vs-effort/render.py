@@ -410,30 +410,41 @@ def main() -> None:
             ),
         ))
 
-    footnote = (
+    ref_min = hr_drift.get("ref_min")
+
+    # The footnote is built as 2–3 logical lines joined with <br> (method / flags /
+    # drift) so it wraps cleanly and never clips at the right edge, regardless of
+    # figure width — more robust than guessing a pixel `width` on a responsive chart.
+    method_line = (
         f"Minetti GAP from altitude+distance streams · "
         f"runs ≥ {payload.get('min_distance_km', 0)} km with HR · "
         f"point size ∝ distance · n={len(df)}"
     )
+    flag_parts = []
     if not suspect.empty:
-        footnote += (
-            f" · {len(suspect)} flagged low-HR "
+        flag_parts.append(
+            f"{len(suspect)} flagged low-HR "
             f"(wrist optical, pre-{hr_meta.get('wrist_optical_until', '?')})"
         )
     if not interval.empty:
-        footnote += (
-            f" · {len(interval_clean)} interval/workout ◆ at work-rep pace × mean "
+        interval_part = (
+            f"{len(interval_clean)} interval/workout ◆ at work-rep pace × mean "
             f"per-rep max-HR (rest laps removed)"
         )
         if not rep_drop.empty:
-            footnote += f", + {len(rep_drop)} with rep-HR dropouts (orange)"
-    footnote += " — flagged (⚠) series are hidden by default; click them in the legend to show"
-    ref_min = hr_drift.get("ref_min")
+            interval_part += f", + {len(rep_drop)} with rep-HR dropouts (orange)"
+        flag_parts.append(interval_part)
+    hidden_note = "flagged (⚠) series are hidden by default; click them in the legend to show"
+    lines = [method_line]
+    if flag_parts:
+        lines.append(" · ".join(flag_parts))
+    lines.append(hidden_note)
     if drift_on:
-        footnote += (
-            f" · drift-adjusted HR available ({hr_drift.get('c_bpm_per_min'):+.2f} "
+        lines.append(
+            f"Drift-adjusted HR available ({hr_drift.get('c_bpm_per_min'):+.2f} "
             f"bpm/min vs {ref_min:.0f}-min reference — toggle above)"
         )
+    footnote = "<br>".join(lines)
 
     # The x-axis title travels with the toggle, so the axis label never lies about
     # which HR is plotted. Both strings are baked into the controller below.
@@ -442,14 +453,35 @@ def main() -> None:
         "adj": f"Drift-adjusted HR (bpm, @ {ref_min:.0f}-min ref)" if drift_on else "",
     }
 
+    # Header geometry (paper coords). The whole header — title, control labels,
+    # dropdowns (updatemenus), and footnote — lives in paper coords so it stacks
+    # deterministically top→bottom: title → controls → footnote → plot. The title is
+    # rendered as an annotation (not layout.title, whose y is clamped to [0,1] and so
+    # can't sit in the top margin). Both control groups share these locals so the
+    # drift / no-drift branches can't drift apart: each label sits one row above its
+    # dropdown, left-aligned to it, and the two groups are separated horizontally so
+    # neither label nor menu can collide.
+    TITLE_Y = 1.42
+    LABEL_Y = 1.30
+    MENU_Y = 1.24
+    DIST_X = 0.0
+    HR_X = 0.34
+    FOOTNOTE_Y = 1.12
+
     annotations = [
         dict(
-            xref="paper", yref="paper", x=0, y=1.10, showarrow=False,
-            text=footnote,
+            xref="paper", yref="paper", x=0, y=TITLE_Y, showarrow=False,
+            text=f"Shoe speed vs. effort — last {payload.get('window_days', '?')} days",
+            xanchor="left", yanchor="middle",
+            font=dict(size=20, color="rgba(255,255,255,0.95)"),
+        ),
+        dict(
+            xref="paper", yref="paper", x=0, y=FOOTNOTE_Y, showarrow=False,
+            text=footnote, xanchor="left", yanchor="top", align="left",
             font=dict(size=11, color="rgba(255,255,255,0.65)"),
         ),
         dict(
-            xref="paper", yref="paper", x=0, y=1.20, showarrow=False,
+            xref="paper", yref="paper", x=DIST_X, y=LABEL_Y, showarrow=False,
             text="Distance band:", xanchor="left",
             font=dict(size=12, color="rgba(255,255,255,0.85)"),
         ),
@@ -463,33 +495,36 @@ def main() -> None:
         # the restyle so the band filter and HR mode compose. The button order here
         # must match BAND_LABELS/BANDS handed to the controller.
         updatemenus = [
-            dict(type="dropdown", direction="down", x=0.085, xanchor="left",
-                 y=1.235, yanchor="top", showactive=True, active=0, **_menu_style,
+            dict(type="dropdown", direction="down", x=DIST_X, xanchor="left",
+                 y=MENU_Y, yanchor="top", showactive=True, active=0, **_menu_style,
                  buttons=[dict(label=b[0], method="skip", args=[]) for b in bands]),
-            dict(type="dropdown", direction="down", x=0.40, xanchor="left",
-                 y=1.235, yanchor="top", showactive=True, active=0, **_menu_style,
+            dict(type="dropdown", direction="down", x=HR_X, xanchor="left",
+                 y=MENU_Y, yanchor="top", showactive=True, active=0, **_menu_style,
                  buttons=[dict(label="Raw HR", method="skip", args=[]),
                           dict(label="Drift-adjusted HR", method="skip", args=[])]),
         ]
         annotations.append(dict(
-            xref="paper", yref="paper", x=0.40, y=1.20, showarrow=False,
+            xref="paper", yref="paper", x=HR_X, y=LABEL_Y, showarrow=False,
             text="HR axis:", xanchor="left",
             font=dict(size=12, color="rgba(255,255,255,0.85)"),
         ))
     else:
         # No drift adjustment: keep the original static restyle dropdown.
         updatemenus = [dict(
-            type="dropdown", direction="down", x=0.085, xanchor="left",
-            y=1.235, yanchor="top", showactive=True, **_menu_style,
+            type="dropdown", direction="down", x=DIST_X, xanchor="left",
+            y=MENU_Y, yanchor="top", showactive=True, **_menu_style,
             buttons=distance_band_buttons(fig, bands),
         )]
 
     fig.update_layout(
+        # Title is drawn as a paper annotation above (so it shares the header's
+        # coordinate system); clear the built-in layout title to avoid a duplicate.
+        title_text="",
         legend_title="Shoe model",
         template="plotly_dark",
         annotations=annotations,
         updatemenus=updatemenus,
-        margin=dict(l=70, r=30, t=150, b=70),
+        margin=dict(l=70, r=30, t=280, b=70),
     )
 
     # Open the corresponding Strava activity in a new tab when a point is clicked.
