@@ -32,6 +32,49 @@ def pace_to_label(min_per_km: float) -> str:
     return f"{m}:{s:02d}/km"
 
 
+# Distance bands for the filter dropdown: (label, lower-exclusive, upper-inclusive) km.
+DISTANCE_BANDS = [
+    ("All distances", -1.0, 1e9),
+    ("≤ 12 km", -1.0, 12.0),
+    ("12–20 km", 12.0, 20.0),
+    ("20–35 km", 20.0, 35.0),
+    ("> 35 km", 35.0, 1e9),
+]
+
+
+def _is_array(v) -> bool:
+    """True if a marker prop is per-point (a sequence) rather than a scalar."""
+    return hasattr(v, "__len__") and not isinstance(v, str)
+
+
+def distance_band_buttons(fig) -> list[dict]:
+    """Build native Plotly dropdown buttons that filter every trace to a distance
+    band. Each point carries its distance at customdata[0], so for a band we keep
+    the matching indices and emit a `restyle` that rebuilds x / y / customdata
+    (and the per-point marker.size / marker.color arrays) for all traces at once.
+    """
+    buttons = []
+    for label, lo, hi in DISTANCE_BANDS:
+        xs, ys, cds, sizes, colors = [], [], [], [], []
+        for tr in fig.data:
+            cd = list(tr.customdata) if tr.customdata is not None else []
+            keep = [k for k, row in enumerate(cd) if lo < row[0] <= hi]
+            xs.append([tr.x[k] for k in keep])
+            ys.append([tr.y[k] for k in keep])
+            cds.append([cd[k] for k in keep])
+            msize = tr.marker.size
+            sizes.append([msize[k] for k in keep] if _is_array(msize) else msize)
+            mcolor = tr.marker.color
+            colors.append([mcolor[k] for k in keep] if _is_array(mcolor) else mcolor)
+        buttons.append(dict(
+            label=label,
+            method="restyle",
+            args=[{"x": xs, "y": ys, "customdata": cds,
+                   "marker.size": sizes, "marker.color": colors}],
+        ))
+    return buttons
+
+
 def main() -> None:
     if not DATASET_PATH.exists():
         sys.exit(f"dataset not found at {DATASET_PATH} — run build_dataset.py first")
@@ -244,20 +287,29 @@ def main() -> None:
         template="plotly_dark",
         annotations=[
             dict(
-                xref="paper", yref="paper", x=0, y=1.08, showarrow=False,
+                xref="paper", yref="paper", x=0, y=1.10, showarrow=False,
                 text=footnote,
                 font=dict(size=11, color="rgba(255,255,255,0.65)"),
-            )
+            ),
+            dict(
+                xref="paper", yref="paper", x=0, y=1.20, showarrow=False,
+                text="Distance band:", xanchor="left",
+                font=dict(size=12, color="rgba(255,255,255,0.85)"),
+            ),
         ],
-        margin=dict(l=70, r=30, t=110, b=70),
+        updatemenus=[dict(
+            type="dropdown",
+            direction="down",
+            x=0.085, xanchor="left", y=1.235, yanchor="top",
+            bgcolor="#2a2a2a", bordercolor="#666", font=dict(color="#eee", size=12),
+            showactive=True,
+            buttons=distance_band_buttons(fig),
+        )],
+        margin=dict(l=70, r=30, t=150, b=70),
     )
 
-    # post_script: (1) click a point → open the Strava activity (id is the last
-    # customdata entry); (2) a distance-band dropdown that filters every trace so
-    # shoes can be compared like-for-like (long runs sit slower-at-same-HR from
-    # cardiac drift, so a band keeps distance roughly constant). Each point's
-    # distance is at customdata[0] in every trace; filtering rebuilds x/y/
-    # customdata (and the size/colour arrays where present) via Plotly.restyle.
+    # Open the corresponding Strava activity in a new tab when a point is clicked.
+    # The Strava activity id is the last entry of customdata per the array above.
     click_handler = """
     var gd = document.getElementById('{plot_id}');
     gd.style.cursor = 'pointer';
@@ -267,49 +319,6 @@ def main() -> None:
         var id = pt.customdata[pt.customdata.length - 1];
         if (id) window.open('https://www.strava.com/activities/' + id, '_blank');
     });
-
-    var FULL = gd.data.map(function(t) {
-        return {
-            x: (t.x || []).slice(),
-            y: (t.y || []).slice(),
-            cd: (t.customdata || []).map(function(c) { return c; }),
-            size: (t.marker && Array.isArray(t.marker.size)) ? t.marker.size.slice() : null,
-            color: (t.marker && Array.isArray(t.marker.color)) ? t.marker.color.slice() : null
-        };
-    });
-    var BANDS = [
-        ['All distances', -1, 1e9], ['\\u2264 12 km', -1, 12],
-        ['12\\u201320 km', 12, 20], ['20\\u201335 km', 20, 35], ['> 35 km', 35, 1e9]
-    ];
-    function applyBand(lo, hi) {
-        for (var i = 0; i < gd.data.length; i++) {
-            var f = FULL[i], nx = [], ny = [], nc = [], ns = [], ncol = [];
-            for (var j = 0; j < f.x.length; j++) {
-                var dkm = f.cd[j][0];
-                if (dkm > lo && dkm <= hi) {
-                    nx.push(f.x[j]); ny.push(f.y[j]); nc.push(f.cd[j]);
-                    if (f.size) ns.push(f.size[j]);
-                    if (f.color) ncol.push(f.color[j]);
-                }
-            }
-            var upd = { x: [nx], y: [ny], customdata: [nc] };
-            if (f.size) upd['marker.size'] = [ns];
-            if (f.color) upd['marker.color'] = [ncol];
-            Plotly.restyle(gd, upd, [i]);
-        }
-    }
-    var ctrl = document.createElement('div');
-    ctrl.style.cssText = 'font:13px/1.4 sans-serif;color:#bbb;padding:6px 0 2px 70px;';
-    ctrl.appendChild(document.createTextNode('Distance band: '));
-    var sel = document.createElement('select');
-    sel.style.cssText = 'background:#222;color:#eee;border:1px solid #555;border-radius:4px;padding:2px 6px;';
-    BANDS.forEach(function(b, k) {
-        var o = document.createElement('option');
-        o.value = k; o.text = b[0]; sel.appendChild(o);
-    });
-    sel.onchange = function() { var b = BANDS[+sel.value]; applyBand(b[1], b[2]); };
-    ctrl.appendChild(sel);
-    gd.parentNode.insertBefore(ctrl, gd);
     """
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
