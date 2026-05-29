@@ -75,13 +75,16 @@ def main() -> None:
         size="distance_km",
         size_max=22,
         hover_name="name",
-        custom_data=["date", "distance_km", "elev_gain_m", "pace_label", "gap_label", "avg_hr", "max_hr", "gear_label", "id"],
+        # distance_km is kept at customdata[0] in EVERY trace so the distance-band
+        # filter (see post_script) can read each point's distance uniformly; the
+        # Strava id stays last for the click handler.
+        custom_data=["distance_km", "date", "elev_gain_m", "pace_label", "gap_label", "avg_hr", "max_hr", "gear_label", "id"],
         title=f"Shoe speed vs. effort — last {payload.get('window_days', '?')} days",
     )
     fig.update_traces(
         hovertemplate=(
             "<b>%{hovertext}</b><br>"
-            "%{customdata[0]} · %{customdata[1]:.1f} km · +%{customdata[2]:.0f} m<br>"
+            "%{customdata[1]} · %{customdata[0]:.1f} km · +%{customdata[2]:.0f} m<br>"
             "Pace %{customdata[3]} · GAP %{customdata[4]}<br>"
             "HR avg %{customdata[5]:.0f} (max %{customdata[6]:.0f})<br>"
             "Gear: %{customdata[7]}<br>"
@@ -121,7 +124,7 @@ def main() -> None:
             visible="legendonly",
             hovertext=suspect["name"],
             customdata=suspect[[
-                "date", "distance_km", "elev_gain_m", "pace_label", "gap_label",
+                "distance_km", "date", "elev_gain_m", "pace_label", "gap_label",
                 "avg_hr", "max_hr", "gear_label", "hr_suspect_reason", "id",
             ]].values,
             marker=dict(
@@ -135,7 +138,7 @@ def main() -> None:
             ),
             hovertemplate=(
                 "<b>%{hovertext}</b> — ⚠ suspect HR<br>"
-                "%{customdata[0]} · %{customdata[1]:.1f} km · +%{customdata[2]:.0f} m<br>"
+                "%{customdata[1]} · %{customdata[0]:.1f} km · +%{customdata[2]:.0f} m<br>"
                 "Pace %{customdata[3]} · GAP %{customdata[4]}<br>"
                 "HR avg %{customdata[5]:.0f} (max %{customdata[6]:.0f})<br>"
                 "Gear: %{customdata[7]}<br>"
@@ -162,7 +165,7 @@ def main() -> None:
             name="◆ Interval (work-rep)",
             hovertext=interval_clean["name"],
             customdata=interval_clean[[
-                "date", "n_work_reps", "work_gap_label", "work_maxhr_mean",
+                "distance_km", "date", "n_work_reps", "work_gap_label", "work_maxhr_mean",
                 "gear_label", "description", "id",
             ]].values,
             marker=dict(
@@ -176,10 +179,10 @@ def main() -> None:
             ),
             hovertemplate=(
                 "<b>%{hovertext}</b> — ◆ interval/workout<br>"
-                "%{customdata[0]} · %{customdata[1]} work reps<br>"
-                "Work GAP %{customdata[2]} · mean rep max-HR %{customdata[3]:.0f}<br>"
-                "Gear: %{customdata[4]}<br>"
-                "%{customdata[5]}<br>"
+                "%{customdata[1]} · %{customdata[2]} work reps · %{customdata[0]:.1f} km<br>"
+                "Work GAP %{customdata[3]} · mean rep max-HR %{customdata[4]:.0f}<br>"
+                "Gear: %{customdata[5]}<br>"
+                "%{customdata[6]}<br>"
                 "<i>click to open in Strava</i><extra></extra>"
             ),
         ))
@@ -196,7 +199,7 @@ def main() -> None:
                 visible="legendonly",
                 hovertext=rep_drop["name"],
                 customdata=rep_drop[[
-                    "date", "n_work_reps", "work_gap_label", "work_maxhr_mean",
+                    "distance_km", "date", "n_work_reps", "work_gap_label", "work_maxhr_mean",
                     "interval_hr_reason", "id",
                 ]].values,
                 marker=dict(
@@ -210,9 +213,9 @@ def main() -> None:
                 ),
                 hovertemplate=(
                     "<b>%{hovertext}</b> — ⚠ interval rep dropout<br>"
-                    "%{customdata[0]} · %{customdata[1]} work reps<br>"
-                    "Work GAP %{customdata[2]} · mean rep max-HR %{customdata[3]:.0f}<br>"
-                    "Flagged: %{customdata[4]} · a work rep's HR is implausibly low<br>"
+                    "%{customdata[1]} · %{customdata[2]} work reps · %{customdata[0]:.1f} km<br>"
+                    "Work GAP %{customdata[3]} · mean rep max-HR %{customdata[4]:.0f}<br>"
+                    "Flagged: %{customdata[5]} · a work rep's HR is implausibly low<br>"
                     "<i>click to open in Strava</i><extra></extra>"
                 ),
             ))
@@ -249,8 +252,12 @@ def main() -> None:
         margin=dict(l=70, r=30, t=110, b=70),
     )
 
-    # Open the corresponding Strava activity in a new tab when a point is clicked.
-    # The Strava activity id is the last entry of customdata per the array above.
+    # post_script: (1) click a point → open the Strava activity (id is the last
+    # customdata entry); (2) a distance-band dropdown that filters every trace so
+    # shoes can be compared like-for-like (long runs sit slower-at-same-HR from
+    # cardiac drift, so a band keeps distance roughly constant). Each point's
+    # distance is at customdata[0] in every trace; filtering rebuilds x/y/
+    # customdata (and the size/colour arrays where present) via Plotly.restyle.
     click_handler = """
     var gd = document.getElementById('{plot_id}');
     gd.style.cursor = 'pointer';
@@ -260,6 +267,49 @@ def main() -> None:
         var id = pt.customdata[pt.customdata.length - 1];
         if (id) window.open('https://www.strava.com/activities/' + id, '_blank');
     });
+
+    var FULL = gd.data.map(function(t) {
+        return {
+            x: (t.x || []).slice(),
+            y: (t.y || []).slice(),
+            cd: (t.customdata || []).map(function(c) { return c; }),
+            size: (t.marker && Array.isArray(t.marker.size)) ? t.marker.size.slice() : null,
+            color: (t.marker && Array.isArray(t.marker.color)) ? t.marker.color.slice() : null
+        };
+    });
+    var BANDS = [
+        ['All distances', -1, 1e9], ['\\u2264 12 km', -1, 12],
+        ['12\\u201320 km', 12, 20], ['20\\u201335 km', 20, 35], ['> 35 km', 35, 1e9]
+    ];
+    function applyBand(lo, hi) {
+        for (var i = 0; i < gd.data.length; i++) {
+            var f = FULL[i], nx = [], ny = [], nc = [], ns = [], ncol = [];
+            for (var j = 0; j < f.x.length; j++) {
+                var dkm = f.cd[j][0];
+                if (dkm > lo && dkm <= hi) {
+                    nx.push(f.x[j]); ny.push(f.y[j]); nc.push(f.cd[j]);
+                    if (f.size) ns.push(f.size[j]);
+                    if (f.color) ncol.push(f.color[j]);
+                }
+            }
+            var upd = { x: [nx], y: [ny], customdata: [nc] };
+            if (f.size) upd['marker.size'] = [ns];
+            if (f.color) upd['marker.color'] = [ncol];
+            Plotly.restyle(gd, upd, [i]);
+        }
+    }
+    var ctrl = document.createElement('div');
+    ctrl.style.cssText = 'font:13px/1.4 sans-serif;color:#bbb;padding:6px 0 2px 70px;';
+    ctrl.appendChild(document.createTextNode('Distance band: '));
+    var sel = document.createElement('select');
+    sel.style.cssText = 'background:#222;color:#eee;border:1px solid #555;border-radius:4px;padding:2px 6px;';
+    BANDS.forEach(function(b, k) {
+        var o = document.createElement('option');
+        o.value = k; o.text = b[0]; sel.appendChild(o);
+    });
+    sel.onchange = function() { var b = BANDS[+sel.value]; applyBand(b[1], b[2]); };
+    ctrl.appendChild(sel);
+    gd.parentNode.insertBefore(ctrl, gd);
     """
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
