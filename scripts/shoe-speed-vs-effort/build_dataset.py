@@ -43,12 +43,23 @@ GRADE_CLAMP = 0.30  # ±30%, well past where Minetti's polynomial stays sane
 COROS_ORDER_DATE = "2025-09-19"
 SWITCH_SEARCH_END = "2025-11-03"   # order date + ~6 weeks: latest plausible adoption
 HR_ANCHOR_WINDOW_DAYS = 120        # most-recent trusted runs used to fit HR≈a+b·GAP
-RESID_DROP = 12.0                  # bpm below the trend to count as a dropout
-RESID_Z = -2.0                     # residual z-score gate for the data-driven rule
-# Absolute rules (GAP in min/km; on flat easy/interval runs GAP ≈ raw pace).
+# Residual rule (R3): the linear HR≈a+b·GAP trend over-predicts HR on slow easy
+# runs, so a moderate negative residual is only a dropout signal in the fast band
+# (where the trend is well-sampled and HR-for-pace is tight). A ~2σ plunge at ANY
+# pace is a catastrophic sensor flatline (e.g. the HR 104/105 runs) — caught
+# regardless of GAP.
+FAST_GAP_MAX = 5.0                 # min/km — GAP band where the residual is trusted
+RESID_DROP_FAST = 10.0             # bpm below trend (fast band) → dropout
+RESID_Z = -2.0                     # ~2σ below trend at any pace → catastrophic flatline
+# Absolute rules (GAP in min/km; on flat easy/interval runs GAP ≈ raw pace). The
+# avg-HR rules (R1/R2) stay strict — widening them sweeps in genuine runs with a
+# healthy max HR (sensor clearly working). Near-miss dropouts like the 4:45/140/
+# max-152 run are instead caught by R4 (low max for a fast effort, now covering
+# GAP ≤ 5:00) and R3 (below trend), which key off the actual dropout signature:
+# a suppressed peak, not just a low average.
 R1_GAP_MAX, R1_HR_MAX = 5.0, 140    # easy-low:  GAP ≤ 5:00 and avg HR < 140
 R2_GAP_MAX, R2_HR_MAX = 4.75, 150   # fast-low:  GAP ≤ 4:45 and avg HR < 150
-R4_GAP_MAX, R4_MAXHR_MAX = 4.75, 155  # max-hr sanity: GAP ≤ 4:45 and max HR < 155
+R4_GAP_MAX, R4_MAXHR_MAX = 5.0, 155  # max-hr sanity: GAP ≤ 5:00 and max HR < 155
 
 
 def run_strava(*args: str) -> dict | list:
@@ -321,8 +332,8 @@ def _flag_reasons(r: dict, resid_sd: float) -> list[str]:
     """Which dropout rules a run trips (empty = clean). GAP in min/km.
 
     R1/R2 absolute thresholds, R4 max-HR sanity, R3 the data-driven residual
-    rule (well below the HR-for-GAP trend, both in absolute bpm and z-score so a
-    genuinely-easy slow run doesn't trip it)."""
+    rule: a moderate drop only counts in the fast band (slow easy runs sit below
+    the linear trend by design), but a ~2σ plunge at any pace is a flatline."""
     gap, hr, max_hr = r["avg_gap_min_per_km"], r["avg_hr"], r.get("max_hr")
     resid = r["hr_residual"]
     reasons: list[str] = []
@@ -330,7 +341,7 @@ def _flag_reasons(r: dict, resid_sd: float) -> list[str]:
         reasons.append("R1")
     if gap <= R2_GAP_MAX and hr < R2_HR_MAX:
         reasons.append("R2")
-    if resid < -RESID_DROP and (resid / resid_sd) < RESID_Z:
+    if (resid < -RESID_DROP_FAST and gap <= FAST_GAP_MAX) or (resid / resid_sd) < RESID_Z:
         reasons.append("R3")
     if max_hr is not None and gap <= R4_GAP_MAX and max_hr < R4_MAXHR_MAX:
         reasons.append("R4")
@@ -420,7 +431,7 @@ def main() -> None:
             "wrist_optical_until": wrist_optical_until,
             "monitor_order_date": COROS_ORDER_DATE,
             "anchor_window_days": HR_ANCHOR_WINDOW_DAYS,
-            "resid_drop_bpm": RESID_DROP,
+            "resid_drop_bpm": RESID_DROP_FAST,
             "n_suspect": len(suspects),
         },
         "activities": rows,
