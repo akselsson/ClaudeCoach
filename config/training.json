@@ -1,6 +1,12 @@
 {
   "max_hr": 184,
   "resting_hr": 48,
+  "hr_data": {
+    "monitor_order_date": "2025-09-19",
+    "wrist_optical_until": "2025-09-19",
+    "reliable_source_after": "Coros HR armband (upper-arm optical)",
+    "note": "Wrist-based optical HR under-read on cold days through late 2024 → Sep 2025. Coros armband ordered 2025-09-19 (delivery uncertain) is the reliable source after. wrist_optical_until is detected from HR-vs-GAP residuals bounded by the order date (see scripts/shoe-speed-vs-effort/build_dataset.py); the 2026-05-29 detection run found no flag-worthy dropout after the order date, so it resolved to the order date itself. Cf. memory project_hr_monitor_wrist_unreliable."
+  },
   "hr_zones": [
     {"name": "easy",          "min": 0,   "max": 140},
     {"name": "steady",        "min": 140, "max": 150},

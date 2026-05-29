@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATASET_PATH = Path(__file__).resolve().parent / "dataset.json"
@@ -43,6 +44,9 @@ def main() -> None:
     df = pd.DataFrame(activities)
     df["pace_label"] = df["avg_pace_min_per_km"].map(pace_to_label)
     df["gap_label"] = df["avg_gap_min_per_km"].map(pace_to_label)
+    if "hr_suspect" not in df.columns:
+        df["hr_suspect"] = False
+        df["hr_suspect_reason"] = ""
 
     fig = px.scatter(
         df,
@@ -72,17 +76,63 @@ def main() -> None:
         autorange="reversed",
     )
     fig.update_yaxes(title="Average heart rate (bpm)")
+
+    # Overlay a toggleable red ring on runs flagged as low-HR wrist-optical
+    # dropouts (see build_dataset.annotate_hr_suspects). The shoe-colored dot
+    # stays underneath; the ring is sized just outside it. Same area-sizeref as
+    # px.scatter (so rings track dot size) scaled up 1.6× → ~1.26× diameter.
+    suspect = df[df["hr_suspect"]]
+    hr_meta = payload.get("hr_outliers", {})
+    if not suspect.empty:
+        sizeref = 2.0 * df["distance_km"].max() / (22.0 ** 2)
+        fig.add_trace(go.Scatter(
+            x=suspect["avg_gap_min_per_km"],
+            y=suspect["avg_hr"],
+            mode="markers",
+            name="⚠ Suspect HR (wrist optical)",
+            hovertext=suspect["name"],
+            customdata=suspect[[
+                "date", "distance_km", "elev_gain_m", "pace_label", "gap_label",
+                "avg_hr", "max_hr", "gear_label", "hr_suspect_reason", "id",
+            ]].values,
+            marker=dict(
+                symbol="circle-open",
+                size=suspect["distance_km"] * 1.6,
+                sizemode="area",
+                sizeref=sizeref,
+                sizemin=6,
+                color="rgba(255,80,80,0.95)",
+                line=dict(width=2, color="rgba(255,80,80,0.95)"),
+            ),
+            hovertemplate=(
+                "<b>%{hovertext}</b> — ⚠ suspect HR<br>"
+                "%{customdata[0]} · %{customdata[1]:.1f} km · +%{customdata[2]:.0f} m<br>"
+                "Pace %{customdata[3]} · GAP %{customdata[4]}<br>"
+                "HR avg %{customdata[5]:.0f} (max %{customdata[6]:.0f})<br>"
+                "Gear: %{customdata[7]}<br>"
+                "Flagged: %{customdata[8]} · likely cold-day wrist-optical drop<br>"
+                "<i>click to open in Strava</i><extra></extra>"
+            ),
+        ))
+
+    footnote = (
+        f"Minetti GAP from altitude+distance streams · "
+        f"runs ≥ {payload.get('min_distance_km', 0)} km with HR · "
+        f"point size ∝ distance · n={len(df)}"
+    )
+    if not suspect.empty:
+        footnote += (
+            f" · {len(suspect)} flagged low-HR "
+            f"(wrist optical, pre-{hr_meta.get('wrist_optical_until', '?')})"
+        )
+
     fig.update_layout(
         legend_title="Shoe model",
         template="plotly_dark",
         annotations=[
             dict(
                 xref="paper", yref="paper", x=0, y=1.08, showarrow=False,
-                text=(
-                    f"Minetti GAP from altitude+distance streams · "
-                    f"runs ≥ {payload.get('min_distance_km', 0)} km with HR · "
-                    f"point size ∝ distance · n={len(df)}"
-                ),
+                text=footnote,
                 font=dict(size=11, color="rgba(255,255,255,0.65)"),
             )
         ],

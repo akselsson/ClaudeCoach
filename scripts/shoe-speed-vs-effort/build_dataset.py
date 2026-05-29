@@ -33,6 +33,23 @@ MIN_DISTANCE_KM = 2.0
 ALT_SMOOTH_WINDOW = 5
 GRADE_CLAMP = 0.30  # ±30%, well past where Minetti's polynomial stays sane
 
+# --- Low-HR outlier detection (wrist-optical cold-day dropouts) -------------
+# The watch's wrist-based optical HR under-read on cold days through late 2024
+# → Sep 2025. A Coros HR armband (upper-arm optical) was ordered 2025-09-19 and
+# is the reliable source after delivery. Dropouts make a run look like "fast
+# pace at low effort", which would wrongly flatter whatever shoe was on that
+# day — so we flag them before the chart is read. See config/training.json
+# `hr_data` and the project memory project_hr_monitor_wrist_unreliable.
+COROS_ORDER_DATE = "2025-09-19"
+SWITCH_SEARCH_END = "2025-11-03"   # order date + ~6 weeks: latest plausible adoption
+HR_ANCHOR_WINDOW_DAYS = 120        # most-recent trusted runs used to fit HR≈a+b·GAP
+RESID_DROP = 12.0                  # bpm below the trend to count as a dropout
+RESID_Z = -2.0                     # residual z-score gate for the data-driven rule
+# Absolute rules (GAP in min/km; on flat easy/interval runs GAP ≈ raw pace).
+R1_GAP_MAX, R1_HR_MAX = 5.0, 140    # easy-low:  GAP ≤ 5:00 and avg HR < 140
+R2_GAP_MAX, R2_HR_MAX = 4.75, 150   # fast-low:  GAP ≤ 4:45 and avg HR < 150
+R4_GAP_MAX, R4_MAXHR_MAX = 4.75, 155  # max-hr sanity: GAP ≤ 4:45 and max HR < 155
+
 
 def run_strava(*args: str) -> dict | list:
     proc = subprocess.run(
@@ -218,6 +235,126 @@ def compute_gap(streams: dict) -> tuple[float | None, float | None]:
     return avg_pace_min_per_km, avg_gap_min_per_km
 
 
+def _median(values: list[float]) -> float:
+    s = sorted(values)
+    n = len(s)
+    mid = n // 2
+    return s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2.0
+
+
+def theil_sen(xs: list[float], ys: list[float]) -> tuple[float, float]:
+    """Robust line y ≈ a + b·x via the median of pairwise slopes (Theil–Sen).
+
+    Pure-Python (no numpy), O(n²) over the anchor window — fine for a couple
+    hundred points. Robust to the very dropouts we're trying to detect, so the
+    trend reflects normal HR-for-GAP rather than being dragged down by them.
+    """
+    slopes = [
+        (ys[j] - ys[i]) / (xs[j] - xs[i])
+        for i in range(len(xs))
+        for j in range(i + 1, len(xs))
+        if xs[j] != xs[i]
+    ]
+    if not slopes:
+        return _median(ys), 0.0
+    b = _median(slopes)
+    a = _median([y - b * x for x, y in zip(xs, ys)])
+    return a, b
+
+
+def annotate_hr_suspects(rows: list[dict]) -> str:
+    """Flag low-HR wrist-optical dropouts in place; return the detected cutoff.
+
+    Fits a robust HR≈a+b·GAP trend on the most-recent (trusted, post-Coros)
+    runs, detects the wrist→Coros switch date from where dropout-like runs stop
+    (bounded by the order date), then flags only pre-cutoff runs that trip any
+    of the absolute/residual rules. Each row gains hr_suspect / hr_suspect_reason
+    / hr_residual.
+    """
+    for r in rows:
+        r["hr_suspect"] = False
+        r["hr_suspect_reason"] = ""
+        r["hr_residual"] = None
+
+    usable = [r for r in rows if r.get("avg_hr") and r.get("avg_gap_min_per_km")]
+    if len(usable) < 5:
+        return COROS_ORDER_DATE  # too little data to model — flag nothing
+
+    # Trusted anchor = most-recent HR_ANCHOR_WINDOW_DAYS of runs (post-Coros,
+    # warm season). Dates are YYYY-MM-DD strings, so lexicographic max is latest.
+    latest = max(r["date"] for r in usable)
+    cutoff_anchor = _date_minus_days(latest, HR_ANCHOR_WINDOW_DAYS)
+    anchor = [r for r in usable if r["date"] >= cutoff_anchor] or usable
+
+    a, b = theil_sen(
+        [r["avg_gap_min_per_km"] for r in anchor],
+        [float(r["avg_hr"]) for r in anchor],
+    )
+    for r in usable:
+        r["hr_residual"] = round(r["avg_hr"] - (a + b * r["avg_gap_min_per_km"]), 1)
+    resid_sd = _stdev([r["hr_residual"] for r in anchor]) or 1.0
+
+    # Detect the switch date: the day after the last *flag-worthy* run inside the
+    # plausible window [order date, order date + ~6 weeks]. Using the same strict
+    # criteria as flagging (not a looser residual-only test) keeps a genuine slow
+    # recovery run — low HR at slow pace, large negative residual but no rule
+    # tripped — from dragging the cutoff to the window end. Falls back to the
+    # order date when nothing flag-worthy follows it.
+    in_window = [
+        r for r in usable
+        if COROS_ORDER_DATE <= r["date"] <= SWITCH_SEARCH_END
+        and _flag_reasons(r, resid_sd)
+    ]
+    cutoff = _date_plus_days(max(r["date"] for r in in_window), 1) if in_window else COROS_ORDER_DATE
+
+    for r in usable:
+        if r["date"] >= cutoff:
+            continue  # post-Coros: trusted, never flagged
+        reasons = _flag_reasons(r, resid_sd)
+        if reasons:
+            r["hr_suspect"] = True
+            r["hr_suspect_reason"] = "+".join(reasons)
+    return cutoff
+
+
+def _flag_reasons(r: dict, resid_sd: float) -> list[str]:
+    """Which dropout rules a run trips (empty = clean). GAP in min/km.
+
+    R1/R2 absolute thresholds, R4 max-HR sanity, R3 the data-driven residual
+    rule (well below the HR-for-GAP trend, both in absolute bpm and z-score so a
+    genuinely-easy slow run doesn't trip it)."""
+    gap, hr, max_hr = r["avg_gap_min_per_km"], r["avg_hr"], r.get("max_hr")
+    resid = r["hr_residual"]
+    reasons: list[str] = []
+    if gap <= R1_GAP_MAX and hr < R1_HR_MAX:
+        reasons.append("R1")
+    if gap <= R2_GAP_MAX and hr < R2_HR_MAX:
+        reasons.append("R2")
+    if resid < -RESID_DROP and (resid / resid_sd) < RESID_Z:
+        reasons.append("R3")
+    if max_hr is not None and gap <= R4_GAP_MAX and max_hr < R4_MAXHR_MAX:
+        reasons.append("R4")
+    return reasons
+
+
+def _stdev(values: list[float]) -> float:
+    n = len(values)
+    if n < 2:
+        return 0.0
+    mean = sum(values) / n
+    return (sum((v - mean) ** 2 for v in values) / (n - 1)) ** 0.5
+
+
+def _date_minus_days(date_str: str, days: int) -> str:
+    from datetime import date, timedelta
+    return (date.fromisoformat(date_str) - timedelta(days=days)).isoformat()
+
+
+def _date_plus_days(date_str: str, days: int) -> str:
+    from datetime import date, timedelta
+    return (date.fromisoformat(date_str) + timedelta(days=days)).isoformat()
+
+
 def main() -> None:
     gear_lookup = load_gear_lookup()
     gear_cache = load_gear_cache()
@@ -270,12 +407,22 @@ def main() -> None:
         if i % 5 == 0:
             print(f"      processed {i}/{len(summaries)}", file=sys.stderr)
 
-    print("[3/3] Writing dataset.json...", file=sys.stderr)
+    print("[3/3] Flagging low-HR outliers + writing dataset.json...", file=sys.stderr)
+    wrist_optical_until = annotate_hr_suspects(rows)
+    suspects = [r for r in rows if r.get("hr_suspect")]
+
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "window_days": WINDOW_DAYS,
         "stream_resolution": STREAM_RESOLUTION,
         "min_distance_km": MIN_DISTANCE_KM,
+        "hr_outliers": {
+            "wrist_optical_until": wrist_optical_until,
+            "monitor_order_date": COROS_ORDER_DATE,
+            "anchor_window_days": HR_ANCHOR_WINDOW_DAYS,
+            "resid_drop_bpm": RESID_DROP,
+            "n_suspect": len(suspects),
+        },
         "activities": rows,
     }
     OUTPUT_PATH.write_text(json.dumps(payload, indent=2) + "\n")
@@ -286,7 +433,19 @@ def main() -> None:
         f"no_streams={skipped['no_streams']}.",
         file=sys.stderr,
     )
-    print(f"Wrote {OUTPUT_PATH}", file=sys.stderr)
+    print(
+        f"\nWrist-optical cutoff detected at {wrist_optical_until} "
+        f"(order date {COROS_ORDER_DATE}). Flagged {len(suspects)} low-HR run(s):",
+        file=sys.stderr,
+    )
+    for r in sorted(suspects, key=lambda x: x["date"]):
+        print(
+            f"  {r['date']}  HR {r['avg_hr']:.0f} (max {r.get('max_hr') or 0:.0f})  "
+            f"GAP {r['avg_gap_min_per_km']:.2f}  resid {r['hr_residual']:+.0f}  "
+            f"[{r['hr_suspect_reason']}]  {r.get('name', '')} ({r['id']})",
+            file=sys.stderr,
+        )
+    print(f"\nWrote {OUTPUT_PATH}", file=sys.stderr)
 
 
 if __name__ == "__main__":
