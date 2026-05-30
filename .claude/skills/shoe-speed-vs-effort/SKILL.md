@@ -219,6 +219,11 @@ treat the ⚠ series as "probably bad data", not evidence about a shoe.
   fitted over *all* clean activities (steady and interval). The `⚠` sensor-dropout suspects are
   **excluded** from the trend (a low-HR drop fakes high efficiency) and shown only as the
   hidden-by-default legend series.
+- **HR-basis dropdown** (top-right, only when `hr_drift` is on): switches the whole chart — dots,
+  moving median, and band — between m/beat from **raw** HR and from **drift-adjusted** HR. The
+  adjustment removes cardiac drift (HR creeps up with time on feet), so long runs move *up* to
+  their drift-free efficiency and a long-run-heavy stretch no longer drags the trend down. The
+  hover still shows the measured HR; the y-axis title updates to say which basis is plotted.
 - **Reading it:** expect the line to **rise through a build** (fitness) and dip on heat-, long-run-,
   or interval-heavy stretches. It's a same-shoe-agnostic fitness trend, not a gear verdict — for
   "which shoe", read chart 1. **Click any point** to open it in Strava.

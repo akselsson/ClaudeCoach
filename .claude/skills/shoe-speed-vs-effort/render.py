@@ -239,12 +239,17 @@ def rolling_band(clean: pd.DataFrame) -> tuple[list, list, list, list]:
     return grid, med, p25, p75
 
 
+RAW_Y_TITLE = "Distance per heartbeat (m/beat, grade-adjusted, higher = fitter)"
+ADJ_Y_TITLE = "Drift-adjusted distance per heartbeat (m/beat, higher = fitter)"
+
+
 def build_efficiency_figure(
     df: pd.DataFrame,
     cmap: dict,
     base_sizeref: float,
     base_sizemin: float,
     payload: dict,
+    drift_on: bool = False,
 ) -> go.Figure:
     """Chart 2: distance-per-heartbeat (aerobic efficiency) over time.
 
@@ -256,41 +261,69 @@ def build_efficiency_figure(
     25–75th percentile band are fitted over ALL clean activities; sensor-dropout
     suspects inflate m/beat (low HR), so they're excluded from the trend and shown
     only as hidden-by-default ⚠ series.
+
+    When `drift_on`, a native "HR basis: Raw / Drift-adjusted" dropdown swaps every
+    trace's y (and the band/line) between m/beat computed from raw HR vs. the
+    cardiac-drift-adjusted HR (avg_hr_adj / work_maxhr_mean_adj). It's a plain
+    method="update" restyle — chart 2 has only this one control, so unlike chart 1
+    (where the HR toggle must compose with a distance dropdown) it needs no custom
+    JS. The two y-sets are accumulated in trace-construction order so the button's
+    positional `y` list lines up with the figure's traces.
     """
     df = df.copy()
     df["date_dt"] = pd.to_datetime(df["date"])
     df["gap_label"] = df["avg_gap_min_per_km"].map(pace_to_label)
 
-    # m/beat per run. Steady from whole-run GAP×HR; intervals overridden with the
-    # work-rep GAP × mean per-rep max-HR.
-    df["mpb"] = 1000.0 / (df["avg_gap_min_per_km"] * df["avg_hr"].astype(float))
+    # m/beat per run, raw and drift-adjusted. Steady from whole-run GAP×HR;
+    # intervals overridden with the work-rep GAP × mean per-rep max-HR. The adjusted
+    # variant swaps in avg_hr_adj / work_maxhr_mean_adj, falling back to the raw HR
+    # wherever the drift fit left an adjustment null.
+    hr_raw = df["avg_hr"].astype(float)
+    hr_adj = df["avg_hr_adj"].where(df["avg_hr_adj"].notna(), hr_raw).astype(float) \
+        if "avg_hr_adj" in df.columns else hr_raw
+    df["mpb"] = 1000.0 / (df["avg_gap_min_per_km"] * hr_raw)
+    df["mpb_adj"] = 1000.0 / (df["avg_gap_min_per_km"] * hr_adj)
     if "work_gap_min_per_km" in df.columns:
         iv = df["is_interval"] & df["work_gap_min_per_km"].notna() & df["work_maxhr_mean"].notna()
-        df.loc[iv, "mpb"] = 1000.0 / (
-            df.loc[iv, "work_gap_min_per_km"] * df.loc[iv, "work_maxhr_mean"].astype(float)
-        )
+        wg = df.loc[iv, "work_gap_min_per_km"]
+        w_raw = df.loc[iv, "work_maxhr_mean"].astype(float)
+        w_adj = (df.loc[iv, "work_maxhr_mean_adj"].where(
+            df.loc[iv, "work_maxhr_mean_adj"].notna(), w_raw).astype(float)
+            if "work_maxhr_mean_adj" in df.columns else w_raw)
+        df.loc[iv, "mpb"] = 1000.0 / (wg * w_raw)
+        df.loc[iv, "mpb_adj"] = 1000.0 / (wg * w_adj)
 
     fig = go.Figure()
+    # Per-trace y arrays in add order, so the dropdown's positional restyle aligns.
+    y_raw_list: list = []
+    y_adj_list: list = []
+
+    def add(trace: go.Scatter, y_raw, y_adj) -> None:
+        fig.add_trace(trace)
+        y_raw_list.append(list(y_raw))
+        y_adj_list.append(list(y_adj))
 
     # --- Moving median + 25–75th band (drawn first → sits behind the dots) ------
+    # Same grid/clean rows for both bases (identical dates), only the values differ.
     clean = df[~df["hr_suspect"] & ~df["interval_hr_suspect"] & df["mpb"].notna()]
     grid, med, p25, p75 = rolling_band(clean)
+    _, med_a, p25_a, p75_a = rolling_band(clean.assign(mpb=clean["mpb_adj"]))
     if grid:
-        fig.add_trace(go.Scatter(
+        add(go.Scatter(
             x=grid, y=p75, mode="lines", line=dict(width=0),
             connectgaps=False, hoverinfo="skip", showlegend=False, name="p75",
-        ))
-        fig.add_trace(go.Scatter(
+        ), p75, p75_a)
+        add(go.Scatter(
             x=grid, y=p25, mode="lines", line=dict(width=0), fill="tonexty",
             fillcolor="rgba(180,190,210,0.13)", connectgaps=False,
             hoverinfo="skip", name="25–75th pct band",
-        ))
-        fig.add_trace(go.Scatter(
+        ), p25, p25_a)
+        add(go.Scatter(
             x=grid, y=med, mode="lines",
             line=dict(width=2.5, color="rgba(232,236,245,0.95)"),
             connectgaps=False, name="Moving median (~45-day)",
             hovertemplate="%{x|%Y-%m-%d}<br>median %{y:.1f} m/beat<extra></extra>",
-        ))
+        ), med, med_a)
 
     steady_cols = ["distance_km", "date", "gap_label", "avg_hr", "mpb", "gear_label", "id"]
     steady_hover = (
@@ -306,7 +339,7 @@ def build_efficiency_figure(
     steady = df[~df["hr_suspect"] & ~df["is_interval"]]
     for m in sorted(steady["model_label"].dropna().unique()):
         s = steady[steady["model_label"] == m]
-        fig.add_trace(go.Scatter(
+        add(go.Scatter(
             x=s["date_dt"], y=s["mpb"], mode="markers", name=m, legendgroup="shoes",
             hovertext=s["name"], customdata=s[steady_cols].values,
             marker=dict(
@@ -316,7 +349,7 @@ def build_efficiency_figure(
                 line=dict(width=0.5, color="rgba(255,255,255,0.35)"),
             ),
             hovertemplate=steady_hover,
-        ))
+        ), s["mpb"], s["mpb_adj"])
 
     # --- Interval work-rep dots (diamonds, same per-shoe colours) ---------------
     interval = df[df["is_interval"]].copy()
@@ -333,7 +366,7 @@ def build_efficiency_figure(
         )
         clean_iv = interval[~interval["interval_hr_suspect"]]
         if not clean_iv.empty:
-            fig.add_trace(go.Scatter(
+            add(go.Scatter(
                 x=clean_iv["date_dt"], y=clean_iv["mpb"], mode="markers",
                 name="◆ Interval (work-rep)", legendgroup="shoes",
                 hovertext=clean_iv["name"], customdata=clean_iv[iv_cols].values,
@@ -345,12 +378,12 @@ def build_efficiency_figure(
                     line=dict(width=1.2, color="rgba(255,255,255,0.55)"),
                 ),
                 hovertemplate=iv_hover,
-            ))
+            ), clean_iv["mpb"], clean_iv["mpb_adj"])
 
     # --- Hidden-by-default ⚠ outlier series (excluded from the trend above) -----
     suspect = df[df["hr_suspect"]]
     if not suspect.empty:
-        fig.add_trace(go.Scatter(
+        add(go.Scatter(
             x=suspect["date_dt"], y=suspect["mpb"], mode="markers",
             name="⚠ Suspect HR (wrist optical)", visible="legendonly",
             hovertext=suspect["name"], customdata=suspect[steady_cols].values,
@@ -361,11 +394,11 @@ def build_efficiency_figure(
                 line=dict(width=2, color="rgba(255,80,80,0.95)"),
             ),
             hovertemplate=steady_hover,
-        ))
+        ), suspect["mpb"], suspect["mpb_adj"])
     if not interval.empty:
         rep_drop = interval[interval["interval_hr_suspect"]]
         if not rep_drop.empty:
-            fig.add_trace(go.Scatter(
+            add(go.Scatter(
                 x=rep_drop["date_dt"], y=rep_drop["mpb"], mode="markers",
                 name="⚠ Interval rep dropout", visible="legendonly",
                 hovertext=rep_drop["name"], customdata=rep_drop[iv_cols].values,
@@ -376,36 +409,67 @@ def build_efficiency_figure(
                     line=dict(width=1.5, color="rgba(120,70,0,0.9)"),
                 ),
                 hovertemplate=iv_hover,
-            ))
+            ), rep_drop["mpb"], rep_drop["mpb_adj"])
 
     window_days = payload.get("window_days", "?")
+    subtitle = (
+        "grade-adjusted m/beat = 1000 / (GAP × HR) · higher = fitter · "
+        "intervals at work-rep effort · line = ~45-day moving median, "
+        "band = 25–75th pct (⚠ outliers excluded, hidden by default)"
+    )
+    title_text = f"Aerobic efficiency over time — distance per heartbeat (last {window_days} days)"
+    _menu_style = dict(bgcolor="#2a2a2a", bordercolor="#666", font=dict(color="#eee", size=12))
+
+    if drift_on:
+        # Header stacked vertically on the left — title → HR-basis label → dropdown
+        # → subtitle → plot — same pattern as chart 1, so nothing collides with the
+        # long title. The dropdown swaps both the per-trace y arrays and the y-axis
+        # title in one update so the axis label never lies about which basis is shown.
+        annotations = [
+            dict(xref="paper", yref="paper", x=0, y=1.36, showarrow=False,
+                 text=title_text, xanchor="left", yanchor="middle",
+                 font=dict(size=20, color="rgba(255,255,255,0.95)")),
+            dict(xref="paper", yref="paper", x=0, y=1.22, showarrow=False,
+                 text="HR basis:", xanchor="left",
+                 font=dict(size=12, color="rgba(255,255,255,0.85)")),
+            dict(xref="paper", yref="paper", x=0, y=1.06, showarrow=False,
+                 text=subtitle, xanchor="left", yanchor="top", align="left",
+                 font=dict(size=11, color="rgba(255,255,255,0.65)")),
+        ]
+        updatemenus = [dict(
+            type="dropdown", direction="down", x=0, xanchor="left",
+            y=1.16, yanchor="top", showactive=True, active=0, **_menu_style,
+            buttons=[
+                dict(label="Raw HR", method="update",
+                     args=[{"y": y_raw_list}, {"yaxis.title.text": RAW_Y_TITLE}]),
+                dict(label="Drift-adjusted HR", method="update",
+                     args=[{"y": y_adj_list}, {"yaxis.title.text": ADJ_Y_TITLE}]),
+            ],
+        )]
+        margin_t, height = 200, 730
+    else:
+        annotations = [
+            dict(xref="paper", yref="paper", x=0, y=1.16, showarrow=False,
+                 text=title_text, xanchor="left", yanchor="middle",
+                 font=dict(size=20, color="rgba(255,255,255,0.95)")),
+            dict(xref="paper", yref="paper", x=0, y=1.07, showarrow=False,
+                 text=subtitle, xanchor="left", yanchor="top", align="left",
+                 font=dict(size=11, color="rgba(255,255,255,0.65)")),
+        ]
+        updatemenus = []
+        margin_t, height = 110, 640
+
     fig.update_layout(
         template="plotly_dark",
         title_text="",
         legend_title="Shoe model",
-        margin=dict(l=70, r=30, t=110, b=60),
-        height=640,  # explicit — embedded fragment can't fill the viewport (see chart 1)
-        annotations=[
-            dict(
-                xref="paper", yref="paper", x=0, y=1.16, showarrow=False,
-                text=f"Aerobic efficiency over time — distance per heartbeat (last {window_days} days)",
-                xanchor="left", yanchor="middle",
-                font=dict(size=20, color="rgba(255,255,255,0.95)"),
-            ),
-            dict(
-                xref="paper", yref="paper", x=0, y=1.07, showarrow=False,
-                text=(
-                    "grade-adjusted m/beat = 1000 / (GAP × HR) · higher = fitter · "
-                    "intervals at work-rep effort · line = ~45-day moving median, "
-                    "band = 25–75th pct (⚠ outliers excluded, hidden by default)"
-                ),
-                xanchor="left", yanchor="top", align="left",
-                font=dict(size=11, color="rgba(255,255,255,0.65)"),
-            ),
-        ],
+        margin=dict(l=70, r=30, t=margin_t, b=60),
+        height=height,  # explicit — embedded fragment can't fill the viewport (see chart 1)
+        annotations=annotations,
+        updatemenus=updatemenus,
     )
     fig.update_xaxes(title="Date")
-    fig.update_yaxes(title="Distance per heartbeat (m/beat, grade-adjusted, higher = fitter)")
+    fig.update_yaxes(title=RAW_Y_TITLE)
     return fig
 
 
@@ -794,7 +858,7 @@ def main() -> None:
 
     # Second chart: distance-per-heartbeat over time. Reuses the same shoe colour
     # map and marker scale so the two charts read as one page.
-    fig_eff = build_efficiency_figure(df, cmap, base_sizeref, base_sizemin, payload)
+    fig_eff = build_efficiency_figure(df, cmap, base_sizeref, base_sizemin, payload, drift_on)
 
     # Two Plotly charts on one page. Both post_scripts declare `var gd` at top
     # level, so without isolation the second would clobber the first's handlers —
