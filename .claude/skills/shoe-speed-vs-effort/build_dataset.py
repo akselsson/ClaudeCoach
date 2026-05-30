@@ -31,7 +31,6 @@ GEAR_CACHE_PATH = ARTIFACT_DIR / "gear_cache.json"
 STREAM_RESOLUTION = "medium"
 STREAM_TYPES = "time,distance,altitude,heartrate"
 ALT_SMOOTH_WINDOW = 5
-GRADE_CLAMP = 0.30  # ±30%, well past where Minetti's polynomial stays sane
 
 # --- Configurable knobs (config/training.json → `shoe_chart`) ----------------
 # Everything in this section is athlete-specific and loaded from config at
@@ -327,14 +326,18 @@ def smooth_altitude(altitudes: list[float], window: int) -> list[float]:
     return out
 
 
-def minetti_cost(grade: float) -> float:
-    """Energetic cost of running per metre at a given grade (rise/run).
-    Minetti et al. 2002. Normalised against C(0) by the caller."""
-    g = max(-GRADE_CLAMP, min(GRADE_CLAMP, grade))
-    return 155.4 * g**5 - 30.4 * g**4 - 43.3 * g**3 + 46.3 * g**2 + 19.5 * g + 3.6
+def strava_factor(grade: float) -> float:
+    """Pace-adjustment factor at a given grade (rise/run), digitized from
+    Strava's empirically HR-fitted GAP curve (4th-order fit over ±25% grade).
+    Replaces Minetti et al. 2002, whose constant-effort assumption over-credits
+    steep downhills (its 'free speed' peak sits at ~-20% grade vs the empirical
+    ~-10%). Normalised against f(0) by the caller.
+    See https://educatedguesswork.org/posts/grade-vs-pace/."""
+    p = max(-25.0, min(25.0, grade * 100.0))  # rise/run -> percent, clamp to fit range
+    return 0.98462 + 0.030266 * p + 0.0018814 * p**2 - 3.3882e-6 * p**3 - 4.5704e-7 * p**4
 
 
-MINETTI_C0 = minetti_cost(0.0)
+STRAVA_F0 = strava_factor(0.0)
 
 
 def compute_gap(streams: dict) -> tuple[float | None, float | None]:
@@ -366,7 +369,7 @@ def compute_gap(streams: dict) -> tuple[float | None, float | None]:
             continue
         dy = smoothed[i] - smoothed[i - 1]
         grade = dy / dx
-        ga_distance += dx * (minetti_cost(grade) / MINETTI_C0)
+        ga_distance += dx * (strava_factor(grade) / STRAVA_F0)
 
     if ga_distance <= 0:
         return avg_pace_min_per_km, avg_pace_min_per_km
