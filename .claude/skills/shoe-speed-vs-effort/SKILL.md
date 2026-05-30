@@ -5,11 +5,13 @@ description: Generate the shoe-speed-vs-effort chart — a Plotly scatter of gra
 
 # Shoe speed vs. effort
 
-This skill builds one chart that answers "which of my shoes actually make me faster?". It
-plots every qualifying run on a **grade-adjusted-pace (GAP) vs. average-HR** plane, coloured
-by shoe model: a shoe whose cluster sits higher (faster GAP) at the same HR is giving free
-pace. Point size is distance; a distance-band dropdown, legend toggles, and click-to-open-in-
-Strava make it explorable.
+This skill builds a two-chart page from the same per-run dataset. **Chart 1** answers "which of
+my shoes actually make me faster?": every qualifying run on a **grade-adjusted-pace (GAP) vs.
+average-HR** plane, coloured by shoe model — a shoe whose cluster sits higher (faster GAP) at the
+same HR is giving free pace. **Chart 2** answers "is my aerobic fitness trending up?": each run's
+**distance per heartbeat** (`1000 / (GAP × HR)`, grade-adjusted) over time, with a moving-median
+line and a 25–75th percentile band. Point size is distance; a distance-band dropdown, legend
+toggles, and click-to-open-in-Strava make them explorable.
 
 It exists because raw pace lies about shoes — hills, heat, fitness, and interval structure all
 move pace independently of the gear. Grade-adjusting the pace and pinning effort to HR
@@ -172,7 +174,13 @@ Both scripts shell out to `.claude/skills/strava/strava.py`, so OAuth refresh an
 cache (`.cache/strava/`) just work — if `strava whoami` works, these work. The build also reads
 `config/training.json` (the `shoe_chart` block + `hr_zones` + `gear`).
 
-## Reading the chart
+## Reading the page
+
+The HTML page carries **two stacked charts** built from the same dataset and the same shoe
+colour map (a shoe is the same colour in both). Chart 1 is the shoe comparison; chart 2 is the
+efficiency-over-time trend.
+
+### Chart 1 — shoe speed vs. effort (GAP vs. HR)
 
 - **Axes:** x = average HR (right = harder); y = grade-adjusted pace, axis reversed so
   **faster is up**. A shoe sitting up-and-left of another at the same HR is giving free pace.
@@ -198,6 +206,22 @@ cache (`.cache/strava/`) just work — if `strava whoami` works, these work. The
 
 When summarising for the user, lean on the steady per-shoe clusters and the interval diamonds;
 treat the ⚠ series as "probably bad data", not evidence about a shoe.
+
+### Chart 2 — aerobic efficiency over time (distance per heartbeat)
+
+- **What it is:** one dot per activity of **grade-adjusted metres per heartbeat** =
+  `1000 / (GAP × HR)` against the run's date. More distance per beat = fitter, so **up = better**
+  (this y-axis is *not* reversed). Intervals use the work-rep `GAP × mean per-rep max-HR`, the
+  same normalisation chart 1 uses, so a workout sits at its true effort.
+- **Colour** = shoe model (shared with chart 1); **point size** ∝ distance; **diamonds** are
+  intervals.
+- **Trend line + band:** a ~45-day **moving median** with a shaded **25–75th percentile** band,
+  fitted over *all* clean activities (steady and interval). The `⚠` sensor-dropout suspects are
+  **excluded** from the trend (a low-HR drop fakes high efficiency) and shown only as the
+  hidden-by-default legend series.
+- **Reading it:** expect the line to **rise through a build** (fitness) and dip on heat-, long-run-,
+  or interval-heavy stretches. It's a same-shoe-agnostic fitness trend, not a gear verdict — for
+  "which shoe", read chart 1. **Click any point** to open it in Strava.
 
 ## What NOT to do
 

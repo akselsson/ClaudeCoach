@@ -18,6 +18,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 CONFIG_PATH = PROJECT_ROOT / "config" / "training.json"
@@ -178,6 +179,234 @@ def distance_band_buttons(fig, bands: list[tuple]) -> list[dict]:
                    "marker.size": sizes, "marker.color": colors}],
         ))
     return buttons
+
+
+def _median(values: list[float]) -> float:
+    s = sorted(values)
+    n = len(s)
+    mid = n // 2
+    return s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2.0
+
+
+def _percentile(values: list[float], pct: float) -> float:
+    """Linear-interpolated percentile (pct in 0..100) of a non-empty list."""
+    s = sorted(values)
+    if len(s) == 1:
+        return s[0]
+    rank = (pct / 100.0) * (len(s) - 1)
+    lo = int(rank)
+    frac = rank - lo
+    hi = min(lo + 1, len(s) - 1)
+    return s[lo] + frac * (s[hi] - s[lo])
+
+
+# Distance-per-heartbeat trend knobs. A centred ±BAND_WINDOW_DAYS window evaluated
+# on a weekly grid gives a smooth fitness curve; a node with fewer than
+# BAND_MIN_POINTS runs is left as a gap so the line/band breaks over sparse spans
+# instead of interpolating a straight line through a data hole.
+BAND_GRID_FREQ = "7D"
+BAND_WINDOW_DAYS = 22
+BAND_MIN_POINTS = 4
+
+
+def rolling_band(clean: pd.DataFrame) -> tuple[list, list, list, list]:
+    """Weekly grid of (median, p25, p75) of m/beat over a centred time window.
+
+    `clean` must carry datetime `date_dt` and float `mpb`. Returns parallel lists
+    (grid dates, median, p25, p75); sparse grid nodes get None so traces break.
+    """
+    if clean.empty:
+        return [], [], [], []
+    s = clean.sort_values("date_dt")
+    dates = list(s["date_dt"])
+    vals = list(s["mpb"])
+    grid = list(pd.date_range(dates[0], dates[-1], freq=BAND_GRID_FREQ))
+    window = pd.Timedelta(days=BAND_WINDOW_DAYS)
+    med: list = []
+    p25: list = []
+    p75: list = []
+    for g in grid:
+        lo, hi = g - window, g + window
+        w = [v for d, v in zip(dates, vals) if lo <= d <= hi]
+        if len(w) >= BAND_MIN_POINTS:
+            med.append(round(_median(w), 2))
+            p25.append(round(_percentile(w, 25), 2))
+            p75.append(round(_percentile(w, 75), 2))
+        else:
+            med.append(None)
+            p25.append(None)
+            p75.append(None)
+    return grid, med, p25, p75
+
+
+def build_efficiency_figure(
+    df: pd.DataFrame,
+    cmap: dict,
+    base_sizeref: float,
+    base_sizemin: float,
+    payload: dict,
+) -> go.Figure:
+    """Chart 2: distance-per-heartbeat (aerobic efficiency) over time.
+
+    y = grade-adjusted metres per heartbeat = 1000 / (GAP × HR) — higher = fitter.
+    Steady runs use the whole-run GAP × avg-HR; interval runs use the work-rep
+    GAP × mean per-rep max-HR (same normalisation as chart 1) so they sit at their
+    true effort, not the misleading whole-run blend. Dots are one-per-activity,
+    coloured by shoe (shared cmap with chart 1). A ~45-day moving-median line and a
+    25–75th percentile band are fitted over ALL clean activities; sensor-dropout
+    suspects inflate m/beat (low HR), so they're excluded from the trend and shown
+    only as hidden-by-default ⚠ series.
+    """
+    df = df.copy()
+    df["date_dt"] = pd.to_datetime(df["date"])
+    df["gap_label"] = df["avg_gap_min_per_km"].map(pace_to_label)
+
+    # m/beat per run. Steady from whole-run GAP×HR; intervals overridden with the
+    # work-rep GAP × mean per-rep max-HR.
+    df["mpb"] = 1000.0 / (df["avg_gap_min_per_km"] * df["avg_hr"].astype(float))
+    if "work_gap_min_per_km" in df.columns:
+        iv = df["is_interval"] & df["work_gap_min_per_km"].notna() & df["work_maxhr_mean"].notna()
+        df.loc[iv, "mpb"] = 1000.0 / (
+            df.loc[iv, "work_gap_min_per_km"] * df.loc[iv, "work_maxhr_mean"].astype(float)
+        )
+
+    fig = go.Figure()
+
+    # --- Moving median + 25–75th band (drawn first → sits behind the dots) ------
+    clean = df[~df["hr_suspect"] & ~df["interval_hr_suspect"] & df["mpb"].notna()]
+    grid, med, p25, p75 = rolling_band(clean)
+    if grid:
+        fig.add_trace(go.Scatter(
+            x=grid, y=p75, mode="lines", line=dict(width=0),
+            connectgaps=False, hoverinfo="skip", showlegend=False, name="p75",
+        ))
+        fig.add_trace(go.Scatter(
+            x=grid, y=p25, mode="lines", line=dict(width=0), fill="tonexty",
+            fillcolor="rgba(180,190,210,0.13)", connectgaps=False,
+            hoverinfo="skip", name="25–75th pct band",
+        ))
+        fig.add_trace(go.Scatter(
+            x=grid, y=med, mode="lines",
+            line=dict(width=2.5, color="rgba(232,236,245,0.95)"),
+            connectgaps=False, name="Moving median (~45-day)",
+            hovertemplate="%{x|%Y-%m-%d}<br>median %{y:.1f} m/beat<extra></extra>",
+        ))
+
+    steady_cols = ["distance_km", "date", "gap_label", "avg_hr", "mpb", "gear_label", "id"]
+    steady_hover = (
+        "<b>%{hovertext}</b><br>"
+        "%{customdata[1]} · %{customdata[0]:.1f} km<br>"
+        "GAP %{customdata[2]} · HR %{customdata[3]:.0f}<br>"
+        "Dist/beat %{customdata[4]:.1f} m/beat<br>"
+        "Gear: %{customdata[5]}<br>"
+        "<i>click to open in Strava</i><extra></extra>"
+    )
+
+    # --- Per-shoe steady dots (one trace per shoe → per-shoe legend + colour) ---
+    steady = df[~df["hr_suspect"] & ~df["is_interval"]]
+    for m in sorted(steady["model_label"].dropna().unique()):
+        s = steady[steady["model_label"] == m]
+        fig.add_trace(go.Scatter(
+            x=s["date_dt"], y=s["mpb"], mode="markers", name=m, legendgroup="shoes",
+            hovertext=s["name"], customdata=s[steady_cols].values,
+            marker=dict(
+                color=cmap.get(m, "#888"),
+                size=s["distance_km"], sizemode="area",
+                sizeref=base_sizeref, sizemin=base_sizemin,
+                line=dict(width=0.5, color="rgba(255,255,255,0.35)"),
+            ),
+            hovertemplate=steady_hover,
+        ))
+
+    # --- Interval work-rep dots (diamonds, same per-shoe colours) ---------------
+    interval = df[df["is_interval"]].copy()
+    if not interval.empty:
+        interval["work_gap_label"] = interval["work_gap_min_per_km"].map(pace_to_label)
+        iv_cols = ["distance_km", "date", "work_gap_label", "work_maxhr_mean", "mpb", "gear_label", "id"]
+        iv_hover = (
+            "<b>%{hovertext}</b> — ◆ interval/workout<br>"
+            "%{customdata[1]} · %{customdata[0]:.1f} km<br>"
+            "Work GAP %{customdata[2]} · mean rep max-HR %{customdata[3]:.0f}<br>"
+            "Dist/beat %{customdata[4]:.1f} m/beat<br>"
+            "Gear: %{customdata[5]}<br>"
+            "<i>click to open in Strava</i><extra></extra>"
+        )
+        clean_iv = interval[~interval["interval_hr_suspect"]]
+        if not clean_iv.empty:
+            fig.add_trace(go.Scatter(
+                x=clean_iv["date_dt"], y=clean_iv["mpb"], mode="markers",
+                name="◆ Interval (work-rep)", legendgroup="shoes",
+                hovertext=clean_iv["name"], customdata=clean_iv[iv_cols].values,
+                marker=dict(
+                    symbol="diamond",
+                    color=[cmap.get(m, "#888") for m in clean_iv["model_label"]],
+                    size=clean_iv["distance_km"], sizemode="area",
+                    sizeref=base_sizeref, sizemin=base_sizemin,
+                    line=dict(width=1.2, color="rgba(255,255,255,0.55)"),
+                ),
+                hovertemplate=iv_hover,
+            ))
+
+    # --- Hidden-by-default ⚠ outlier series (excluded from the trend above) -----
+    suspect = df[df["hr_suspect"]]
+    if not suspect.empty:
+        fig.add_trace(go.Scatter(
+            x=suspect["date_dt"], y=suspect["mpb"], mode="markers",
+            name="⚠ Suspect HR (wrist optical)", visible="legendonly",
+            hovertext=suspect["name"], customdata=suspect[steady_cols].values,
+            marker=dict(
+                symbol="circle-open", color="rgba(255,80,80,0.95)",
+                size=suspect["distance_km"], sizemode="area",
+                sizeref=base_sizeref, sizemin=base_sizemin,
+                line=dict(width=2, color="rgba(255,80,80,0.95)"),
+            ),
+            hovertemplate=steady_hover,
+        ))
+    if not interval.empty:
+        rep_drop = interval[interval["interval_hr_suspect"]]
+        if not rep_drop.empty:
+            fig.add_trace(go.Scatter(
+                x=rep_drop["date_dt"], y=rep_drop["mpb"], mode="markers",
+                name="⚠ Interval rep dropout", visible="legendonly",
+                hovertext=rep_drop["name"], customdata=rep_drop[iv_cols].values,
+                marker=dict(
+                    symbol="diamond", color="rgba(255,165,0,0.95)",
+                    size=rep_drop["distance_km"], sizemode="area",
+                    sizeref=base_sizeref, sizemin=base_sizemin,
+                    line=dict(width=1.5, color="rgba(120,70,0,0.9)"),
+                ),
+                hovertemplate=iv_hover,
+            ))
+
+    window_days = payload.get("window_days", "?")
+    fig.update_layout(
+        template="plotly_dark",
+        title_text="",
+        legend_title="Shoe model",
+        margin=dict(l=70, r=30, t=110, b=60),
+        height=640,  # explicit — embedded fragment can't fill the viewport (see chart 1)
+        annotations=[
+            dict(
+                xref="paper", yref="paper", x=0, y=1.16, showarrow=False,
+                text=f"Aerobic efficiency over time — distance per heartbeat (last {window_days} days)",
+                xanchor="left", yanchor="middle",
+                font=dict(size=20, color="rgba(255,255,255,0.95)"),
+            ),
+            dict(
+                xref="paper", yref="paper", x=0, y=1.07, showarrow=False,
+                text=(
+                    "grade-adjusted m/beat = 1000 / (GAP × HR) · higher = fitter · "
+                    "intervals at work-rep effort · line = ~45-day moving median, "
+                    "band = 25–75th pct (⚠ outliers excluded, hidden by default)"
+                ),
+                xanchor="left", yanchor="top", align="left",
+                font=dict(size=11, color="rgba(255,255,255,0.65)"),
+            ),
+        ],
+    )
+    fig.update_xaxes(title="Date")
+    fig.update_yaxes(title="Distance per heartbeat (m/beat, grade-adjusted, higher = fitter)")
+    return fig
 
 
 def main() -> None:
@@ -525,6 +754,10 @@ def main() -> None:
         annotations=annotations,
         updatemenus=updatemenus,
         margin=dict(l=70, r=30, t=280, b=70),
+        # Explicit height: embedded as a fragment in a fixed div (full_html=False),
+        # the figure can't fill the viewport, so without this it collapses to
+        # Plotly's ~450px default and the 280px header margin squashes the plot.
+        height=780,
     )
 
     # Open the corresponding Strava activity in a new tab when a point is clicked.
@@ -559,13 +792,40 @@ def main() -> None:
     else:
         post_script = click_handler
 
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    fig.write_html(
-        str(OUTPUT_PATH),
-        include_plotlyjs="cdn",
-        full_html=True,
-        post_script=post_script,
+    # Second chart: distance-per-heartbeat over time. Reuses the same shoe colour
+    # map and marker scale so the two charts read as one page.
+    fig_eff = build_efficiency_figure(df, cmap, base_sizeref, base_sizemin, payload)
+
+    # Two Plotly charts on one page. Both post_scripts declare `var gd` at top
+    # level, so without isolation the second would clobber the first's handlers —
+    # wrap each in an IIFE so each chart's `gd` is function-scoped. `{plot_id}` is
+    # still substituted by to_html from div_id (it uses str.replace, not .format,
+    # so the IIFE's own braces are safe). plotly.js is pulled from the CDN once by
+    # the first fragment; the second references the already-loaded library.
+    def _iife(body: str) -> str:
+        return "(function(){" + body + "})();"
+
+    frag_gap = pio.to_html(
+        fig, include_plotlyjs="cdn", full_html=False,
+        div_id="chart-gap-hr", post_script=_iife(post_script),
     )
+    frag_eff = pio.to_html(
+        fig_eff, include_plotlyjs=False, full_html=False,
+        div_id="chart-eff", post_script=_iife(click_handler),
+    )
+    document = (
+        "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n"
+        "<title>Shoe speed vs. effort</title>\n"
+        "<style>body{background:#111;margin:0;padding:8px 0;}"
+        ".chart{max-width:1100px;margin:0 auto 24px;}</style>\n"
+        "</head>\n<body>\n"
+        f"<div class=\"chart\">{frag_gap}</div>\n"
+        f"<div class=\"chart\">{frag_eff}</div>\n"
+        "</body>\n</html>\n"
+    )
+
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_PATH.write_text(document)
     print(f"Wrote {OUTPUT_PATH}", file=sys.stderr)
 
 
