@@ -340,7 +340,7 @@ def build_efficiency_figure(
     for m in sorted(steady["model_label"].dropna().unique()):
         s = steady[steady["model_label"] == m]
         add(go.Scatter(
-            x=s["date_dt"], y=s["mpb"], mode="markers", name=m, legendgroup="shoes",
+            x=s["date_dt"], y=s["mpb"], mode="markers", name=m,
             hovertext=s["name"], customdata=s[steady_cols].values,
             marker=dict(
                 color=cmap.get(m, "#888"),
@@ -368,7 +368,7 @@ def build_efficiency_figure(
         if not clean_iv.empty:
             add(go.Scatter(
                 x=clean_iv["date_dt"], y=clean_iv["mpb"], mode="markers",
-                name="◆ Interval (work-rep)", legendgroup="shoes",
+                name="◆ Interval (work-rep)",
                 hovertext=clean_iv["name"], customdata=clean_iv[iv_cols].values,
                 marker=dict(
                     symbol="diamond",
