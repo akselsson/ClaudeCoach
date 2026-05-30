@@ -709,7 +709,7 @@ def main() -> None:
     # drift) so it wraps cleanly and never clips at the right edge, regardless of
     # figure width — more robust than guessing a pixel `width` on a responsive chart.
     method_line = (
-        f"Minetti GAP from altitude+distance streams · "
+        f"Strava-curve GAP from altitude+distance streams · "
         f"runs ≥ {payload.get('min_distance_km', 0)} km with HR · "
         f"point size ∝ distance · n={len(df)}"
     )
