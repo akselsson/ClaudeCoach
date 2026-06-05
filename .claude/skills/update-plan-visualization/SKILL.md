@@ -32,7 +32,7 @@ The trigger rule is simple: if the change rewrites or extends what the user is g
 
 ## Why a remote session (with sub-agent fallback)
 
-The page is ~1,000 lines of HTML. Authoring it pulls a lot of structured detail through context (week-by-week sessions, SVG coordinate computation, phase color tokens). Done in the main thread, it crowds out actual coaching work *and* makes the user wait for a long regeneration after a sync.
+Even with the chrome/CSS now lifted into `template.html` (§4), assembling the page still pulls a lot of structured detail through context — week-by-week sessions, SVG coordinate computation, the journal narrative. Done in the main thread, it crowds out actual coaching work *and* makes the user wait for a long regeneration after a sync.
 
 The primary mechanism is therefore a **remote one-shot Claude Code session** fired by the local thread after the triggering analysis commit has been pushed. The local thread returns control to the user immediately; the remote session does the regeneration and pushes a follow-up commit. See the "Triggering the remote viz regeneration" subsection in the repo `CLAUDE.md` for the exact local-side procedure.
 
@@ -68,11 +68,59 @@ Read `config/training.json` and inline the current zone numbers into the header 
 
 Use the `hr_zones` array. The page's HR strip shows: easy / steady / sub-threshold / threshold / vo₂ (race-cap), with bpm ranges and the resting/max HR in the panel label.
 
-### 4. Regenerate `viz/plan.html` end-to-end
+### 4. Assemble `viz/plan.html` from the template
 
-Full overwrite. Do **not** attempt incremental edits — the page is short enough that a full rewrite is simpler and avoids drift between header SVG coordinates, week cards, and footer manifest.
+`viz/plan.html` is **not** written freehand. The stable chrome — `<head>`, the entire `<style>` block, the section scaffolding, and the fold script — lives in **`.claude/skills/update-plan-visualization/template.html`**, the canonical source of truth. A regeneration:
 
-Preserve the design system (next section). The visual identity is stable across regenerations; the *data* is what changes.
+1. Reads `template.html`.
+2. Generates each **dynamic fragment** (see the placeholder manifest below).
+3. Replaces each `<!--{NAME}-->` marker with its fragment via a **mechanical splice** — a short inline `python` placeholder-replacement when writing the file — so the non-placeholder chrome is byte-preserved.
+4. Writes the assembled, self-contained result to `viz/plan.html`.
+
+**Do not retype or re-derive the chrome/CSS.** If a structural, visual, or CSS change is needed, edit `template.html` directly — not this prose. That is the whole point of the split: the design system is code in one diffable file, not instructions reproduced on every run. The model only ever generates the fragments. The output stays a single self-contained file (the template is inlined), so snapshots and direct-open still work; `template.html` itself is never served.
+
+#### Placeholder manifest
+
+| Placeholder | Filled with | Source |
+|---|---|---|
+| `<!--{HEAD_TITLE}-->` | `<title>` text (season-arc title) | season-plan |
+| `<!--{SIGNAL}-->` | top-strip "PLAN ACTIVE · BLOCK nn · WEEK nn · DAY n" | computed |
+| `<!--{UPDATED}-->` | top-strip "UPDATED YYYY·MM·DD · <trigger>" | current date + trigger |
+| `<!--{TITLE_ROW}-->` | `<h1>` headline + `.subtitle` | season-plan |
+| `<!--{CHIPS}-->` | 4 metric chips (today, days-to-A, days-to-B, build week) | computed |
+| `<!--{GANTT_SVG}-->` | the full season-gantt `<svg>` | computed from dates/phases/races |
+| `<!--{VOLUME_LABEL}-->` | volume panel-label line | current block |
+| `<!--{VOLUME_SVG}-->` | the full weekly-volume `<svg>` | computed from weekly targets |
+| `<!--{HR_LABEL}-->` | HR panel-label ("… max HR nnn · resting nn") | `config/training.json` |
+| `<!--{HR_ZONES}-->` | the 5 `.hr-cell` divs | `config/training.json` |
+| `<!--{TRANSITION_CAPTION}-->` | `—— BLOCK nn · WEEK-BY-WEEK ——` | current block |
+| `<!--{PREAMBLE}-->` | preamble `<h2>` + standing-rule `<p>`s | block/review |
+| `<!--{JOURNAL}-->` | block-heading dividers + chronological `<details class="week">` cards + Block-2 `.narrative-grid` | block + reviews |
+| `<!--{RACE_BANNER}-->` | A-race banner inner (a-tag, h2, date, stats, creed) | season-plan |
+| `<!--{POSTSCRIPT}-->` | post-A-race recovery + B-race inner | season-plan |
+| `<!--{FOOTER}-->` | source-files manifest (two `.foot-grid` columns) | authoritative trio paths + date |
+
+#### Week cards — chronological, collapsible (the `<!--{JOURNAL}-->` fragment)
+
+Inside `<!--{JOURNAL}-->`, emit the weeks in **plain chronological order** (earliest → latest), grouped under their block-heading dividers, then the Block-2 `.narrative-grid`. Each week is a **`<details class="week" data-end="YYYY-MM-DD">`** (not `<article>`):
+
+```html
+<details class="week" data-end="2026-06-07" open>
+  <summary class="rail">
+    <span class="chev">▸</span>
+    <div class="wknum">05</div>
+    <div class="phase-tag">…</div>
+    <div class="dates">Jun 1 — Jun 7</div>
+    <div class="vol">…</div>
+  </summary>
+  <div class="body"> … intent pull-quote + ul.days … </div>
+</details>
+```
+
+- `data-end` is the week's **last calendar day** (ISO `YYYY-MM-DD`). Required on every week — the fold script reads it.
+- **Baked open state (no-JS fallback):** past weeks (`data-end` before today) → **omit** `open`; the current week (the one containing today) and all future weeks → include `open`. The fold script in the template recomputes this from the real date at load, so the fold stays current between regenerations.
+- `<summary class="rail">` is the click target — chevron + week number + phase-tag + dates + vol. `.body` holds the intent + day list. The collapse styling and fold behavior live in `template.html`; here you only emit the structure.
+- **Do not reorder past weeks.** Collapsing — not reordering — is what keeps now+future prominent.
 
 ### 5. Archive a dated snapshot
 
@@ -183,7 +231,7 @@ Single breakpoint at `920px`, matching `plan.html`. Below that, the three column
 
 ## Design system — preserve across regenerations
 
-The page has a deliberate **two-register** identity. Don't change these without asking the user — the consistency is the point.
+This section is the **rationale and reference** for what `template.html` encodes; the template itself is the executable source of truth. A design change touches both — edit the template, then update this section to match. The page has a deliberate **two-register** identity. Don't change these without asking the user — the consistency is the point.
 
 ### Section structure (top to bottom)
 
@@ -197,7 +245,7 @@ The page has a deliberate **two-register** identity. Don't change these without 
 2. **Transition strip** — gradient half-dark / half-light with an amber hairline rule and a single tracked-out caption (`—— BLOCK NN · WEEK-BY-WEEK ——`).
 3. **Editorial training journal** (light, warm off-white)
    - Centered preamble paragraph (Fraunces display headline + Sora body) framing the current block's *why*.
-   - Block 1 (current block): one `<article class="week">` per week with a left rail (big italic Fraunces week number, phase tag, dates, volume target) and a right column (intent pull-quote + day-by-day list with session tags). **Week ordering: current week first, then future weeks in chronological order, then past/done weeks.** The current week is the one whose date range contains today. Past weeks are those that ended before today. This ordering ensures the actionable content (now + future) is immediately visible after the preamble, with the historical record below it.
+   - Block 1 (current block): one `<details class="week">` per week (see "Week cards" in §4) with a left rail (big italic Fraunces week number, phase tag, dates, volume target) in the `<summary>` and a right column (intent pull-quote + day-by-day list with session tags) in `.body`. **Week ordering: plain chronological order (earliest → latest).** Past weeks (ended before today) are **not** reordered — they keep their natural position and render **collapsed by default** (no `open` attribute); the current week (whose range contains today) and all future weeks render **expanded** (`open`). Collapsing — not reordering — keeps the actionable now+future content prominent while the history stays in true chronological position.
    - Block 2 (next block): 4 narrative cards in a 2-column grid — phases, not days. Italy / unstructured weeks rendered with a hatched diagonal-line background.
 4. **A-race banner** (full-bleed dark) — race name in Archivo Black with one word italicized in amber, race date in mono, 4-stat grid, italic Fraunces creed pull-quote on the right.
 5. **Postscript** (light) — post-A-race recovery + B-race description, ends with a left-rule callout for the B-race finish.
@@ -252,12 +300,16 @@ The accent amber `#ffb547` is reserved for: the today rule, the A-race pin, peak
 - Pulsing dot in the top-strip "PLAN ACTIVE" signal.
 - All wrapped in `@media (prefers-reduced-motion: reduce)` to disable when requested.
 
+### Collapsible weeks (and the one script)
+
+Each week is a native `<details class="week">`: the click-to-expand interaction needs **no JavaScript**, and past weeks render collapsed by default (see §4 "Week cards"). The page carries exactly **one** small `<script>` (at the end of `<body>`, in the template) — a progressive-enhancement fold that re-derives each week's open/closed state from the real browser date via its `data-end`, so the fold stays current between regenerations. It is a deliberate, scoped exception to the page's otherwise script-free nature: it touches only the week fold (not the `today`/`done` markers or gantt rule, which stay baked) and degrades gracefully to the baked state when JS is off. All of this lives in `template.html` — don't re-emit or alter it from prose.
+
 ### Responsive
 
 Single breakpoint at `920px`. Below that:
 - Title row collapses to a single column.
 - Chips & HR strip go to 2 columns.
-- Week cards collapse the rail above the body.
+- Week cards (`<details class="week">`) collapse the `<summary>`/rail above the `.body` when open.
 - Race banner & postscript stack vertically.
 - The two header SVGs use `viewBox` + `preserveAspectRatio="none"` and just rescale — acceptable degradation.
 
@@ -267,6 +319,7 @@ Dark sections render with white background and black text via `@media print`. An
 
 ## What NOT to change without asking
 
+- The **chrome lives in `template.html`**. The `<head>`, `<style>` block, section scaffolding, and fold script are the template's job — don't reproduce, alter, or drift them from prose. Structural/CSS/design changes are edits to `template.html` (and a note here), not regeneration details.
 - The **two-register identity**. Don't make the whole page dark, or the whole page light, or merge the two into a single hybrid surface.
 - The **source-file precedence rule** (review > block, block > season-plan, latest > earlier).
 - The **`viz/plan.html` location**. The `viz/` directory is intentional — keeps the analyses chronology pure markdown.
@@ -299,7 +352,8 @@ The data goes inline into the HTML — there is no JSON fetch, no script-driven 
 ## Sanity checks before reporting done
 
 - The today rule on the gantt visibly lands on the correct week column.
-- The first `<article class="week">` in the editorial section is the **current week** (the one containing today), not week 1 of the block. Past weeks appear after future weeks.
+- Weeks render in **chronological order** (earliest first), each as `<details class="week" data-end="YYYY-MM-DD">`. Past weeks (ended before today) have **no** `open` attribute; the current week (containing today) and all future weeks have `open`. Every week has a valid `data-end`. The single fold `<script>` is present once at the end of `<body>`; clicking a week toggles it natively; with JS off the baked state still applies.
+- **Template integrity:** the chrome in `viz/plan.html` (the `<head>`, `<style>`, section scaffolding, and fold script) is byte-identical to `template.html` outside the placeholder regions — only the `<!--{…}-->` slots differ. No stray CSS edits leaked in.
 - The two header SVGs use the same x-coordinate scheme so the today rule and week index strip line up between gantt and volume chart.
 - Race pins are in the right week columns. (Check by counting weeks from the start date.)
 - Every week card's day-of-week labels match the actual calendar dates of that week.
