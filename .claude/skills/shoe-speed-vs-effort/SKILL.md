@@ -5,13 +5,17 @@ description: Generate the shoe-speed-vs-effort chart — a Plotly scatter of gra
 
 # Shoe speed vs. effort
 
-This skill builds a two-chart page from the same per-run dataset. **Chart 1** answers "which of
+This skill builds a four-chart page from the same per-run dataset. **Chart 1** answers "which of
 my shoes actually make me faster?": every qualifying run on a **grade-adjusted-pace (GAP) vs.
 average-HR** plane, coloured by shoe model — a shoe whose cluster sits higher (faster GAP) at the
 same HR is giving free pace. **Chart 2** answers "is my aerobic fitness trending up?": each run's
 **distance per heartbeat** (`1000 / (GAP × HR)`, grade-adjusted) over time, with a moving-median
-line and a 25–75th percentile band. Point size is distance; a distance-band dropdown, legend
-toggles, and click-to-open-in-Strava make them explorable.
+line and a 25–75th percentile band. **Chart A** answers "does efficiency fade *during* a run, more
+for some shoes?": one line per run of rolling m/beat vs distance *into* the run, with a per-shoe
+median fade slope. **Chart B** answers "are a shoe's *longer runs* less efficient than its shorter
+ones?": one dot per run, whole-run m/beat vs total distance, with a per-shoe fade trend line. Point
+size is distance; distance-band / shoe-selector dropdowns, legend toggles, and
+click-to-open-in-Strava make them explorable.
 
 It exists because raw pace lies about shoes — hills, heat, fitness, and interval structure all
 move pace independently of the gear. Grade-adjusting the pace and pinning effort to HR
@@ -106,6 +110,13 @@ defaults to `hr_correction.enabled` (it shares the same trusted population), nee
 `min_trusted` (default 8) trusted runs to fit, and never hardcodes a coefficient. Leave it on
 unless the user only ever compares same-distance runs.
 
+And the **intra-run efficiency** block (`intra_run_efficiency`, powers Chart A): when on,
+`build_dataset` stores a per-run rolling m/beat series (vs distance into the run) plus a fade
+slope, so the within-run-fade chart can be drawn. Knobs: `downsample_points` (≈30 points/run),
+`smooth_window_s` (90 s rolling window), `warmup_trim_km` (0.6 km dropped so the HR-from-rest ramp
+doesn't fake a downslope), `min_points` (6). Defaults on; set `enabled: false` to drop Chart A and
+the extra series. Steady runs only.
+
 ### Step 4 — write and commit
 
 Write the `shoe_chart` block into `config/training.json` and commit it
@@ -136,6 +147,13 @@ A complete block:
   "hr_drift": {
     "enabled": true,
     "min_trusted": 8
+  },
+  "intra_run_efficiency": {
+    "enabled": true,
+    "downsample_points": 30,
+    "smooth_window_s": 90,
+    "warmup_trim_km": 0.6,
+    "min_points": 6
   }
 }
 ```
@@ -176,9 +194,10 @@ cache (`.cache/strava/`) just work — if `strava whoami` works, these work. The
 
 ## Reading the page
 
-The HTML page carries **two stacked charts** built from the same dataset and the same shoe
-colour map (a shoe is the same colour in both). Chart 1 is the shoe comparison; chart 2 is the
-efficiency-over-time trend.
+The HTML page carries **four stacked charts** built from the same dataset and the same shoe
+colour map (a shoe is the same colour across all of them). Chart 1 is the shoe comparison; chart 2
+is the efficiency-over-time trend; Chart A is within-run efficiency fade; Chart B is efficiency vs
+run length.
 
 ### Chart 1 — shoe speed vs. effort (GAP vs. HR)
 
@@ -227,6 +246,41 @@ treat the ⚠ series as "probably bad data", not evidence about a shoe.
 - **Reading it:** expect the line to **rise through a build** (fitness) and dip on heat-, long-run-,
   or interval-heavy stretches. It's a same-shoe-agnostic fitness trend, not a gear verdict — for
   "which shoe", read chart 1. **Click any point** to open it in Strava.
+
+### Chart A — efficiency fade *within* a run (m/beat vs distance into the run)
+
+- **What it is:** one thin **line per run** of rolling grade-adjusted m/beat against distance
+  *into* the run — so you watch efficiency decay as the run goes on. Steady runs only (intervals
+  are sawtooth, not a fade line). The opening **warmup (`warmup_trim_km`, default 0.6 km) is
+  trimmed** — the HR-from-rest ramp would otherwise fake a downslope on every run.
+- **Per-shoe summary:** a **bold segment** per shoe = its **median fade slope** through the shoe's
+  median run, with the slope (m/beat per **10 km**, − = fades) and run count in the legend, so the
+  legend doubles as a fade ranking.
+- **Shoe selector** (top-left dropdown): *All shoes* shows only the per-shoe **summary segments**
+  (the clean cross-shoe comparison, not 200+ raw lines); pick a shoe to reveal **its individual run
+  lines** plus its summary. **Click any run line** to open it in Strava.
+- **Reading it:** terrain is removed by GAP and cardiac drift is athlete-level (common to all
+  shoes), so the *between-shoe* differences in slope are the closest thing to a shoe effect — a
+  shoe whose segment droops more loses efficiency faster as the run wears on. Caveat: the slopes
+  are small and bounded by the runs you actually did in each shoe (a shoe only raced short can't
+  show a long-run fade), so read it as a hypothesis generator, not a verdict.
+
+### Chart B — efficiency vs run length (whole-run m/beat vs total distance)
+
+- **What it is:** one **dot per run** of whole-run m/beat (`1000/(GAP×HR)`) against the run's
+  **total distance** — "are a shoe's longer runs less efficient than its shorter ones?" Steady
+  runs only; the "Unbranded Okategoriserat" placeholder is excluded. Point size ∝ distance.
+- **Per-shoe trend line:** a robust (Theil–Sen) fit for any shoe with ≥5 runs spanning ≥8 km, with
+  the slope (per 10 km) in the legend.
+- **Shoe selector** + (when `hr_drift` is on) a **Raw / Drift-adjusted m/beat** toggle. They
+  compose (the selector sets visibility, the toggle swaps y) because they touch different
+  attributes. **Raw** includes the universal cardiac drift (longer runs read lower m/beat for
+  everyone); switch to **drift-adjusted** to strip that out so any remaining downslope is
+  shoe-specific. GAP assumes outdoor grade — treadmill-heavy models (one `model_label` can merge
+  treadmill + outdoor pairs) read with caution. **Click any point** to open it in Strava.
+
+When summarising Charts A/B for the user: the fade slopes are differential signals across shoes,
+heavily caveated by sample size and the distance range each shoe was actually run over.
 
 ## What NOT to do
 

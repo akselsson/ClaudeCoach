@@ -243,6 +243,32 @@ RAW_Y_TITLE = "Distance per heartbeat (m/beat, grade-adjusted, higher = fitter)"
 ADJ_Y_TITLE = "Drift-adjusted distance per heartbeat (m/beat, higher = fitter)"
 
 
+def add_mpb_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Add `mpb` (raw) and `mpb_adj` (drift-adjusted) distance-per-heartbeat columns.
+
+    m/beat = 1000 / (GAP × HR), higher = fitter. Steady runs use the whole-run
+    GAP × avg-HR; interval runs are overridden with the work-rep GAP × mean per-rep
+    max-HR (same normalisation chart 1 uses) so they sit at their true effort. The
+    adjusted variant swaps in avg_hr_adj / work_maxhr_mean_adj, falling back to raw
+    HR wherever the drift fit left an adjustment null. Mutates and returns df.
+    """
+    hr_raw = df["avg_hr"].astype(float)
+    hr_adj = df["avg_hr_adj"].where(df["avg_hr_adj"].notna(), hr_raw).astype(float) \
+        if "avg_hr_adj" in df.columns else hr_raw
+    df["mpb"] = 1000.0 / (df["avg_gap_min_per_km"] * hr_raw)
+    df["mpb_adj"] = 1000.0 / (df["avg_gap_min_per_km"] * hr_adj)
+    if "work_gap_min_per_km" in df.columns:
+        iv = df["is_interval"] & df["work_gap_min_per_km"].notna() & df["work_maxhr_mean"].notna()
+        wg = df.loc[iv, "work_gap_min_per_km"]
+        w_raw = df.loc[iv, "work_maxhr_mean"].astype(float)
+        w_adj = (df.loc[iv, "work_maxhr_mean_adj"].where(
+            df.loc[iv, "work_maxhr_mean_adj"].notna(), w_raw).astype(float)
+            if "work_maxhr_mean_adj" in df.columns else w_raw)
+        df.loc[iv, "mpb"] = 1000.0 / (wg * w_raw)
+        df.loc[iv, "mpb_adj"] = 1000.0 / (wg * w_adj)
+    return df
+
+
 def build_efficiency_figure(
     df: pd.DataFrame,
     cmap: dict,
@@ -270,28 +296,9 @@ def build_efficiency_figure(
     JS. The two y-sets are accumulated in trace-construction order so the button's
     positional `y` list lines up with the figure's traces.
     """
-    df = df.copy()
+    df = add_mpb_columns(df.copy())
     df["date_dt"] = pd.to_datetime(df["date"])
     df["gap_label"] = df["avg_gap_min_per_km"].map(pace_to_label)
-
-    # m/beat per run, raw and drift-adjusted. Steady from whole-run GAP×HR;
-    # intervals overridden with the work-rep GAP × mean per-rep max-HR. The adjusted
-    # variant swaps in avg_hr_adj / work_maxhr_mean_adj, falling back to the raw HR
-    # wherever the drift fit left an adjustment null.
-    hr_raw = df["avg_hr"].astype(float)
-    hr_adj = df["avg_hr_adj"].where(df["avg_hr_adj"].notna(), hr_raw).astype(float) \
-        if "avg_hr_adj" in df.columns else hr_raw
-    df["mpb"] = 1000.0 / (df["avg_gap_min_per_km"] * hr_raw)
-    df["mpb_adj"] = 1000.0 / (df["avg_gap_min_per_km"] * hr_adj)
-    if "work_gap_min_per_km" in df.columns:
-        iv = df["is_interval"] & df["work_gap_min_per_km"].notna() & df["work_maxhr_mean"].notna()
-        wg = df.loc[iv, "work_gap_min_per_km"]
-        w_raw = df.loc[iv, "work_maxhr_mean"].astype(float)
-        w_adj = (df.loc[iv, "work_maxhr_mean_adj"].where(
-            df.loc[iv, "work_maxhr_mean_adj"].notna(), w_raw).astype(float)
-            if "work_maxhr_mean_adj" in df.columns else w_raw)
-        df.loc[iv, "mpb"] = 1000.0 / (wg * w_raw)
-        df.loc[iv, "mpb_adj"] = 1000.0 / (wg * w_adj)
 
     fig = go.Figure()
     # Per-trace y arrays in add order, so the dropdown's positional restyle aligns.
@@ -470,6 +477,248 @@ def build_efficiency_figure(
     )
     fig.update_xaxes(title="Date")
     fig.update_yaxes(title=RAW_Y_TITLE)
+    return fig
+
+
+# --- Shared helpers for the fade charts (B + A) ------------------------------
+_MENU_STYLE = dict(bgcolor="#2a2a2a", bordercolor="#666", font=dict(color="#eee", size=12))
+UNBRANDED_MODEL = "Unbranded Okategoriserat"   # Strava placeholder — not a real shoe
+
+
+def _mean(values: list) -> float:
+    return sum(values) / len(values) if values else 0.0
+
+
+def _theil_sen_xy(xs: list, ys: list) -> tuple[float, float]:
+    """(intercept, slope) robust line via median of pairwise slopes — render-side
+    twin of build_dataset.theil_sen (the two scripts run standalone, no shared import)."""
+    slopes = [
+        (ys[j] - ys[i]) / (xs[j] - xs[i])
+        for i in range(len(xs)) for j in range(i + 1, len(xs))
+        if xs[j] != xs[i]
+    ]
+    if not slopes:
+        return (_median(ys) if ys else 0.0), 0.0
+    b = _median(slopes)
+    a = _median([y - b * x for x, y in zip(xs, ys)])
+    return a, b
+
+
+def _fade_per10(slope_per_km: float) -> str:
+    """A m/beat-per-km slope as a per-10-km fade string (− = efficiency fades)."""
+    v = slope_per_km * 10.0
+    return ("−" if v < 0 else "+") + f"{abs(v):.2f}/10km"
+
+
+# --- Chart B: whole-run m/beat vs total distance (cross-run fade) ------------
+DROPOFF_RAW_Y = "Distance per heartbeat (m/beat) · whole run · higher = fitter"
+DROPOFF_ADJ_Y = "Drift-adjusted distance per heartbeat (m/beat) · whole run"
+MIN_FIT_RUNS = 5          # need this many runs…
+MIN_FIT_SPAN_KM = 8.0     # …spanning this distance range to fit a fade trend line
+
+
+def build_dropoff_figure(df, cmap, base_sizeref, base_sizemin, payload, drift_on):
+    """Chart B: one dot per run, whole-run m/beat vs the run's total distance, per
+    shoe, with a robust per-shoe fade trend line — 'are a shoe's longer runs less
+    efficient than its shorter runs?'. Two native dropdowns compose because they
+    touch disjoint attributes: a shoe selector (visible) and, when drift_on, a
+    Raw/Drift-adjusted m/beat toggle (y + name + y-axis title)."""
+    df = add_mpb_columns(df.copy())
+    df["gap_label"] = df["avg_gap_min_per_km"].map(pace_to_label)
+    steady = df[~df["hr_suspect"] & ~df["is_interval"] & df["mpb"].notna()]
+    steady = steady[steady["model_label"] != UNBRANDED_MODEL]
+    shoes = sorted(steady["model_label"].dropna().unique())
+
+    cols = ["distance_km", "date", "gap_label", "avg_hr", "mpb", "gear_label", "id"]
+    hover = (
+        "<b>%{hovertext}</b><br>"
+        "%{customdata[1]} · %{customdata[0]:.1f} km<br>"
+        "GAP %{customdata[2]} · HR %{customdata[3]:.0f}<br>"
+        "Whole-run %{customdata[4]:.2f} m/beat<br>"
+        "Gear: %{customdata[5]}<br>"
+        "<i>click to open in Strava</i><extra></extra>"
+    )
+
+    fig = go.Figure()
+    y_raw_list, y_adj_list, name_raw_list, name_adj_list, trace_shoe = [], [], [], [], []
+
+    for m in shoes:
+        s = steady[steady["model_label"] == m].sort_values("distance_km")
+        xs = list(s["distance_km"])
+        qualifies = len(xs) >= MIN_FIT_RUNS and (max(xs) - min(xs)) >= MIN_FIT_SPAN_KM
+        if qualifies:
+            x0, x1 = min(xs), max(xs)
+            a_raw, b_raw = _theil_sen_xy(xs, list(s["mpb"]))
+            a_adj, b_adj = _theil_sen_xy(xs, list(s["mpb_adj"]))
+            pt_name_raw = f"{m} — fade {_fade_per10(b_raw)} (n={len(xs)})"
+            pt_name_adj = f"{m} — fade {_fade_per10(b_adj)} (n={len(xs)})"
+        else:
+            pt_name_raw = pt_name_adj = m
+
+        fig.add_trace(go.Scatter(
+            x=s["distance_km"], y=s["mpb"], mode="markers", name=pt_name_raw, legendgroup=m,
+            hovertext=s["name"], customdata=s[cols].values,
+            marker=dict(color=cmap.get(m, "#888"), size=s["distance_km"], sizemode="area",
+                        sizeref=base_sizeref, sizemin=base_sizemin,
+                        line=dict(width=0.5, color="rgba(255,255,255,0.35)")),
+            hovertemplate=hover,
+        ))
+        y_raw_list.append(list(s["mpb"])); y_adj_list.append(list(s["mpb_adj"]))
+        name_raw_list.append(pt_name_raw); name_adj_list.append(pt_name_adj)
+        trace_shoe.append(m)
+
+        if qualifies:
+            fig.add_trace(go.Scatter(
+                x=[x0, x1], y=[a_raw + b_raw * x0, a_raw + b_raw * x1], mode="lines",
+                name=m, legendgroup=m, showlegend=False, hoverinfo="skip",
+                line=dict(color=cmap.get(m, "#888"), width=2),
+            ))
+            y_raw_list.append([a_raw + b_raw * x0, a_raw + b_raw * x1])
+            y_adj_list.append([a_adj + b_adj * x0, a_adj + b_adj * x1])
+            name_raw_list.append(m); name_adj_list.append(m)
+            trace_shoe.append(m)
+
+    shoe_buttons = [dict(label="All shoes", method="restyle",
+                         args=[{"visible": [True] * len(trace_shoe)}])]
+    for m in shoes:
+        shoe_buttons.append(dict(label=m, method="restyle",
+                                 args=[{"visible": [t == m for t in trace_shoe]}]))
+    updatemenus = [dict(type="dropdown", direction="down", x=0, xanchor="left",
+                        y=1.13, yanchor="top", showactive=True, active=0,
+                        **_MENU_STYLE, buttons=shoe_buttons)]
+    drift_clause = ""
+    if drift_on:
+        updatemenus.append(dict(
+            type="dropdown", direction="down", x=0.27, xanchor="left",
+            y=1.13, yanchor="top", showactive=True, active=0, **_MENU_STYLE,
+            buttons=[
+                dict(label="Raw m/beat", method="update",
+                     args=[{"y": y_raw_list, "name": name_raw_list},
+                           {"yaxis.title.text": DROPOFF_RAW_Y}]),
+                dict(label="Drift-adjusted m/beat", method="update",
+                     args=[{"y": y_adj_list, "name": name_adj_list},
+                           {"yaxis.title.text": DROPOFF_ADJ_Y}]),
+            ],
+        ))
+        drift_clause = ("raw includes universal cardiac drift — switch to drift-adjusted to "
+                        "isolate shoe-specific fade · ")
+
+    title_text = (f"Efficiency vs run length — per shoe "
+                  f"(whole-run m/beat, last {payload.get('window_days', '?')} days)")
+    subtitle = (
+        "one dot per run · y = whole-run m/beat = 1000/(GAP×HR) vs total distance · "
+        "line = robust per-shoe fade trend (slope per 10 km) · "
+        f"{drift_clause}select a shoe to isolate · "
+        "GAP assumes outdoor grade (treadmill-heavy models read with care)"
+    )
+    annotations = [
+        dict(xref="paper", yref="paper", x=0, y=1.30, showarrow=False, text=title_text,
+             xanchor="left", yanchor="middle", font=dict(size=20, color="rgba(255,255,255,0.95)")),
+        dict(xref="paper", yref="paper", x=0, y=1.05, showarrow=False, text=subtitle,
+             xanchor="left", yanchor="top", align="left", font=dict(size=11, color="rgba(255,255,255,0.65)")),
+    ]
+    fig.update_layout(template="plotly_dark", title_text="", legend_title="Shoe (fade /10km)",
+                      margin=dict(l=70, r=30, t=170, b=60), height=720,
+                      annotations=annotations, updatemenus=updatemenus)
+    fig.update_xaxes(title="Total run distance (km)")
+    fig.update_yaxes(title=DROPOFF_RAW_Y)
+    return fig
+
+
+# --- Chart A: within-run m/beat decay (intra-run fade) -----------------------
+WITHIN_Y = "Distance per heartbeat (m/beat) · within run · higher = fitter"
+MIN_SUMMARY_RUNS = 3      # fewer runs ⇒ no per-shoe summary segment
+
+
+def build_within_run_figure(df, cmap, payload):
+    """Chart A: per-run within-run m/beat decay (x = distance into the run) plus a
+    per-shoe median fade summary segment for ranking. Native shoe selector
+    (visibility only): All shoes → summary segments only (clean comparison, not 200+
+    raw lines); a shoe → that shoe's individual run lines + its summary segment."""
+    fig = go.Figure()
+    if "intra_km" not in df.columns:
+        fig.update_layout(template="plotly_dark", height=200,
+                          title_text="Within-run fade unavailable (no intra-run series in dataset)")
+        return fig
+
+    has = df[df["intra_km"].notna() & ~df["is_interval"]].copy()
+    shoes = sorted(has["model_label"].dropna().unique())
+
+    run_hover = (
+        "<b>%{hovertext}</b><br>%{customdata[0]} · %{customdata[1]:.1f} km total<br>"
+        "%{x:.1f} km in · %{y:.2f} m/beat<br><i>click to open in Strava</i><extra></extra>"
+    )
+
+    trace_shoe: list = []
+    trace_is_summary: list = []
+
+    # Individual run lines — no legend entry, hidden until a shoe is selected.
+    for _, r in has.iterrows():
+        kms, mb = r["intra_km"], r["intra_mbeat"]
+        if not kms or not mb:
+            continue
+        m = r["model_label"]
+        cd = [[r.get("date"), r.get("distance_km"), r.get("id")]] * len(kms)
+        fig.add_trace(go.Scatter(
+            x=kms, y=mb, mode="lines", name=m, legendgroup=m, showlegend=False, visible=False,
+            hovertext=[r.get("name")] * len(kms), customdata=cd,
+            line=dict(color=cmap.get(m, "#888"), width=1), opacity=0.5,
+            hovertemplate=run_hover,
+        ))
+        trace_shoe.append(m); trace_is_summary.append(False)
+
+    # Per-shoe median fade summary segment (median slope through median centroid).
+    for m in shoes:
+        runs = has[has["model_label"] == m]
+        slopes = [s for s in runs["intra_fade_slope"].tolist() if s is not None]
+        cx, cy, x0s, x1s = [], [], [], []
+        for _, r in runs.iterrows():
+            if r["intra_km"] and r["intra_mbeat"]:
+                cx.append(_mean(r["intra_km"])); cy.append(_mean(r["intra_mbeat"]))
+                x0s.append(r["intra_km"][0]); x1s.append(r["intra_km"][-1])
+        if len(slopes) < MIN_SUMMARY_RUNS or not cx:
+            continue
+        b = _median(slopes)
+        xc, yc = _median(cx), _median(cy)
+        x0, x1 = _median(x0s), _median(x1s)
+        fig.add_trace(go.Scatter(
+            x=[x0, x1], y=[yc + b * (x0 - xc), yc + b * (x1 - xc)], mode="lines",
+            name=f"{m} — fade {_fade_per10(b)} (n={len(slopes)})",
+            legendgroup=m, showlegend=True, visible=True,
+            line=dict(color=cmap.get(m, "#888"), width=3), hoverinfo="skip",
+        ))
+        trace_shoe.append(m); trace_is_summary.append(True)
+
+    n = len(trace_shoe)
+    shoe_buttons = [dict(label="All shoes", method="restyle",
+                         args=[{"visible": list(trace_is_summary)}])]
+    for m in shoes:
+        shoe_buttons.append(dict(label=m, method="restyle",
+                                 args=[{"visible": [trace_shoe[i] == m for i in range(n)]}]))
+    updatemenus = [dict(type="dropdown", direction="down", x=0, xanchor="left",
+                        y=1.13, yanchor="top", showactive=True, active=0,
+                        **_MENU_STYLE, buttons=shoe_buttons)]
+
+    warm = (payload.get("intra_run_efficiency") or {}).get("warmup_trim_km", 0.6)
+    title_text = (f"Efficiency fade within a run — per shoe "
+                  f"(last {payload.get('window_days', '?')} days)")
+    subtitle = (
+        "one line per run · x = distance into the run · y = rolling grade-adjusted m/beat · "
+        f"first {warm} km (warmup) trimmed · bold = per-shoe median fade (slope per 10 km) · "
+        "‘All shoes’ shows the summary segments — select a shoe to see its individual runs · "
+        "terrain removed by GAP, so between-shoe slope differences ≈ shoe effect"
+    )
+    annotations = [
+        dict(xref="paper", yref="paper", x=0, y=1.30, showarrow=False, text=title_text,
+             xanchor="left", yanchor="middle", font=dict(size=20, color="rgba(255,255,255,0.95)")),
+        dict(xref="paper", yref="paper", x=0, y=1.05, showarrow=False, text=subtitle,
+             xanchor="left", yanchor="top", align="left", font=dict(size=11, color="rgba(255,255,255,0.65)")),
+    ]
+    fig.update_layout(template="plotly_dark", title_text="", legend_title="Shoe (fade /10km)",
+                      margin=dict(l=70, r=30, t=170, b=60), height=720,
+                      annotations=annotations, updatemenus=updatemenus)
+    fig.update_xaxes(title="Distance into run (km)")
+    fig.update_yaxes(title=WITHIN_Y)
     return fig
 
 
@@ -860,6 +1109,14 @@ def main() -> None:
     # map and marker scale so the two charts read as one page.
     fig_eff = build_efficiency_figure(df, cmap, base_sizeref, base_sizemin, payload, drift_on)
 
+    # Charts A & B: the per-shoe fade pair. Chart A = within-run m/beat decay
+    # (intra-run series from build_dataset); Chart B = whole-run m/beat vs total
+    # distance. Both reuse the shared shoe colour map; both control via native
+    # dropdowns (shoe selector ± raw/adj toggle) that compose without custom JS
+    # because they touch disjoint trace attributes.
+    fig_within = build_within_run_figure(df, cmap, payload)
+    fig_drop = build_dropoff_figure(df, cmap, base_sizeref, base_sizemin, payload, drift_on)
+
     # Two Plotly charts on one page. Both post_scripts declare `var gd` at top
     # level, so without isolation the second would clobber the first's handlers —
     # wrap each in an IIFE so each chart's `gd` is function-scoped. `{plot_id}` is
@@ -877,6 +1134,14 @@ def main() -> None:
         fig_eff, include_plotlyjs=False, full_html=False,
         div_id="chart-eff", post_script=_iife(click_handler),
     )
+    frag_within = pio.to_html(
+        fig_within, include_plotlyjs=False, full_html=False,
+        div_id="chart-within", post_script=_iife(click_handler),
+    )
+    frag_drop = pio.to_html(
+        fig_drop, include_plotlyjs=False, full_html=False,
+        div_id="chart-dropoff", post_script=_iife(click_handler),
+    )
     document = (
         "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n"
         "<title>Shoe speed vs. effort</title>\n"
@@ -885,6 +1150,8 @@ def main() -> None:
         "</head>\n<body>\n"
         f"<div class=\"chart\">{frag_gap}</div>\n"
         f"<div class=\"chart\">{frag_eff}</div>\n"
+        f"<div class=\"chart\">{frag_within}</div>\n"
+        f"<div class=\"chart\">{frag_drop}</div>\n"
         "</body>\n</html>\n"
     )
 

@@ -90,6 +90,20 @@ R4_GAP_MAX, R4_MAXHR_MAX = 5.0, 155  # max-hr sanity: GAP ≤ 5:00 and max HR < 
 HR_DRIFT_ENABLED = True
 DRIFT_MIN_TRUSTED = 8               # too few trusted runs ⇒ don't fit, leave HR raw
 
+# --- Intra-run efficiency decay (within-run m/beat fade) ---------------------
+# Powers Chart A: a per-run series of grade-adjusted distance-per-heartbeat
+# (m/beat) vs distance INTO the run, so a shoe's within-run fade can be seen and
+# shoes compared by how steeply their lines droop. Steady runs only (intervals
+# are sawtooth, not a fade line). The opening WARMUP_TRIM_KM is dropped so the
+# HR-from-rest ramp — which makes early m/beat read spuriously high — doesn't fake
+# a downslope in every run. Grade is handled by the GAP factor, so terrain bumps
+# don't masquerade as fade. Gated on `shoe_chart.intra_run_efficiency.enabled`.
+INTRA_RUN_ENABLED = True
+INTRA_DOWNSAMPLE_POINTS = 30        # target points per run after distance-binning
+INTRA_SMOOTH_WINDOW_S = 90          # trailing window (s) for the rolling m/beat
+INTRA_WARMUP_TRIM_KM = 0.6          # drop this opening distance (HR-from-rest ramp)
+INTRA_MIN_POINTS = 6                # fewer downsampled points ⇒ no series/slope
+
 # --- Interval / workout detection (dynamic, relative to each run) -----------
 # A whole-run avg GAP/HR is meaningless for interval sessions — fast reps + slow
 # recovery jogs + standing time blend into a fastish pace at a low HR, landing in
@@ -148,6 +162,8 @@ def configure(config: dict) -> None:
     global R1_GAP_MAX, R1_HR_MAX, R2_GAP_MAX, R2_HR_MAX, R4_GAP_MAX, R4_MAXHR_MAX
     global REP_DROP_BELOW_BEST, REP_FAST_PACE, REP_FAST_MAXHR, REP_EASY_PACE, REP_EASY_MAXHR
     global HR_DRIFT_ENABLED, DRIFT_MIN_TRUSTED
+    global INTRA_RUN_ENABLED, INTRA_DOWNSAMPLE_POINTS, INTRA_SMOOTH_WINDOW_S
+    global INTRA_WARMUP_TRIM_KM, INTRA_MIN_POINTS
 
     sc = config.get("shoe_chart") or {}
     WINDOW_DAYS = sc.get("window_days", WINDOW_DAYS)
@@ -188,6 +204,13 @@ def configure(config: dict) -> None:
     drift = sc.get("hr_drift") or {}
     HR_DRIFT_ENABLED = bool(drift.get("enabled", HR_CORRECTION_ENABLED))
     DRIFT_MIN_TRUSTED = drift.get("min_trusted", DRIFT_MIN_TRUSTED)
+
+    ire = sc.get("intra_run_efficiency") or {}
+    INTRA_RUN_ENABLED = bool(ire.get("enabled", INTRA_RUN_ENABLED))
+    INTRA_DOWNSAMPLE_POINTS = ire.get("downsample_points", INTRA_DOWNSAMPLE_POINTS)
+    INTRA_SMOOTH_WINDOW_S = ire.get("smooth_window_s", INTRA_SMOOTH_WINDOW_S)
+    INTRA_WARMUP_TRIM_KM = ire.get("warmup_trim_km", INTRA_WARMUP_TRIM_KM)
+    INTRA_MIN_POINTS = ire.get("min_points", INTRA_MIN_POINTS)
 
 
 def run_strava(*args: str) -> dict | list:
@@ -376,6 +399,119 @@ def compute_gap(streams: dict) -> tuple[float | None, float | None]:
 
     avg_gap_min_per_km = (total_time / 60.0) / (ga_distance / 1000.0)
     return avg_pace_min_per_km, avg_gap_min_per_km
+
+
+def _downsample_xy(
+    xs: list[float], ys: list[float], target: int
+) -> tuple[list[float], list[float]]:
+    """Bin (xs, ys) into ~`target` evenly-spaced x-bins; mean x, median y per bin.
+
+    Keeps the per-run series compact and smooth without dropping the shape. xs are
+    assumed sorted ascending (distance into the run). Median y per bin resists the
+    odd GPS/HR spike."""
+    if len(xs) <= target:
+        return list(xs), list(ys)
+    lo, hi = xs[0], xs[-1]
+    if hi <= lo:
+        return list(xs), list(ys)
+    width = (hi - lo) / target
+    bins: dict[int, list[tuple[float, float]]] = {}
+    for x, y in zip(xs, ys):
+        idx = min(target - 1, int((x - lo) / width))
+        bins.setdefault(idx, []).append((x, y))
+    out_x: list[float] = []
+    out_y: list[float] = []
+    for idx in sorted(bins):
+        pts = bins[idx]
+        out_x.append(sum(p[0] for p in pts) / len(pts))
+        out_y.append(_median([p[1] for p in pts]))
+    return out_x, out_y
+
+
+def compute_intra_run_efficiency(
+    streams: dict,
+) -> tuple[list[float], list[float], float] | None:
+    """Within-run efficiency decay: rolling distance-per-heartbeat vs distance.
+
+    Returns (km[], mbeat[], fade_slope) or None when the streams lack the
+    HR/distance/time needed. m/beat at a point = grade-adjusted metres covered per
+    heartbeat over a trailing INTRA_SMOOTH_WINDOW_S window (equivalent to the chart's
+    1000/(GAP×HR), in its natural rolling form). The series is downsampled evenly
+    along distance to ~INTRA_DOWNSAMPLE_POINTS, and fade_slope is a robust Theil–Sen
+    fit of mbeat vs km (m/beat per km; negative = efficiency fades through the run).
+
+    The first INTRA_WARMUP_TRIM_KM is dropped before anything is emitted: HR ramps
+    from rest over the opening minutes, so early m/beat reads spuriously high and
+    would fake a downslope in every run. Grade is handled via strava_factor, so
+    terrain bumps don't masquerade as fade; what remains is drift + fatigue.
+    """
+    time_s = streams.get("time") or []
+    distance = streams.get("distance") or []
+    hr = streams.get("heartrate") or []
+    n = len(time_s)
+    if n < 3 or len(distance) != n or len(hr) != n or distance[-1] <= distance[0]:
+        return None
+
+    altitude = streams.get("altitude")
+    smoothed = (
+        smooth_altitude(altitude, ALT_SMOOTH_WINDOW)
+        if altitude and len(altitude) == n
+        else None
+    )
+
+    # Per-sample cumulative grade-adjusted distance (m) and cumulative beats.
+    ga = [0.0] * n
+    beats = [0.0] * n
+    for i in range(1, n):
+        dx = distance[i] - distance[i - 1]
+        if dx < 0:
+            dx = 0.0
+        if smoothed is not None and dx > 0:
+            grade = (smoothed[i] - smoothed[i - 1]) / dx
+            ga[i] = ga[i - 1] + dx * (strava_factor(grade) / STRAVA_F0)
+        else:
+            ga[i] = ga[i - 1] + dx
+        dt = time_s[i] - time_s[i - 1]
+        if dt < 0:
+            dt = 0.0
+        beats[i] = beats[i - 1] + (hr[i] + hr[i - 1]) / 2.0 / 60.0 * dt
+
+    # Skip the warmup distance, then build a trailing-window rolling m/beat.
+    start_dist = distance[0]
+    warmup_m = INTRA_WARMUP_TRIM_KM * 1000.0
+    i0 = 0
+    while i0 < n and (distance[i0] - start_dist) < warmup_m:
+        i0 += 1
+    if i0 >= n - 1:
+        return None  # whole run inside the warmup trim
+
+    km_series: list[float] = []
+    mbeat_series: list[float] = []
+    j = i0
+    for i in range(i0 + 1, n):
+        while j < i and (time_s[i] - time_s[j]) > INTRA_SMOOTH_WINDOW_S:
+            j += 1
+        d_ga = ga[i] - ga[j]
+        d_beats = beats[i] - beats[j]
+        if d_ga <= 0 or d_beats <= 0:
+            continue
+        km_series.append((distance[i] - start_dist) / 1000.0)
+        mbeat_series.append(d_ga / d_beats)
+
+    if len(km_series) < INTRA_MIN_POINTS:
+        return None
+
+    ds_km, ds_mbeat = _downsample_xy(km_series, mbeat_series, INTRA_DOWNSAMPLE_POINTS)
+    if len(ds_km) < INTRA_MIN_POINTS:
+        return None
+
+    # theil_sen returns (intercept, slope); we want the slope.
+    _, slope = theil_sen(ds_km, ds_mbeat)
+    return (
+        [round(v, 2) for v in ds_km],
+        [round(v, 3) for v in ds_mbeat],
+        round(slope, 4),
+    )
 
 
 def _lap_pace(lap: dict) -> float | None:
@@ -740,6 +876,17 @@ def main() -> None:
                     "interval_hr_reason": dropout,
                 })
 
+        # Within-run efficiency decay series (Chart A) — steady runs only; a
+        # sawtooth interval isn't a fade line. Absent on runs whose streams are
+        # too sparse; render.py just skips runs without it.
+        if INTRA_RUN_ENABLED and not row["is_interval"]:
+            intra = compute_intra_run_efficiency(streams)
+            if intra:
+                km_s, mbeat_s, fade = intra
+                row["intra_km"] = km_s
+                row["intra_mbeat"] = mbeat_s
+                row["intra_fade_slope"] = fade
+
         rows.append(row)
         if i % 5 == 0:
             print(f"      processed {i}/{len(summaries)}", file=sys.stderr)
@@ -819,9 +966,25 @@ def main() -> None:
             "n_trusted": drift[2] if drift else None,
             "clamp_min": [drift[3], drift[4]] if drift else None,
         },
+        "intra_run_efficiency": {
+            "enabled": INTRA_RUN_ENABLED,
+            "n_series": sum(1 for r in rows if r.get("intra_km")),
+            "downsample_points": INTRA_DOWNSAMPLE_POINTS,
+            "smooth_window_s": INTRA_SMOOTH_WINDOW_S,
+            "warmup_trim_km": INTRA_WARMUP_TRIM_KM,
+            "note": "per-run grade-adjusted m/beat vs distance into the run; warmup trimmed; steady runs only",
+        },
         "activities": rows,
     }
     OUTPUT_PATH.write_text(json.dumps(payload, indent=2) + "\n")
+
+    if INTRA_RUN_ENABLED:
+        n_intra = sum(1 for r in rows if r.get("intra_km"))
+        print(
+            f"      intra-run efficiency series built for {n_intra} steady run(s) "
+            f"(~{INTRA_DOWNSAMPLE_POINTS} pts each, warmup {INTRA_WARMUP_TRIM_KM} km trimmed)",
+            file=sys.stderr,
+        )
 
     print(
         f"\nIncluded {len(rows)} runs. Skipped: "

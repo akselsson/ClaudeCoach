@@ -63,6 +63,14 @@
       "enabled": true,
       "min_trusted": 8,
       "_note": "Cardiac-drift HR adjustment for the shoe-speed-vs-effort chart. Longer-DURATION runs read a higher whole-run avg HR for the same pace (HR creeps up with time on feet), so without this they only compare within one distance band. When enabled, build_dataset fits a drift coefficient c (bpm/min) from the same trusted runs that anchor hr_correction — a Theil–Sen of the HR-vs-GAP residual on duration — and stores a duration-normalised avg_hr_adj per run; the chart then offers a 'HR axis: Raw / Drift-adjusted' toggle that composes with the distance dropdown. No coefficient is hardcoded: c and the reference duration are always fitted/derived. Needs at least min_trusted trusted runs to fit, else HR stays raw and the toggle is hidden. Defaults to hr_correction.enabled when omitted."
+    },
+    "intra_run_efficiency": {
+      "enabled": true,
+      "downsample_points": 30,
+      "smooth_window_s": 90,
+      "warmup_trim_km": 0.6,
+      "min_points": 6,
+      "_note": "Powers Chart A (efficiency fade WITHIN a run). build_dataset walks each steady run's streams to a rolling grade-adjusted distance-per-heartbeat (m/beat) series vs distance into the run, downsampled to ~downsample_points and stored as intra_km/intra_mbeat, plus a robust Theil–Sen fade slope (intra_fade_slope, m/beat per km). smooth_window_s is the trailing window for the rolling m/beat; warmup_trim_km drops the opening distance so the HR-from-rest ramp doesn't fake a downslope; a run with fewer than min_points downsampled points gets no series. Intervals are excluded (sawtooth, not a fade line). Set enabled=false to drop the intra series and Chart A."
     }
   },
   "gear": [
