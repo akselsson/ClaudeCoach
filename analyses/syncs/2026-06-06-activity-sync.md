@@ -69,3 +69,13 @@ Load: TRIMP 183 / Edwards 180 / suffer 99 — a real steady long, not a recovery
 ## Forward note (does not change the plan)
 
 Pure post-hoc record — no forward-plan change, no viz regeneration. One flag for the **next review**: the Megablast ultra-doubt suggests the post-Italy specificity longs (the real ultra-specific work) — and possibly the Week-7 Sun Jun 21 long currently prescribed in Megablast — should likely move to the Evo SL Silver. Not changing it here; raising it. Per `schedule/2026-06-05-weeks6-7-travel-adjustments.md`, **Week 6 (Lund travel) opens Mon Jun 8** (off / easy spin), Tuesday group quality Jun 9, travel Wed Jun 10, then three flexible ~18–20 km easy Lund mornings Thu–Sat. Next 14-day review due ~Jun 13.
+
+### Shoe-chart cross-check (Jun 6 `shoe-speed-vs-effort` regen) — the data can't yet settle it
+
+Pulled the per-shoe numbers after regenerating `viz/shoe-speed-vs-effort.html`:
+
+- **The Megablast's free pace is real.** Top of the everyday trainers on drift-adjusted efficiency (~1.34 m/beat, tied with the Boston 13, ahead of every Torin/Hoka). Steady runs at 5:01–5:06/km @ HR ~141 (short) and 5:36 @ HR 139/adj 137 (Jun 6, 21 km). The "great when hips are up" feel shows up in the numbers.
+- **But the chart cannot compare Megablast vs Evo SL Silver** — the size-up Evo SL Silver (`g31397925`, the actual 160 km candidate) has only **2 outdoor runs ever** (May 28 10.9 km steady @ GAP 5:23/HR 139 ≈ 1.38 m/beat, encouraging but n=1; Jun 2 6.7 km interval), **zero long runs**. The big "Adidas Evo SL" cluster on the chart is 14 **treadmill** runs (GAP meaningless on a belt) — not a valid comparison. The race shoe is essentially unvalidated on the road.
+- **The metric is blind to the actual ultra worry.** Efficiency is a median over ≤29 km runs; the form-collapse-aggression and hour-15 toe-box-swell failure modes are late-ultra effects a 10–29 km median can't see. The chart shows the upside, not the downside.
+
+**Action for the next review / coming weeks:** the Evo SL Silver needs **road long-run miles** to (a) appear on the chart so the comparison is possible at all, and (b) run the deferred swollen-foot/fit-check it was bought a size up for. Until then, "Megablast is faster per beat" is true but doesn't address whether it survives 160 km — so it's not yet a basis to keep the Megablast as the race shoe.
