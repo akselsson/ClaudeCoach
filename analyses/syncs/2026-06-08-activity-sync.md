@@ -23,6 +23,12 @@ Plan for Mon Jun 8 (`schedule/2026-06-07-weekly-review.md`, Week 6 Lund travel):
 
 Treated exactly as the May 20 commute rides were: **light cross-training that doubles as the prescribed easy spin.** It keeps aerobic volume ticking on a travel day without touching the running schedule.
 
+## RHR — 43 this morning (Garmin), new consolidated low
+
+The Jun 6 watch list and the Jun 7 review both flagged a fresh RHR reading as the clean check on whether the Block-1 B2B landed harder than "felt fine." It's now in: **43 overnight (Garmin)**, below the 44 the Jun 7 review cited and the May-7 baseline of 46. The arc across the block: **49 (late Apr) → 46 (May 7) → 44 (Jun 7) → 43 (Jun 8).** Two consecutive low-40s readings = Block 1's load was fully absorbed and aerobic fitness has consolidated, not a body still digesting the 31.6 + 21.3 km B2B. Green light into the Lund travel week.
+
+Acting on this, `config/training.json` `resting_hr` is updated **48 → 44** (committed separately) — the 48 predated even the May-7 reading and was stale. Set to 44 as a stable baseline for the consolidated low-40s range rather than chasing the single lowest night (43).
+
 ## Forward note (does not change the plan)
 
 Pure post-hoc record — no forward-plan change, no viz regeneration. The Week 6 plan stands unchanged: travel Stockholm→Lund this week, **Tue Jun 9 group quality** is the week's one running session before the move, then the three flexible easy Lund mornings (Jun 11–13) on the **Evo SL Silver** (the deferred sustained fit-check). Nothing about today disturbs that.
