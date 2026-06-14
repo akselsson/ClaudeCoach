@@ -212,6 +212,7 @@ def summary_dict(activity) -> dict:
         "max_heartrate": activity.max_heartrate,
         "suffer_score": getattr(activity, "suffer_score", None),
         "total_elevation_gain_m": to_meters(activity.total_elevation_gain),
+        "trainer": bool(getattr(activity, "trainer", False)),
     }
 
 

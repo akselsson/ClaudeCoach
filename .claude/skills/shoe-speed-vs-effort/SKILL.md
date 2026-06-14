@@ -276,8 +276,13 @@ treat the ⚠ series as "probably bad data", not evidence about a shoe.
   compose (the selector sets visibility, the toggle swaps y) because they touch different
   attributes. **Raw** includes the universal cardiac drift (longer runs read lower m/beat for
   everyone); switch to **drift-adjusted** to strip that out so any remaining downslope is
-  shoe-specific. GAP assumes outdoor grade — treadmill-heavy models (one `model_label` can merge
-  treadmill + outdoor pairs) read with caution. **Click any point** to open it in Strava.
+  shoe-specific. **Click any point** to open it in Strava.
+
+> **Treadmill runs are excluded from the whole dataset.** A treadmill never records its
+> incline, so GAP silently collapses to raw pace (an 8–10% hill session reads as flat,
+> misplacing whatever shoe was worn). The build drops every activity Strava marks
+> `trainer=true` — see the `treadmill` skip reason in Edge cases — so no chart on the page
+> contains treadmill points.
 
 When summarising Charts A/B for the user: the fade slopes are differential signals across shoes,
 heavily caveated by sample size and the distance range each shoe was actually run over.
@@ -306,5 +311,10 @@ heavily caveated by sample size and the distance range each shoe was actually ru
   the gear-tracking convention in CLAUDE.md still applies to sync files).
 - **Runs with no HR or no streams.** Skipped (counted in the build's `skipped` tally) — they
   can't be placed on the HR axis.
+- **Treadmill / indoor runs.** Dropped via Strava's `trainer` flag (surfaced by the strava CLI
+  in each run summary) and counted under the `treadmill` skip reason. Their incline is never in
+  the data, so GAP can't be trusted — see the note under Chart B. `sport_type` stays `"Run"` on
+  a treadmill and elevation-gain heuristics misfire on flat outdoor runs and looped ultras, so
+  `trainer` is the only reliable discriminator.
 - **Very few runs (< 5 usable).** The HR-vs-GAP trend can't be fit, so dropout detection flags
   nothing and the build says so. The chart still renders from whatever runs exist.

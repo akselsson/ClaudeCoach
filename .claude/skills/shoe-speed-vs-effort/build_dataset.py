@@ -816,10 +816,17 @@ def main() -> None:
 
     print("[2/3] Fetching details + streams (cache-first)...", file=sys.stderr)
     rows: list[dict] = []
-    skipped: dict[str, int] = {"no_hr": 0, "too_short": 0, "no_streams": 0}
+    skipped: dict[str, int] = {"no_hr": 0, "too_short": 0, "no_streams": 0, "treadmill": 0}
 
     for i, s in enumerate(summaries, 1):
         aid = s["id"]
+        # Treadmill/indoor runs never record their incline, so GAP silently
+        # collapses to raw pace (a hill session reads as flat) — drop them
+        # rather than place them at a distorted GAP. Strava's `trainer` flag is
+        # the canonical signal; it's set reliably by the user's watch.
+        if s.get("trainer"):
+            skipped["treadmill"] += 1
+            continue
         if s.get("average_heartrate") is None:
             skipped["no_hr"] += 1
             continue
@@ -989,7 +996,7 @@ def main() -> None:
     print(
         f"\nIncluded {len(rows)} runs. Skipped: "
         f"no_hr={skipped['no_hr']}, too_short={skipped['too_short']}, "
-        f"no_streams={skipped['no_streams']}.",
+        f"no_streams={skipped['no_streams']}, treadmill={skipped['treadmill']}.",
         file=sys.stderr,
     )
     if HR_CORRECTION_ENABLED:
