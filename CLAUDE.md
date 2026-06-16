@@ -57,7 +57,7 @@ If a preference is being **updated in place** (not adding a new dated entry), ed
 Every new file in `analyses/syncs/` records which shoe (or bike) was used, so that gear-related patterns (a shoe delivering free pace, a niggle correlating with one model, the rotation drifting) are visible across the history without re-deriving them.
 
 Workflow when writing a sync:
-1. `strava activity <id>` already returns `gear_id` (e.g. `g31149428`). Read it.
+1. Read `gear_id` from **`strava activity <id>`** (e.g. `g31149428`). **The list endpoints (`recent`, including `recent --with-description`) return `gear_id: null` even when a shoe is set** — only the per-activity detail call populates it. So never read gear off a `recent` dump; always confirm with `activity <id>` before writing `Gear: unspecified`. (A null from `activity <id>` is the genuine "no gear set" case.)
 2. Look the id up in `config/training.json`'s `gear` array.
    - **Found** → put a one-line `Gear:` field in the sync header alongside the existing distance/HR/etc. line. Format: `Gear: <name>` (or `<name> (<nickname>)` when a nickname is set). Example: `Gear: Adidas Evo SL Silver (Evo SL)`.
    - **Not found** (new shoes since the last seed) → run `strava gear <id>` to fetch the friendly name, append a new entry to the `gear` array in `config/training.json` (`{id, type, name, nickname: null, retired: false, notes: ""}`), and commit that config change **separately from the sync file**. The sync still gets the `Gear:` line populated from the just-added entry.
