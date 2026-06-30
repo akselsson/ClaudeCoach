@@ -3,16 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plan history · 2026 Season</title>
+<title>Plan history · Berlin Build 2026</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-dark: #0a0d0e;
     --bg-light: #f5f0e6;
-    --paper: #efe8d9;
     --ink-dark: #e8e6e0;
     --ink-dark-dim: #9aa5a5;
     --ink-dark-faint: #5d6868;
@@ -24,264 +23,214 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body {
-    font-family: "Sora", system-ui, sans-serif;
-    color: var(--ink-light);
-    background: var(--bg-light);
-    -webkit-font-smoothing: antialiased;
-  }
+  body { font-family: "Sora", system-ui, sans-serif; background: var(--bg-light); color: var(--ink-light); -webkit-font-smoothing: antialiased; }
 
-  /* ── HEADER ── */
+  /* ── HEADER STRIP ── */
   .idx-header {
     background: var(--bg-dark);
     color: var(--ink-dark);
-    padding: 40px 48px 44px;
+    padding: 40px 48px 48px;
+    position: relative;
+    background-image: repeating-linear-gradient(to right, rgba(255,255,255,0.04) 0 1px, transparent 1px 80px);
   }
-  .idx-header .top {
+  .idx-header .topline {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    gap: 24px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 28px;
   }
   .idx-header h1 {
     font-family: "Archivo Black", sans-serif;
-    font-size: clamp(32px, 4vw, 52px);
+    font-size: clamp(36px, 5vw, 60px);
     text-transform: uppercase;
     letter-spacing: -0.01em;
-    margin: 0;
-    line-height: 1;
-  }
-  .idx-header .hdate {
-    font-family: "JetBrains Mono", monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-dark-dim);
-    white-space: nowrap;
+    line-height: 0.95;
+    margin: 0 0 14px;
+    color: var(--ink-dark);
   }
   .idx-header .subtitle {
     font-family: "JetBrains Mono", monospace;
-    font-size: 11px;
-    letter-spacing: 0.14em;
+    font-size: 12px;
     color: var(--ink-dark-dim);
-    margin-top: 10px;
+    letter-spacing: 0.06em;
+    margin-top: 12px;
   }
-  .idx-header .caption-rule {
+  .idx-header .rule-caption {
     margin-top: 28px;
-    border: none;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding-top: 14px;
     font-family: "JetBrains Mono", monospace;
     font-size: 9px;
     letter-spacing: 0.32em;
     text-transform: uppercase;
     color: var(--ink-dark-faint);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 12px;
   }
 
   /* ── LIST ── */
   .idx-list {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 0 48px;
+    padding: 0 48px 80px;
   }
   .idx-row {
     display: grid;
-    grid-template-columns: 160px 1fr auto;
+    grid-template-columns: 140px 1fr auto;
     gap: 32px;
     align-items: start;
     padding: 28px 0;
     border-bottom: 1px solid var(--rule-light);
   }
   .idx-row:last-child { border-bottom: none; }
+  .idx-current { padding-top: 36px; }
   .idx-date {
     font-family: "Fraunces", serif;
     font-style: italic;
     font-variation-settings: "opsz" 72;
     font-size: 22px;
-    color: var(--ink-light);
+    color: var(--oxblood);
     line-height: 1.2;
-    padding-top: 2px;
+    padding-top: 4px;
   }
-  .idx-meta { min-width: 0; }
   .idx-type {
+    display: inline-block;
     font-family: "Sora", sans-serif;
     font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--ink-light-dim);
-    margin-bottom: 5px;
+    background: rgba(0,0,0,0.05);
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-bottom: 6px;
   }
-  .idx-type.current { color: var(--amber); }
+  .idx-current .idx-type {
+    background: var(--amber);
+    color: #0a0d0e;
+  }
   .idx-summary {
-    font-family: "Sora", sans-serif;
-    font-size: 14px;
+    font-size: 14.5px;
     line-height: 1.55;
-    color: var(--ink-light);
+    color: var(--ink-light-dim);
+    margin: 4px 0 0;
   }
   .idx-link {
+    padding-top: 4px;
+    white-space: nowrap;
+  }
+  .idx-link a {
     font-family: "JetBrains Mono", monospace;
     font-size: 11px;
     color: var(--ink-light-dim);
     text-decoration: none;
-    white-space: nowrap;
     letter-spacing: 0.06em;
-    padding-top: 4px;
   }
-  .idx-link:hover { color: var(--amber); }
+  .idx-link a:hover { color: var(--amber); }
 
   /* ── FOOTER ── */
   .idx-footer {
     background: var(--bg-dark);
     color: var(--ink-dark-dim);
-    padding: 36px 48px;
+    padding: 32px 48px;
     font-family: "JetBrains Mono", monospace;
     font-size: 11px;
     line-height: 1.7;
-    margin-top: 48px;
+    max-width: none;
   }
-  .idx-footer h5 {
-    font-size: 10px;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--ink-dark-faint);
-    margin: 0 0 10px;
-    font-weight: 500;
-  }
+  .idx-footer ul { padding-left: 18px; margin: 6px 0 0; }
   .idx-footer code { color: var(--amber); font-size: 11px; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 920px) {
     .idx-header { padding: 28px 22px 32px; }
-    .idx-header .top { flex-direction: column; gap: 8px; }
-    .idx-list { padding: 0 22px; }
-    .idx-row { grid-template-columns: 1fr; gap: 6px; }
-    .idx-footer { padding: 28px 22px; }
+    .idx-list { padding: 0 22px 48px; }
+    .idx-row { grid-template-columns: 1fr; gap: 6px; padding: 20px 0; }
+    .idx-footer { padding: 24px 22px; }
   }
 </style>
 </head>
 <body>
 
 <header class="idx-header">
-  <div class="top">
-    <h1>Plan history</h1>
-    <span class="hdate">2026·06·21</span>
+  <div class="topline">
+    <span>Berlin Build · 2026 Season Dashboard</span>
+    <span>2026-06-30</span>
   </div>
+  <h1>Plan history</h1>
   <div class="subtitle">Versioned snapshots of viz/plan.html — newest first.</div>
-  <div class="caption-rule">—— Berlin Mauerweglauf build · 2026 season ——</div>
+  <div class="rule-caption">Each snapshot captures the plan as it stood when the triggering analysis was written.</div>
 </header>
 
 <section class="idx-list">
-
-  <!-- Current -->
-  <div class="idx-row">
-    <div class="idx-date">Jun 21<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type current">Current</div>
-      <div class="idx-summary">Italy gear update: Lone Peak 9+ primary (trail/hike), Megablast backup (road/recovery); Evo SL Silver stays home after confirmed mild shin signal at 32 km on Jun 21 long. Training structure unchanged — two-week Italy deload (Jun 22 – Jul 6) already prescribed. Specificity (50+35, 60+30, 70+40) resumes after Jul 6 return.</div>
+    <div class="idx-row idx-current">
+      <div class="idx-date">2026-06-30</div>
+      <div class="idx-middle"><span class="idx-type">CURRENT</span><p class="idx-summary">Italy deload week 1 (Jun 22–30) executed exactly as intended — running volume halved (36 km vs 75 km prior week) for a real cardiovascular deload, but ~1,880 m of climb/descent across 6 easy runs + 2 big-vert hikes me…</p></div>
+      <div class="idx-link"><a href="plan.html">plan.html →</a></div>
     </div>
-    <a class="idx-link" href="plan.html">plan.html →</a>
-  </div>
-
-  <!-- plan-2026-06-21-italy-gear-update -->
-  <div class="idx-row">
-    <div class="idx-date">Jun 21<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Schedule Note</div>
-      <div class="idx-summary">Italy gear update: Lone Peak 9+ primary (trail/hike), Megablast backup (road/recovery); Evo SL Silver stays home after confirmed mild shin signal at 32 km on Jun 21 long. Training structure unchanged — two-week Italy deload (Jun 22 – Jul 6) already prescribed. Specificity (50+35, 60+30, 70+40) resumes after Jul 6 return.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-06-30</div>
+      <div class="idx-middle"><span class="idx-type">WEEKLY REVIEW</span><p class="idx-summary">Italy deload week 1 (Jun 22–30) executed exactly as intended — running volume halved (36 km vs 75 km prior week) for a real cardiovascular deload, but ~1,880 m of climb/descent across 6 easy runs + 2 big-vert hikes me…</p></div>
+      <div class="idx-link"><a href="plan-2026-06-30-weekly-review.html">plan-2026-06-30-weekly-review.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-06-21-italy-gear-update.html">plan-2026-06-21-italy-gear-update.html →</a>
-  </div>
-
-  <!-- plan-2026-06-14-weekly-review -->
-  <div class="idx-row">
-    <div class="idx-date">Jun 14<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Weekly Review</div>
-      <div class="idx-summary">Week 6 (Lund travel) executed clean — the 3×-deferred Evo SL Silver fit-check finally happened across all three Lund mornings; shoe passed. Tue VO₂ (Endorphin Speed) accepted. Midfoot soreness resolved. New watch: shin loading on the Evo SL. Sessions for Jun 15–28 unchanged from Jun 5–7 plan.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-06-21</div>
+      <div class="idx-middle"><span class="idx-type">SCHEDULE NOTE</span><p class="idx-summary">Confirms the Italy deload is the full two weeks Jun 22 → home Jul 6 (no training-structure change — the Jun 5 Italy deload note already prescribed the whole window; the Jun 14 review's table just stopped at its 14-day…</p></div>
+      <div class="idx-link"><a href="plan-2026-06-21-italy-gear-update.html">plan-2026-06-21-italy-gear-update.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-06-14-weekly-review.html">plan-2026-06-14-weekly-review.html →</a>
-  </div>
-
-  <!-- plan-2026-06-07-weekly-review -->
-  <div class="idx-row">
-    <div class="idx-date">Jun 7<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Weekly Review</div>
-      <div class="idx-summary">Block 1 closed clean — first real quality (4×4 VO₂), biggest B2B (31.6 + 21.3 km, ~53 km, drift inside fitness), RHR 44 below May baseline. Gear pivot: Megablast ultra-suitability doubt confirmed; Evo SL Silver promoted to primary long-run shoe. Next 14 days Jun 8–21.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-06-14</div>
+      <div class="idx-middle"><span class="idx-type">WEEKLY REVIEW</span><p class="idx-summary">Week 6 (Lund travel) executed clean — the 3×-deferred Evo SL Silver fit-check finally happened across all three Lund mornings (21 + 8 + 25 km, all on the Evo SL Silver), including a 24.9 km solo Z2 long on day-3 legs,…</p></div>
+      <div class="idx-link"><a href="plan-2026-06-14-weekly-review.html">plan-2026-06-14-weekly-review.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-06-07-weekly-review.html">plan-2026-06-07-weekly-review.html →</a>
-  </div>
-
-  <!-- plan-2026-06-05-weeks6-7-travel-adjustments -->
-  <div class="idx-row">
-    <div class="idx-date">Jun 5<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Schedule Note</div>
-      <div class="idx-summary">Reshapes Weeks 6 &amp; 7 (Jun 8–21) around Lund travel + Midsummer/birthday — gentle taper-of-structure into Italy, not three problems. Drops the 34 km Week 6 long; replaces with three flexible easy Lund mornings. Week 7 long moves to Sunday Jun 21.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-06-07</div>
+      <div class="idx-middle"><span class="idx-type">WEEKLY REVIEW</span><p class="idx-summary">Block 1 closed clean — the build's first real quality (Jun 2 4×4, ran VO2 deliberately and well-tolerated) and the biggest-long-of-the-build B2B (31.6 km Jun 5 + 21.3 km Jun 6, ~53 km, drift inside fitness, legs fine)…</p></div>
+      <div class="idx-link"><a href="plan-2026-06-07-weekly-review.html">plan-2026-06-07-weekly-review.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-06-05-weeks6-7-travel-adjustments.html">plan-2026-06-05-weeks6-7-travel-adjustments.html →</a>
-  </div>
-
-  <!-- plan-2026-06-05-megablast-toe-test -->
-  <div class="idx-row">
-    <div class="idx-date">Jun 5<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Schedule Note</div>
-      <div class="idx-summary">Tactical shoe swap for the Week-5 daughter long run (~21 km Z1) — run it in the Megablast as a deliberate low-stakes toe-box test. Rationale: on day-2 feet, a 21 km run plausibly reaches the same swell state a 29 km fresh run did. No change to distances or intensity.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-06-05</div>
+      <div class="idx-middle"><span class="idx-type">SCHEDULE NOTE</span><p class="idx-summary">Reshapes Weeks 6 & 7 (Jun 8–21) around two back-to-back disrupted weeks — Lund travel + social (Jun 8–14) and Midsummer + mother's birthday (Jun 15–21) — running straight into the Italy unstructured deload (~late June…</p></div>
+      <div class="idx-link"><a href="plan-2026-06-05-weeks6-7-travel-adjustments.html">plan-2026-06-05-weeks6-7-travel-adjustments.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-06-05-megablast-toe-test.html">plan-2026-06-05-megablast-toe-test.html →</a>
-  </div>
-
-  <!-- plan-2026-06-05-italy-deload-window -->
-  <div class="idx-row">
-    <div class="idx-date">Jun 5<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Schedule Note</div>
-      <div class="idx-summary">Firms up the Italy window (Jun 22 – Jul 6): Lake Como (Jun 22–26, family hike Jun 24), Cinque Terre / Lavagna (Jun 26 – Jul 3), Viareggio (Jul 3–5), return MXP Jul 6. Unstructured maintenance — no sessions, no quality obligation, family first. Specificity resumes after return.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-06-05</div>
+      <div class="idx-middle"><span class="idx-type">SCHEDULE NOTE</span><p class="idx-summary">Tactical shoe swap for the Week-5 weekend daughter long run (~21 km Z1, prescribed Torin in the May-30 review) — run it in the ASICS Megablast instead, as a deliberate low-stakes toe-box test. Rationale: the lingering…</p></div>
+      <div class="idx-link"><a href="plan-2026-06-05-megablast-toe-test.html">plan-2026-06-05-megablast-toe-test.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-06-05-italy-deload-window.html">plan-2026-06-05-italy-deload-window.html →</a>
-  </div>
-
-  <!-- plan-2026-05-30-weekly-review -->
-  <div class="idx-row">
-    <div class="idx-date">May 30<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Weekly Review</div>
-      <div class="idx-summary">Rebuild complete — both long runs (24 km May 22, 29 km May 29) landed as clean Z2 with negative-split signatures, first B2B since Tuscany done. No genuine quality session yet (May 26 group conflict). Next 14 days introduce quality (Jun 2) + biggest longs of the build (32 then ~34 km). Megablast pinky-toe at 29 km sharpens the Evo SL fit-check into an explicit toe-box A/B.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-06-05</div>
+      <div class="idx-middle"><span class="idx-type">SCHEDULE NOTE</span><p class="idx-summary">Firms up the Italy window (Jun 22 – Jul 6) now that dates and locations are set. This is the planned unstructured maintenance/deload block the season plan and the Weeks 6–7 travel note both pointed at — no prescribed …</p></div>
+      <div class="idx-link"><a href="plan-2026-06-05-italy-deload-window.html">plan-2026-06-05-italy-deload-window.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-05-30-weekly-review.html">plan-2026-05-30-weekly-review.html →</a>
-  </div>
-
-  <!-- plan-2026-05-26-shoe-rotation -->
-  <div class="idx-row">
-    <div class="idx-date">May 26<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Schedule Update</div>
-      <div class="idx-summary">Shoe rotation by run intent: Altra Torin for easy/recovery, Megablast for Tuesday quality and Z2 longs, Adidas Evo SL (sized up) for Block 2 specificity longs from Jun 8. Race shoe for Berlin decided after 60–70 km specificity runs mid-Jul. No change to distances, HR zones, or day-of-week prescriptions.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-05-30</div>
+      <div class="idx-middle"><span class="idx-type">WEEKLY REVIEW</span><p class="idx-summary">Rebuild is complete — both long runs (24 km May 22, 29 km May 29) landed as clean Z2 with negative-split / fast-finish signatures, the first B2B since Tuscany is done, calves/Achilles clear, energy normal. The one gap…</p></div>
+      <div class="idx-link"><a href="plan-2026-05-30-weekly-review.html">plan-2026-05-30-weekly-review.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-05-26-shoe-rotation.html">plan-2026-05-26-shoe-rotation.html →</a>
-  </div>
-
-  <!-- plan-2026-05-15-schedule-clarifications -->
-  <div class="idx-row">
-    <div class="idx-date">May 15<br>2026</div>
-    <div class="idx-meta">
-      <div class="idx-type">Schedule Update</div>
-      <div class="idx-summary">Three standing-schedule clarifications: Thu May 14 was a no-run, Tuesday is the group session (format by Kundo, paces by training state), Friday long is Z2 (HR 140–150) while the weekend daughter 21k is Z1 (HR &lt;140). Block 1 Weeks 3–5 re-prescribed.</div>
+    <div class="idx-row">
+      <div class="idx-date">2026-05-26</div>
+      <div class="idx-middle"><span class="idx-type">SCHEDULE-UPDATE</span><p class="idx-summary">Shoe rotation by run intent, prompted by the May 26 sync's observation that solo runs in the new Asics Megablast reliably drift from easy (<140) to steady (140–150). The rotation aligns shoe choice to prescription: Al…</p></div>
+      <div class="idx-link"><a href="plan-2026-05-26-shoe-rotation.html">plan-2026-05-26-shoe-rotation.html →</a></div>
     </div>
-    <a class="idx-link" href="plan-2026-05-15-schedule-clarifications.html">plan-2026-05-15-schedule-clarifications.html →</a>
-  </div>
-
+    <div class="idx-row">
+      <div class="idx-date">2026-05-15</div>
+      <div class="idx-middle"><span class="idx-type">SCHEDULE-UPDATE</span><p class="idx-summary">Three standing-schedule clarifications from Patrik — Thu May 14 was a no-run (correcting the May 12 sync's assumption), Tuesday is the group session with format set by Kundo and paces set by Patrik's training state, a…</p></div>
+      <div class="idx-link"><a href="plan-2026-05-15-schedule-clarifications.html">plan-2026-05-15-schedule-clarifications.html →</a></div>
+    </div>
 </section>
 
 <footer class="idx-footer">
-  <h5>About this archive</h5>
-  <ul style="padding-left:18px; margin:0;">
-    <li>Each snapshot is a byte-identical copy of <code>viz/plan.html</code> at the moment of its triggering analysis commit.</li>
+  <ul>
     <li>Archive maintained by <code>.claude/skills/update-plan-visualization/SKILL.md</code>.</li>
-    <li>Old snapshots are immutable — they show the page exactly as it appeared when the plan was current.</li>
-    <li>Source repository: <code>akselsson/claudecoach</code>.</li>
+    <li>Snapshots are immutable — only <code>plan.html</code> (the "Current" row) is updated on each regeneration.</li>
+    <li>Generated 2026-06-30.</li>
   </ul>
 </footer>
 
