@@ -39,6 +39,8 @@ Most volume at HR <145 (easy/conversational), with the Tue work-group session an
 
 ## Tuesday work-group session
 
+> **⚠️ Kundo on summer break Jul 6 – Berlin (Aug 15), confirmed 2026-07-06.** For the entire remaining Berlin build there is **no group session** — every Tuesday is self-directed. Don't plan around Kundo until after Berlin. In the specificity phase this is low-cost: the real quality is the weekend long/B2B volume, not group VO2, so Tuesdays become a single controlled self-directed session (light threshold or hill economy work), kept easy in re-entry weeks and never forced solo-hard the day before a big weekend. The rest of this section describes the normal (in-season) Kundo pattern and resumes automatically after Berlin.
+
 **The group decides the format. Patrik decides the paces.** Kundo runs whatever Kundo runs — Patrik joins it and tunes the effort to where he is in the training cycle. The plan does not try to replace the group session with a different prescription.
 
 The group run is always **8–10 km**, never more. Plan accordingly — Tuesday is not a distance day.
