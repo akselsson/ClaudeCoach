@@ -26,6 +26,14 @@ Patrik runs 5 days/week by default; can push to 6 in peak weeks with a recovery 
 
 **Stress-day spacing:** Tue and Fri are the two stress anchors. Wed off is the natural buffer between them. The weekend has one committed easy slot (the daughter run, see below) and one flex slot — the flex slot stays easy or off unless the block explicitly calls for a B2B continuation, in which case it stacks onto the Friday long.
 
+**Flexible B2B placement (work-leave / vacation window, Jun 18 – Aug 18).** During the work-leave window the Mon/Wed morning embargo is lifted (see "Calendar disruptions"), so a back-to-back does **not** have to be Fri long + Sat continuation. It can land on **any two consecutive days** that fit the social vacation calendar — Wed/Thu, Thu/Fri, Sat/Sun, whatever keeps the training out of the way of the week's social plans. When a weekend piles up with social commitments, move the B2B earlier in the week rather than compressing or skipping it. Guardrails that survive the shuffle:
+
+- **Tuesday stays the quality + heavy-strength anchor.** Don't place a B2B leg on Mon or Wed if it would butt against Tuesday (i.e. avoid a Tue-adjacent B2B that leaves no easy/off buffer on either side of the quality day). Leave Tuesday a clear day on each side.
+- **The daughter's run is also flexible in this window.** During vacation it is no longer pinned to Sat/Sun — it can move to whatever day fits the social calendar, and it's a natural B2B partner wherever it lands (Patrik's long day + daughter's Z1 day, any two consecutive days). No weekend day is a hard anchor during the vacation weeks; place the whole B2B around the social plans.
+- **Total load and the ~48h stress spacing are unchanged** — this only moves *which* two consecutive days the B2B occupies, not how hard or how long it is.
+
+Outside the work-leave window this reverts automatically to the default (Fri long + Sat continuation). This is a placement flex for the vacation weeks, not a permanent schedule change.
+
 **Race-week and recovery-week exception:** in race weeks and immediate post-race weeks, Tuesday drops to easy and the long run shrinks or moves to accommodate the race day. The block plan controls; this file just pins the defaults.
 
 ## Training style: polarized
@@ -64,7 +72,7 @@ If Patrik chases the reps when the plan called for recovery, note it in Strava a
 
 ## Weekend running partner — daughter
 
-Patrik's daughter does her weekend long run with him, on either Saturday or Sunday (her choice that week). She just finished a half marathon and is building toward Lidingöloppet (30 km), with her current long run sitting around 21 km. Her pace is 6:00–6:30 /km — comfortably easy for Patrik, conversational the whole way.
+Patrik's daughter does her long run with him. In normal weeks it's a weekend run, on either Saturday or Sunday (her choice that week). **During the work-leave / vacation window (Jun 18 – Aug 18) her run is flexible too** — it can move off the weekend to whatever day fits the social calendar, so it stops being a fixed weekend anchor and instead floats as a B2B partner wherever the pair lands (see "Flexible B2B placement"). She just finished a half marathon and is building toward Lidingöloppet (30 km), with her current long run sitting around 21 km. Her pace is 6:00–6:30 /km — comfortably easy for Patrik, conversational the whole way.
 
 **Tag the daughter run as Z1 (HR <140) in block plans, not Z2.** It is aerobic volume, not stress. Daughter's pace lands the run in Z1 naturally; the explicit tag just removes any ambiguity that it might count as the week's long-run stimulus (it doesn't — Friday is the Z2 long run).
 
