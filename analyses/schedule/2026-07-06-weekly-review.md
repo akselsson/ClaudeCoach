@@ -44,37 +44,39 @@ Two weeks: the **re-entry week** (confirmed as drafted in the Jun 30 review — 
 
 ### Week of Jul 7 — Re-entry: specificity restarts (Jul 7 – 13)
 
+> **Update (Jul 8):** the re-entry B2B was **front-loaded** — the long (34 km, Evo SL) ran **Wed Jul 8** and the ~21 km daughter leg moves to **Thu Jul 9**, instead of the Sat/Sun slots. The Tuesday self-directed quality was traded for the long (right call in the specificity phase — weekend-shaped volume matters more here than a solo threshold session). **Shins came back clean on the Evo SL long — the key read of the window, now green** (see `syncs/2026-07-08-activity-sync.md`). Back half of the week is now easy recovery volume. Weekday labels below corrected to the real calendar (the original draft's labels were off by one).
+
 | Day | Session |
 |---|---|
-| **Mon Jul 7** | **Rest** (home after midnight). Optional very easy 6–8 km evening shakeout only if legs are restless. Megablast/Torin. |
-| **Tue Jul 8** | **Self-directed quality — NO Kundo (summer break).** First intensity in ~3 weeks, ease it in: 8–10 km with a light fartlek or ~4–5 × 3 min at moderate/tempo (HR up toward 155–160, **not** red), or just easy + strides if the legs read flat. Megablast. **Heavy strength after** resumes. Do not go hard — the intent is to wake the system up, not test it. |
-| **Wed Jul 9** | **Off**, or easy recovery jog / spin. |
-| **Thu Jul 10** | **Medium-long easy ~15–18 km, Z2 (HR 140–150)** + maintenance strength. Volume buffer ahead of Friday. Torin/Megablast. Drop the strength if the run left the legs heavy — Friday's long is the priority. |
-| **Fri Jul 11** | **Re-entry long — ~30–34 km, Z2 (HR 140–150). Evo SL Silver.** First structured long in ~3 weeks and **first Evo SL long-load since the mild Jun 21 shin signal — this is the key read.** Re-establishes the long at the Jun 21 level (32 km), NOT a step up. Early before the heat; drop to easy/medium if hot or the legs read flat. **Shin watch:** shins are quiet now — if the sensation returns or crosses toward pain under 30+ km on the Evo SL, back the Evo SL off longs immediately and reopen the race-shoe question (runway to Aug 15 still allows a Tecton X3 pivot). |
-| **Sat Jul 12** | **Daughter run ~21 km, Z1 (HR <140)**, conversational — she's back from the Italy gap. Soft B2B partner to Friday (~34 + 21 ≈ 55 km weekend), aerobic volume, not a second structured long. Lone Peak/Torin. |
-| **Sun Jul 13** | **Easy recovery 8–10 km, or off** — read it off the B2B legs. |
+| **Tue Jul 7** | **Rest** (home after midnight travel). |
+| **Wed Jul 8** | **Re-entry long — 34.1 km, Evo SL Silver. ✅ Done.** Steady aerobic, avg HR 137 (just below the Z2 floor), mild negative split, **shins clean.** First Evo SL big-load since the Jun 21 shin signal — resolved **green.** See sync. |
+| **Thu Jul 9** | **Daughter run ~21 km, Z1 (HR <140)**, conversational — B2B leg 2 (~34 + 21 ≈ 55 km B2B). Aerobic volume, not a second structured long. Lone Peak/Torin. |
+| **Fri Jul 10** | **Recovery — off, or easy 8–10 km, HR <140.** Absorb the B2B; cushioned trainer, **not** the Evo SL. |
+| **Sat Jul 11** | **Easy 10–12 km, Z1–Z2**, or off if Friday read heavy. Cushioned trainer. |
+| **Sun Jul 12** | **Easy medium 12–15 km** to top the week toward ~75–80 km, conversational. Cushioned trainer. |
+| **Mon Jul 13** | **Off / full recovery.** |
 
 **Week target:** ~75–85 km running (re-entry).
 
 ### Week of Jul 14 — First true big B2B weekend (Jul 14 – 20)
 
-The first real specificity B2B. The week is deliberately shaped to arrive **fresh** at Friday — a modest Tuesday, a short Thursday shakeout (not a volume day), then the big weekend.
+The first real specificity B2B. The week is deliberately shaped to arrive **fresh** at the weekend — a modest midweek quality, a short shakeout the day before, then the big B2B.
 
 | Day | Session |
 |---|---|
-| **Mon Jul 14** | **Off**, or easy recovery jog. |
-| **Tue Jul 15** | **Self-directed quality (no Kundo) — controlled**, since the big weekend follows. 8–10 km at moderate/threshold or short hill reps, keep something in the tank. Megablast. Heavy strength after. |
-| **Wed Jul 16** | **Off**, or easy recovery. |
-| **Thu Jul 17** | **Easy shakeout ~8–10 km — deliberately short, keep the legs fresh for Friday.** This is not a volume day. Maintenance strength light or skipped. Megablast/Torin. |
-| **Fri Jul 18** | **First true big long — ~50 km, Z2 (HR 140–150). Evo SL Silver.** The season plan's first specificity B2B, leg 1. Early start; **race nutrition + fueling rehearsal** (Berlin race food, gel/fluid cadence); walk the few hills as race practice. Shin watch continues on the Evo SL — this is the longest Evo SL load yet. **Adaptive downgrade: if Fri Jul 11's re-entry long read heavy/trashed, or the shins spoke, drop this to ~42–45 km — do NOT force 50 km off a two-week deload.** |
-| **Sat Jul 19** | **B2B continuation ~35 km, Z1–Z2. Cushioned trainers (Torin/Lone Peak), NOT the Evo SL** — sparing the shins on back-to-back long-load; the second leg doesn't need to be the race shoe. Daughter joins the first ~21 km at Z1, Patrik continues solo to ~35. 50 + 35 = 85 km weekend. Fuel again — B2B nutrition practice. |
-| **Sun Jul 20** | **Full recovery — off, or very easy 6–8 km.** Big B2B just banked; let it absorb. |
+| **Tue Jul 14** | **Off**, or easy recovery jog. |
+| **Wed Jul 15** | **Self-directed quality (no Kundo) — controlled**, since the big weekend follows. 8–10 km at moderate/threshold or short hill reps, keep something in the tank. Megablast. Heavy strength after. |
+| **Thu Jul 16** | **Off**, or easy recovery. |
+| **Fri Jul 17** | **Easy shakeout ~8–10 km — deliberately short, keep the legs fresh for Saturday's long.** This is not a volume day. Maintenance strength light or skipped. Megablast/Torin. |
+| **Sat Jul 18** | **First true big long — ~50 km, Z2 (HR 140–150). Evo SL Silver.** The season plan's first specificity B2B, leg 1. Early start; **race nutrition + fueling rehearsal** (Berlin race food, gel/fluid cadence); walk the few hills as race practice. Shin watch continues — this is the longest Evo SL load yet, and **the real test of the shin question** now that the 34 km came back clean. **Adaptive downgrade: the Jul 8 re-entry long read clean (shins green, HR conservative), so 50 km stays on — but if this week's recovery legs read trashed, drop to ~42–45 km rather than forcing it off a two-week deload.** |
+| **Sun Jul 19** | **B2B continuation ~35 km, Z1–Z2. Cushioned trainers (Torin/Lone Peak), NOT the Evo SL** — sparing the shins on back-to-back long-load; the second leg doesn't need to be the race shoe. Daughter joins the first ~21 km at Z1, Patrik continues solo to ~35. 50 + 35 = 85 km weekend. Fuel again — B2B nutrition practice. |
+| **Mon Jul 20** | **Full recovery — off, or very easy 6–8 km.** Big B2B just banked; let it absorb. |
 
 **Week target:** ~105–115 km running (first peak-specificity week).
 
 ## What I'm watching for
 
-- **Shins on the Evo SL longs — now the double read (Jul 11 *and* Jul 18).** They improved over the Italy rest and held through Jul 3. The open question is whether they stay quiet when the Evo SL goes back on under 34 km, then 50 km. A clean pair ratifies the rotation in practice; any return of the sensation (or escalation to pain) backs the Evo SL off longs and reopens the race-shoe question. This is the single most important signal in the window.
+- **Shins on the Evo SL longs — the double read (Jul 8 ✅ *and* Jul 18).** They improved over the Italy rest and held through Jul 3. **First read now in: the Jul 8 re-entry long (34 km, Evo SL) came back clean — no shin sensation at all — so the watch flipped green on the shorter of the two loads.** The open half is whether they stay quiet at 50 km on Jul 18 (longest Evo SL load yet). A clean pair ratifies the rotation in practice; any return of the sensation (or escalation to pain) on Jul 18 backs the Evo SL off longs and reopens the race-shoe question. Still the single most important signal in the window.
 - **Re-entry overreach.** The next 12 days stack the first quality, the first long, *and* a 50+35 all off a two-week deload whose longest run was 13 km. That's an aggressive re-entry demanded by the Italy compression — watch sleep, RHR, leg heaviness. If the Tuesday sessions or the Jul 11 long bite harder than expected, use the Jul 18 adaptive downgrade without hesitation.
 - **Heat.** Stockholm July can be warm (Jul 3 already showed how fast heat drifts HR up). Longs and quality early; drop distance/intensity rather than grind — GAP-vs-HR reads are unreliable in heat.
 - **Megablast free-pace read — resolving positive, confirm it holds.** Flat easy road runs are now reading "fast for the HR." One more clean easy road run in Stockholm confirms it; if so it joins the Evo SL as a free-pace shoe and can feed the shoe-speed-vs-effort chart.
