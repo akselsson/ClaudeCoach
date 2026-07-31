@@ -524,6 +524,47 @@ def test_run_strava_nonzero_exit_surfaces_stderr(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# fetch_activity (identity guard)
+# ---------------------------------------------------------------------------
+
+def _patch_strava_returning(monkeypatch, payload):
+    monkeypatch.setattr(c, "_run_strava", lambda strava_path, args: payload)
+
+
+def test_fetch_activity_returns_detail_when_id_matches(monkeypatch):
+    payload = {"id": 19529784466, "name": "Östra Lagnö - Norrtälje"}
+    _patch_strava_returning(monkeypatch, payload)
+    assert c.fetch_activity(Path("/strava.py"), 19529784466, False) == payload
+
+
+def test_fetch_activity_rejects_mismatched_activity(monkeypatch):
+    """A wrong-activity response must abort loudly. Every downstream metric is
+    attributed to the requested id, so silently characterizing a different
+    activity is indistinguishable from a correct run."""
+    _patch_strava_returning(
+        monkeypatch, {"id": 19541112139, "name": "Löpning vid lunch"}
+    )
+    with pytest.raises(SystemExit) as exc:
+        c.fetch_activity(Path("/strava.py"), 19529784466, False)
+    message = str(exc.value)
+    assert "19529784466" in message and "19541112139" in message
+    assert "Löpning vid lunch" in message
+
+
+def test_fetch_activity_tolerates_string_ids(monkeypatch):
+    """JSON round-trips can render the id as a string; that is not a mismatch."""
+    _patch_strava_returning(monkeypatch, {"id": "19529784466", "name": "x"})
+    assert c.fetch_activity(Path("/strava.py"), 19529784466, False)["name"] == "x"
+
+
+def test_fetch_activity_allows_missing_id(monkeypatch):
+    """Absent id means we cannot verify — that is not evidence of a mismatch,
+    so don't fail closed on payloads that simply omit the field."""
+    _patch_strava_returning(monkeypatch, {"name": "no id here"})
+    assert c.fetch_activity(Path("/strava.py"), 123, False)["name"] == "no id here"
+
+
+# ---------------------------------------------------------------------------
 # _pace_zone_out
 # ---------------------------------------------------------------------------
 

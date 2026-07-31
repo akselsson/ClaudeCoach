@@ -287,9 +287,15 @@ def _is_within_recent_window(start_date_local) -> bool:
         except ValueError:
             return False
     # Strip tz so we can subtract regardless of whether the datetime is aware or naive.
+    # Strava labels `start_date_local` "+00:00" even though it is local wall-clock
+    # time, so the tzinfo here is decorative and must not be trusted for maths.
     if start_date_local.tzinfo is not None:
         start_date_local = start_date_local.replace(tzinfo=None)
-    age = datetime.utcnow() - start_date_local
+    # Compare local wall clock against local wall clock. Using utcnow() here meant
+    # subtracting a local timestamp from a UTC one, which skewed the window by the
+    # local UTC offset (+2 h in Swedish summer) — harmless in direction but wrong,
+    # and utcnow() is deprecated, so it warned on every invocation.
+    age = datetime.now() - start_date_local
     return age < timedelta(days=RECENT_WINDOW_DAYS)
 
 

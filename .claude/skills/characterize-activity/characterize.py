@@ -91,7 +91,23 @@ def fetch_activity(strava_path: Path, activity_id: int, refresh: bool) -> dict:
     args = ["activity", str(activity_id)]
     if refresh:
         args.append("--refresh")
-    return _run_strava(strava_path, args)
+    detail = _run_strava(strava_path, args)
+
+    # Guard against ever characterizing the wrong activity. The returned detail
+    # travels a long way (CLI subprocess -> on-disk cache -> here) and every
+    # downstream number is silently attributed to whichever activity this dict
+    # describes. Echoing the *requested* id into the output while computing on a
+    # different activity's streams would be indistinguishable from a correct run,
+    # so we assert the identity rather than trust it.
+    returned_id = detail.get("id")
+    if returned_id is not None and int(returned_id) != int(activity_id):
+        sys.exit(
+            f"error: requested activity {activity_id} but the strava CLI returned "
+            f"{returned_id} ({detail.get('name')!r}). Refusing to characterize a "
+            f"mismatched activity. Re-run with --refresh; if it persists, the cache "
+            f"entry at .cache/strava/activities/{activity_id}.json is suspect."
+        )
+    return detail
 
 
 def fetch_streams(strava_path: Path, activity_id: int, resolution: str, refresh: bool) -> dict:
