@@ -152,34 +152,34 @@
 // paceMin = planned min/km on that leg. ETA/cutoff/margin are AT that VP.
 // Transcribed from the Google Sheet 2026-08-11 (post salt-fix, post gel-lookup-fix).
 const VPS = [
-  {id:"Start", name:"Friedrich-Ludwig-Jahnsportpark", km:0,    legKm:7.7, paceMin:5.75, eta:"6:00", cutoff:null,   margin:null,   tempC:20, block:"A", skopor:3, mixMl:225, waterMl:513, gelCarbs:25, saltPct:70.66, bag:0},
-  {id:"VP 1",  name:"S-Bahnhof Wilhelmsruh",          km:7.7,  legKm:5.6, paceMin:5.75, eta:"6:44", cutoff:"7:17", margin:"0:32", tempC:21, block:"A", skopor:3, mixMl:225, waterMl:312, gelCarbs:0,  saltPct:34.26, bag:0},
-  {id:"VP 2",  name:"Lauftreff Lübars",               km:13.3, legKm:5.5, paceMin:5.75, eta:"7:16", cutoff:"8:14", margin:"0:57", tempC:22, block:"A", skopor:3, mixMl:225, waterMl:302, gelCarbs:25, saltPct:28.49, bag:0},
-  {id:"VP 3",  name:"Oranienburger Chaussee",         km:18.8, legKm:4.3, paceMin:5.75, eta:"7:48", cutoff:"9:09", margin:"1:20", tempC:22, block:"A", skopor:3, mixMl:225, waterMl:187, gelCarbs:0,  saltPct:9.34,  bag:0},
-  {id:"VP 4",  name:"Hohen Neuendorf",                km:23.1, legKm:4.7, paceMin:5.75, eta:"8:12", cutoff:"9:53", margin:"1:40", tempC:24, block:"A", skopor:3, mixMl:225, waterMl:225, gelCarbs:0,  saltPct:17.01, bag:0},
-  {id:"VP 5",  name:"Frohnau",                        km:27.8, legKm:5.3, paceMin:5.75,  eta:"8:39", cutoff:"10:40",margin:"2:00", tempC:25, block:"A", skopor:3, mixMl:225, waterMl:283, gelCarbs:0,  saltPct:28.51, bag:0},
-  {id:"VP 6",  name:"Ruderclub Oberhavel",            km:33.1, legKm:4.8, paceMin:6.0,  eta:"9:10", cutoff:"11:34",margin:"2:23", tempC:26, block:"B", skopor:2, mixMl:450, waterMl:30,  gelCarbs:0,  saltPct:0,     bag:1},
-  {id:"VP 7",  name:"Grenzturm Nieder Neuendorf",     km:37.9, legKm:7.3, paceMin:6.0,  eta:"9:39", cutoff:"12:22",margin:"2:42", tempC:28, block:"B", skopor:2, mixMl:450, waterMl:280, gelCarbs:25, saltPct:44.72, bag:0},
-  {id:"VP 8",  name:"Schönwalde",                     km:45.2, legKm:5.8, paceMin:6.5,  eta:"10:22",cutoff:"13:36",margin:"3:13", tempC:31, block:"B", skopor:2, mixMl:450, waterMl:178, gelCarbs:0,  saltPct:28.23, bag:0},
-  {id:"VP 9",  name:"Falkenseer Chaussee",            km:51.0, legKm:6.8, paceMin:6.5,  eta:"11:00",cutoff:"14:35",margin:"3:34", tempC:32, block:"B", skopor:2, mixMl:450, waterMl:287, gelCarbs:25, saltPct:46.05, bag:0},
-  {id:"VP 10", name:"Karolinenhöhe",                  km:57.8, legKm:4.7, paceMin:7.0,  eta:"11:44",cutoff:"15:43",margin:"3:58", tempC:34, block:"B", skopor:2, mixMl:450, waterMl:98,  gelCarbs:0,  saltPct:12.23, bag:0},
-  {id:"VP 11", name:"Pagel & Friends",                km:62.5, legKm:7.7, paceMin:7.0,  eta:"12:17",cutoff:"16:31",margin:"4:13", tempC:35, block:"B", skopor:2, mixMl:450, waterMl:448, gelCarbs:25, saltPct:78.38, bag:0, flask3:true},
-  {id:"VP 12", name:"Schloss Sacrow",                 km:70.2, legKm:5.9, paceMin:7.0,  eta:"13:11",cutoff:"17:49",margin:"4:37", tempC:36, block:"C", skopor:2, mixMl:450, waterMl:238, gelCarbs:0,  saltPct:40.23, bag:2},
-  {id:"VP 13", name:"Revierförsterei Krampnitz",      km:76.1, legKm:5.8, paceMin:7.0,  eta:"13:52",cutoff:"18:48",margin:"4:55", tempC:36, block:"C", skopor:2, mixMl:450, waterMl:227, gelCarbs:0,  saltPct:37.90, bag:0},
-  {id:"VP 14", name:"Brauhaus Meierei",               km:81.9, legKm:7.1, paceMin:7.0,  eta:"14:33",cutoff:"19:47",margin:"5:13", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:378, gelCarbs:25, saltPct:64.38, bag:0},
-  {id:"VP 15", name:"Gedenkstätte Griebnitzsee",      km:89.0, legKm:6.8, paceMin:7.0,  eta:"15:23",cutoff:"20:58",margin:"5:34", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:343, gelCarbs:0,  saltPct:61.23, bag:0},
-  {id:"VP 16", name:"Königsweg",                      km:95.8, legKm:6.2, paceMin:7.0,  eta:"16:10",cutoff:"22:20",margin:"6:09", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:273, gelCarbs:0,  saltPct:47.23, bag:0},
-  {id:"VP 17", name:"Sportplatz Teltow",              km:102.0,legKm:6.8, paceMin:8.0,  eta:"16:54",cutoff:"23:34",margin:"6:39", tempC:36, block:"D", skopor:2, mixMl:450, waterMl:457, gelCarbs:25, saltPct:80.05, bag:3},
-  {id:"VP 18", name:"Osdorfer Straße",                km:108.8,legKm:6.2, paceMin:8.0,  eta:"17:48",cutoff:"0:43", margin:"6:54", tempC:35, block:"D", skopor:2, mixMl:450, waterMl:377, gelCarbs:25, saltPct:64.05, bag:0},
-  {id:"VP 19", name:"Lichtenrade",                    km:115.0,legKm:8.7, paceMin:8.0,  eta:"18:38",cutoff:"1:57", margin:"7:18", tempC:34, block:"D", skopor:2, mixMl:450, waterMl:710, gelCarbs:40, saltPct:128.41,bag:0, flask3:true},
-  {id:"VP 20", name:"Buckow",                         km:123.7,legKm:6.9, paceMin:8.0,  eta:"19:47",cutoff:"3:42", margin:"7:54", tempC:33, block:"D", skopor:2, mixMl:450, waterMl:470, gelCarbs:25, saltPct:82.72, bag:0},
-  {id:"VP 21", name:"Rudow",                          km:130.6,legKm:5.9, paceMin:8.0,  eta:"20:43",cutoff:"5:05", margin:"8:21", tempC:31, block:"E", skopor:2, mixMl:450, waterMl:337, gelCarbs:0,  saltPct:59.90, bag:0},
-  {id:"VP 22", name:"Johannisthaler Chaussee",        km:136.5,legKm:5.7, paceMin:8.0,  eta:"21:30",cutoff:"6:15", margin:"8:44", tempC:29, block:"E", skopor:2, mixMl:450, waterMl:310, gelCarbs:0,  saltPct:54.56, bag:0},
-  {id:"VP 23", name:"Dammweg",                        km:142.2,legKm:5.9, paceMin:8.0,  eta:"22:15",cutoff:"7:31", margin:"9:15", tempC:28, block:"E", skopor:2, mixMl:450, waterMl:337, gelCarbs:0,  saltPct:59.90, bag:0},
-  {id:"VP 24", name:"East Side Gallery",              km:148.1,legKm:4.7, paceMin:8.0,  eta:"23:03",cutoff:"8:50", margin:"9:46", tempC:26, block:"E", skopor:2, mixMl:450, waterMl:177, gelCarbs:0,  saltPct:27.90, bag:0},
-  {id:"VP 25", name:"Checkpoint Charlie",             km:152.8,legKm:4.5, paceMin:8.0,  eta:"23:40",cutoff:"9:53", margin:"10:12",tempC:26, block:"E", skopor:2, mixMl:450, waterMl:150, gelCarbs:0,  saltPct:22.56, bag:0},
-  {id:"VP 26", name:"Gedenkstätte Günter Litfin",     km:157.3,legKm:4.8, paceMin:8.0,  eta:"0:16", cutoff:"10:53",margin:"10:36",tempC:25, block:"E", skopor:2, mixMl:450, waterMl:190, gelCarbs:0,  saltPct:30.56, bag:0},
-  {id:"Ziel",  name:"Friedrich-Ludwig-Jahnsportpark", km:162.1,legKm:0,   paceMin:0,    eta:"0:55", cutoff:"12:00",margin:"11:04",tempC:24, block:"E", skopor:0, mixMl:0,   waterMl:0,   gelCarbs:0,  saltPct:0,     bag:0}
+  {id:"Start", name:"Friedrich-Ludwig-Jahnsportpark", km:0,    legKm:7.7, paceMin:5.75, eta:"6:00", cutoff:null,   margin:null,   tempC:20, block:"A", skopor:3, mixMl:225, waterMl:513, gelCarbs:25, hydrate:1, saltPct:70.66, bag:0},
+  {id:"VP 1",  name:"S-Bahnhof Wilhelmsruh",          km:7.7,  legKm:5.6, paceMin:5.75, eta:"6:44", cutoff:"7:17", margin:"0:32", tempC:21, block:"A", skopor:3, mixMl:225, waterMl:312, gelCarbs:0,  hydrate:0, saltPct:34.26, bag:0},
+  {id:"VP 2",  name:"Lauftreff Lübars",               km:13.3, legKm:5.5, paceMin:5.75, eta:"7:16", cutoff:"8:14", margin:"0:57", tempC:22, block:"A", skopor:3, mixMl:225, waterMl:302, gelCarbs:25, hydrate:0, saltPct:28.49, bag:0},
+  {id:"VP 3",  name:"Oranienburger Chaussee",         km:18.8, legKm:4.3, paceMin:5.75, eta:"7:48", cutoff:"9:09", margin:"1:20", tempC:22, block:"A", skopor:3, mixMl:225, waterMl:187, gelCarbs:0,  hydrate:1, saltPct:9.34,  bag:0},
+  {id:"VP 4",  name:"Hohen Neuendorf",                km:23.1, legKm:4.7, paceMin:5.75, eta:"8:12", cutoff:"9:53", margin:"1:40", tempC:24, block:"A", skopor:3, mixMl:225, waterMl:225, gelCarbs:0,  hydrate:0, saltPct:17.01, bag:0},
+  {id:"VP 5",  name:"Frohnau",                        km:27.8, legKm:5.3, paceMin:5.75,  eta:"8:39", cutoff:"10:40",margin:"2:00", tempC:25, block:"A", skopor:3, mixMl:225, waterMl:283, gelCarbs:0,  hydrate:0, saltPct:28.51, bag:0},
+  {id:"VP 6",  name:"Ruderclub Oberhavel",            km:33.1, legKm:4.8, paceMin:6.0,  eta:"9:10", cutoff:"11:34",margin:"2:23", tempC:26, block:"B", skopor:2, mixMl:450, waterMl:30,  gelCarbs:0,  hydrate:0, saltPct:0,     bag:1},
+  {id:"VP 7",  name:"Grenzturm Nieder Neuendorf",     km:37.9, legKm:7.3, paceMin:6.0,  eta:"9:39", cutoff:"12:22",margin:"2:42", tempC:28, block:"B", skopor:2, mixMl:450, waterMl:280, gelCarbs:25, hydrate:0, saltPct:44.72, bag:0},
+  {id:"VP 8",  name:"Schönwalde",                     km:45.2, legKm:5.8, paceMin:6.5,  eta:"10:22",cutoff:"13:36",margin:"3:13", tempC:31, block:"B", skopor:2, mixMl:450, waterMl:178, gelCarbs:0,  hydrate:1, saltPct:28.23, bag:0},
+  {id:"VP 9",  name:"Falkenseer Chaussee",            km:51.0, legKm:6.8, paceMin:6.5,  eta:"11:00",cutoff:"14:35",margin:"3:34", tempC:32, block:"B", skopor:2, mixMl:450, waterMl:287, gelCarbs:25, hydrate:0, saltPct:46.05, bag:0},
+  {id:"VP 10", name:"Karolinenhöhe",                  km:57.8, legKm:4.7, paceMin:7.0,  eta:"11:44",cutoff:"15:43",margin:"3:58", tempC:34, block:"B", skopor:2, mixMl:450, waterMl:98,  gelCarbs:0,  hydrate:0, saltPct:12.23, bag:0},
+  {id:"VP 11", name:"Pagel & Friends",                km:62.5, legKm:7.7, paceMin:7.0,  eta:"12:17",cutoff:"16:31",margin:"4:13", tempC:35, block:"B", skopor:2, mixMl:450, waterMl:448, gelCarbs:25, hydrate:1, saltPct:78.38, bag:0, flask3:true},
+  {id:"VP 12", name:"Schloss Sacrow",                 km:70.2, legKm:5.9, paceMin:7.0,  eta:"13:11",cutoff:"17:49",margin:"4:37", tempC:36, block:"C", skopor:2, mixMl:450, waterMl:238, gelCarbs:0,  hydrate:0, saltPct:40.23, bag:2},
+  {id:"VP 13", name:"Revierförsterei Krampnitz",      km:76.1, legKm:5.8, paceMin:7.0,  eta:"13:52",cutoff:"18:48",margin:"4:55", tempC:36, block:"C", skopor:2, mixMl:450, waterMl:227, gelCarbs:0,  hydrate:1, saltPct:37.90, bag:0},
+  {id:"VP 14", name:"Brauhaus Meierei",               km:81.9, legKm:7.1, paceMin:7.0,  eta:"14:33",cutoff:"19:47",margin:"5:13", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:378, gelCarbs:25, hydrate:1, saltPct:64.38, bag:0},
+  {id:"VP 15", name:"Gedenkstätte Griebnitzsee",      km:89.0, legKm:6.8, paceMin:7.0,  eta:"15:23",cutoff:"20:58",margin:"5:34", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:343, gelCarbs:0,  hydrate:0, saltPct:61.23, bag:0},
+  {id:"VP 16", name:"Königsweg",                      km:95.8, legKm:6.2, paceMin:7.0,  eta:"16:10",cutoff:"22:20",margin:"6:09", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:273, gelCarbs:0,  hydrate:1, saltPct:47.23, bag:0},
+  {id:"VP 17", name:"Sportplatz Teltow",              km:102.0,legKm:6.8, paceMin:8.0,  eta:"16:54",cutoff:"23:34",margin:"6:39", tempC:36, block:"D", skopor:2, mixMl:450, waterMl:457, gelCarbs:25, hydrate:0, saltPct:80.05, bag:3},
+  {id:"VP 18", name:"Osdorfer Straße",                km:108.8,legKm:6.2, paceMin:8.0,  eta:"17:48",cutoff:"0:43", margin:"6:54", tempC:35, block:"D", skopor:2, mixMl:450, waterMl:377, gelCarbs:25, hydrate:1, saltPct:64.05, bag:0},
+  {id:"VP 19", name:"Lichtenrade",                    km:115.0,legKm:8.7, paceMin:8.0,  eta:"18:38",cutoff:"1:57", margin:"7:18", tempC:34, block:"D", skopor:2, mixMl:450, waterMl:710, gelCarbs:40, hydrate:2, saltPct:128.41,bag:0, flask3:true},
+  {id:"VP 20", name:"Buckow",                         km:123.7,legKm:6.9, paceMin:8.0,  eta:"19:47",cutoff:"3:42", margin:"7:54", tempC:33, block:"D", skopor:2, mixMl:450, waterMl:470, gelCarbs:25, hydrate:0, saltPct:82.72, bag:0},
+  {id:"VP 21", name:"Rudow",                          km:130.6,legKm:5.9, paceMin:8.0,  eta:"20:43",cutoff:"5:05", margin:"8:21", tempC:31, block:"E", skopor:2, mixMl:450, waterMl:337, gelCarbs:0,  hydrate:1, saltPct:59.90, bag:0},
+  {id:"VP 22", name:"Johannisthaler Chaussee",        km:136.5,legKm:5.7, paceMin:8.0,  eta:"21:30",cutoff:"6:15", margin:"8:44", tempC:29, block:"E", skopor:2, mixMl:450, waterMl:310, gelCarbs:0,  hydrate:0, saltPct:54.56, bag:0},
+  {id:"VP 23", name:"Dammweg",                        km:142.2,legKm:5.9, paceMin:8.0,  eta:"22:15",cutoff:"7:31", margin:"9:15", tempC:28, block:"E", skopor:2, mixMl:450, waterMl:337, gelCarbs:0,  hydrate:1, saltPct:59.90, bag:0},
+  {id:"VP 24", name:"East Side Gallery",              km:148.1,legKm:4.7, paceMin:8.0,  eta:"23:03",cutoff:"8:50", margin:"9:46", tempC:26, block:"E", skopor:2, mixMl:450, waterMl:177, gelCarbs:0,  hydrate:0, saltPct:27.90, bag:0},
+  {id:"VP 25", name:"Checkpoint Charlie",             km:152.8,legKm:4.5, paceMin:8.0,  eta:"23:40",cutoff:"9:53", margin:"10:12",tempC:26, block:"E", skopor:2, mixMl:450, waterMl:150, gelCarbs:0,  hydrate:0, saltPct:22.56, bag:0},
+  {id:"VP 26", name:"Gedenkstätte Günter Litfin",     km:157.3,legKm:4.8, paceMin:8.0,  eta:"0:16", cutoff:"10:53",margin:"10:36",tempC:25, block:"E", skopor:2, mixMl:450, waterMl:190, gelCarbs:0,  hydrate:1, saltPct:30.56, bag:0},
+  {id:"Ziel",  name:"Friedrich-Ludwig-Jahnsportpark", km:162.1,legKm:0,   paceMin:0,    eta:"0:55", cutoff:"12:00",margin:"11:04",tempC:24, block:"E", skopor:0, mixMl:0,   waterMl:0,   gelCarbs:0,  hydrate:0, saltPct:0,     bag:0}
 ];
 
 // Caffeine plan from the 2026-08-10 execution card (first dose moved to km 102).
@@ -196,11 +196,20 @@ const ZIEL = VPS.length - 1;
 let visited = parseInt(localStorage.getItem(KEY) ?? "-1", 10);
 if (isNaN(visited) || visited < -1 || visited > ZIEL) visited = -1;
 
-function saltInstruction(pct) {
-  if (pct >= 110) return {main: "2 × U Hydrate", sub: pct.toFixed(0) + "% of a tablet on this leg"};
-  if (pct >= 70)  return {main: "1 × U Hydrate", sub: pct.toFixed(0) + "% of a tablet on this leg"};
-  if (pct >= 15)  return {main: "½ U Hydrate",   sub: pct.toFixed(0) + "% of a tablet on this leg"};
-  return {main: "No extra salt", sub: "mix covers it"};
+// Tablet counts come from the sheet's "Antal U Hydrate" scheduler (whole
+// tablets against a running gram balance), not from rounding the leg's need.
+function saltInstruction(i) {
+  const vp = VPS[i];
+  if (vp.hydrate > 0) {
+    return {main: vp.hydrate + " × U Hydrate",
+            sub: "dissolve in the water flask · leg needs " + vp.saltPct.toFixed(0) + "% of a tablet"};
+  }
+  for (let j = i + 1; j < VPS.length - 1; j++) {
+    if (VPS[j].hydrate > 0) {
+      return {main: "No tablet", sub: "on schedule — next tablet at " + VPS[j].id};
+    }
+  }
+  return {main: "No tablet", sub: "no more tablets scheduled"};
 }
 
 function gelInstruction(g) {
@@ -235,7 +244,7 @@ function renderNow() {
   const gPerH = Math.round(legCarbs / legH);
   const mlPerH = Math.round(totalMl / legH / 10) * 10;
   const mixLabel = from.mixMl === 450 ? "1 flask" : "½ flask";
-  const salt = saltInstruction(from.saltPct);
+  const salt = saltInstruction(i);
   const gel = gelInstruction(from.gelCarbs);
   const caffeine = CAFFEINE[from.id];
 
