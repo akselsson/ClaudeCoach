@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mauerweg 2026 — Race Fuel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0b0e11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  /* Dark-only by design: this page is a night-capable race utility. */
+  :root {
+    --bg: #0b0e11;
+    --card: #151a20;
+    --card-edge: #232b34;
+    --ink: #eef2f5;
+    --ink-dim: #8a97a3;
+    --accent: #ffb547;      /* the NOW card */
+    --accent-ink: #1a1205;
+    --good: #5dd08c;
+    --water: #6ec3f0;
+    --salt: #f0a4c0;
+    --gel: #ffd58a;
+    --done: #3a444f;
+    --danger: #e07a6a;
+    font-size: 17px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.35;
+    padding-bottom: 4rem;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  header.top {
+    padding: 0.7rem 1rem 0.5rem;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  header.top h1 { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim); }
+  header.top .progress { font-size: 0.9rem; color: var(--ink-dim); }
+  header.top .progress b { color: var(--ink); }
+
+  /* ---- NOW card ---- */
+  #now {
+    position: sticky; top: 0; z-index: 10;
+    margin: 0 0.6rem 0.8rem;
+    background: linear-gradient(180deg, #1a2027 0%, #12161c 100%);
+    border: 1px solid var(--card-edge);
+    border-top: 4px solid var(--accent);
+    border-radius: 14px;
+    padding: 0.9rem 1rem 1rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+  }
+  #now .leg-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.15rem; }
+  #now h2 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.01em; }
+  #now .dest { font-size: 0.95rem; color: var(--ink-dim); margin-top: 0.1rem; }
+  #now .badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
+  .badge {
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.22rem 0.55rem; border-radius: 999px;
+  }
+  .badge.flask3 { background: var(--danger); color: #fff; }
+  .badge.bag { background: var(--good); color: #06220f; }
+  .badge.caffeine { background: #b18cff; color: #170b2e; }
+  .badge.night { background: #2c3a52; color: #cfe0ff; }
+
+  #now .rows { margin-top: 0.8rem; display: grid; gap: 0.55rem; }
+  .frow {
+    display: grid; grid-template-columns: 4.4rem 1fr; gap: 0.7rem; align-items: baseline;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px; padding: 0.55rem 0.7rem;
+  }
+  .frow .k { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+  .frow.mix .k { color: var(--accent); }
+  .frow.water .k { color: var(--water); }
+  .frow.gel .k { color: var(--gel); }
+  .frow.salt .k { color: var(--salt); }
+  .frow .v { font-size: 1.15rem; font-weight: 700; }
+  .frow .v small { display: block; font-size: 0.78rem; font-weight: 400; color: var(--ink-dim); }
+
+  #now .eta-strip {
+    margin-top: 0.8rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; text-align: center;
+  }
+  .eta-cell { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 0.45rem 0.2rem; }
+  .eta-cell .l { font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-dim); }
+  .eta-cell .t { font-size: 1.15rem; font-weight: 800; }
+  .eta-cell.margin .t { color: var(--good); }
+  #now .foot { margin-top: 0.6rem; font-size: 0.8rem; color: var(--ink-dim); display: flex; justify-content: space-between; }
+  #now .note { margin-top: 0.55rem; font-size: 0.85rem; color: #b18cff; }
+  #now.finished { border-top-color: var(--good); text-align: center; padding: 2rem 1rem; }
+  #now.finished h2 { font-size: 2rem; color: var(--good); }
+  #now.finished p { margin-top: 0.5rem; color: var(--ink-dim); }
+
+  /* ---- VP list ---- */
+  #list { padding: 0 0.6rem; display: grid; gap: 0.35rem; }
+  .vp {
+    width: 100%; text-align: left; border: 1px solid var(--card-edge);
+    background: var(--card); color: var(--ink);
+    border-radius: 12px; padding: 0.6rem 0.8rem; min-height: 3.3rem;
+    display: grid; grid-template-columns: 2.1rem 1fr auto; gap: 0.6rem; align-items: center;
+    font: inherit; cursor: pointer;
+  }
+  .vp .tick {
+    width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    border: 2px solid var(--ink-dim); display: grid; place-items: center;
+    font-size: 0.95rem; font-weight: 800; color: transparent;
+  }
+  .vp .who .nm { font-weight: 700; font-size: 0.98rem; }
+  .vp .who .sub { font-size: 0.78rem; color: var(--ink-dim); }
+  .vp .times { text-align: right; font-size: 0.82rem; color: var(--ink-dim); }
+  .vp .times .eta { font-size: 1rem; font-weight: 700; color: var(--ink); }
+  .vp.done { background: #10141a; border-color: #1b222b; }
+  .vp.done .tick { background: var(--done); border-color: var(--done); color: var(--ink); }
+  .vp.done .who .nm, .vp.done .times .eta { color: var(--ink-dim); text-decoration: line-through; text-decoration-color: rgba(138,151,163,0.5); }
+  .vp.next { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .vp.next .tick { border-color: var(--accent); }
+  .vp .who .nm .bagtag { color: var(--good); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; margin-left: 0.3rem; text-decoration: none; display: inline-block; }
+
+  footer {
+    margin-top: 1.6rem; padding: 0 1rem; text-align: center;
+    font-size: 0.78rem; color: var(--ink-dim);
+  }
+  footer .src { margin-bottom: 0.6rem; }
+  #reset { background: none; border: 1px solid var(--card-edge); color: var(--ink-dim); font: inherit; font-size: 0.78rem; border-radius: 8px; padding: 0.35rem 0.8rem; cursor: pointer; }
+  #reset.armed { border-color: var(--danger); color: var(--danger); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Mauerweg 100&thinsp;mi</h1>
+  <div class="progress mono" id="progress"></div>
+</header>
+
+<section id="now"></section>
+<section id="list"></section>
+
+<footer>
+  <div class="src">Snapshot of the fuelling sheet, 2026-08-11 · concentrate architecture (3&rarr;2 skopor) · keep this tab open — reload needs network</div>
+  <button id="reset">reset progress</button>
+</footer>
+
+<script>
+'use strict';
+
+// One row per VP; each row describes the LEG OUT of that VP (to the next row).
+// mixMl = "Sportdryck actual", waterMl = "Vatten", saltPct = "% av en U Hydrate",
+// paceMin = planned min/km on that leg. ETA/cutoff/margin are AT that VP.
+// Transcribed from the Google Sheet 2026-08-11 (post salt-fix, post gel-lookup-fix).
+const VPS = [
+  {id:"Start", name:"Friedrich-Ludwig-Jahnsportpark", km:0,    legKm:7.7, paceMin:5.75, eta:"6:00", cutoff:null,   margin:null,   tempC:20, block:"A", skopor:3, mixMl:225, waterMl:513, gelCarbs:25, saltPct:70.66, bag:0},
+  {id:"VP 1",  name:"S-Bahnhof Wilhelmsruh",          km:7.7,  legKm:5.6, paceMin:5.75, eta:"6:44", cutoff:"7:17", margin:"0:32", tempC:21, block:"A", skopor:3, mixMl:225, waterMl:312, gelCarbs:0,  saltPct:34.26, bag:0},
+  {id:"VP 2",  name:"Lauftreff Lübars",               km:13.3, legKm:5.5, paceMin:5.75, eta:"7:16", cutoff:"8:14", margin:"0:57", tempC:22, block:"A", skopor:3, mixMl:225, waterMl:302, gelCarbs:25, saltPct:28.49, bag:0},
+  {id:"VP 3",  name:"Oranienburger Chaussee",         km:18.8, legKm:4.3, paceMin:5.75, eta:"7:48", cutoff:"9:09", margin:"1:20", tempC:22, block:"A", skopor:3, mixMl:225, waterMl:187, gelCarbs:0,  saltPct:9.34,  bag:0},
+  {id:"VP 4",  name:"Hohen Neuendorf",                km:23.1, legKm:4.7, paceMin:5.75, eta:"8:12", cutoff:"9:53", margin:"1:40", tempC:24, block:"A", skopor:3, mixMl:225, waterMl:225, gelCarbs:0,  saltPct:17.01, bag:0},
+  {id:"VP 5",  name:"Frohnau",                        km:27.8, legKm:5.3, paceMin:5.75,  eta:"8:39", cutoff:"10:40",margin:"2:00", tempC:25, block:"A", skopor:3, mixMl:225, waterMl:283, gelCarbs:0,  saltPct:28.51, bag:0},
+  {id:"VP 6",  name:"Ruderclub Oberhavel",            km:33.1, legKm:4.8, paceMin:6.0,  eta:"9:10", cutoff:"11:34",margin:"2:23", tempC:26, block:"B", skopor:2, mixMl:450, waterMl:30,  gelCarbs:0,  saltPct:0,     bag:1},
+  {id:"VP 7",  name:"Grenzturm Nieder Neuendorf",     km:37.9, legKm:7.3, paceMin:6.0,  eta:"9:39", cutoff:"12:22",margin:"2:42", tempC:28, block:"B", skopor:2, mixMl:450, waterMl:280, gelCarbs:25, saltPct:44.72, bag:0},
+  {id:"VP 8",  name:"Schönwalde",                     km:45.2, legKm:5.8, paceMin:6.5,  eta:"10:22",cutoff:"13:36",margin:"3:13", tempC:31, block:"B", skopor:2, mixMl:450, waterMl:178, gelCarbs:0,  saltPct:28.23, bag:0},
+  {id:"VP 9",  name:"Falkenseer Chaussee",            km:51.0, legKm:6.8, paceMin:6.5,  eta:"11:00",cutoff:"14:35",margin:"3:34", tempC:32, block:"B", skopor:2, mixMl:450, waterMl:287, gelCarbs:25, saltPct:46.05, bag:0},
+  {id:"VP 10", name:"Karolinenhöhe",                  km:57.8, legKm:4.7, paceMin:7.0,  eta:"11:44",cutoff:"15:43",margin:"3:58", tempC:34, block:"B", skopor:2, mixMl:450, waterMl:98,  gelCarbs:0,  saltPct:12.23, bag:0},
+  {id:"VP 11", name:"Pagel & Friends",                km:62.5, legKm:7.7, paceMin:7.0,  eta:"12:17",cutoff:"16:31",margin:"4:13", tempC:35, block:"B", skopor:2, mixMl:450, waterMl:448, gelCarbs:25, saltPct:78.38, bag:0, flask3:true},
+  {id:"VP 12", name:"Schloss Sacrow",                 km:70.2, legKm:5.9, paceMin:7.0,  eta:"13:11",cutoff:"17:49",margin:"4:37", tempC:36, block:"C", skopor:2, mixMl:450, waterMl:238, gelCarbs:0,  saltPct:40.23, bag:2},
+  {id:"VP 13", name:"Revierförsterei Krampnitz",      km:76.1, legKm:5.8, paceMin:7.0,  eta:"13:52",cutoff:"18:48",margin:"4:55", tempC:36, block:"C", skopor:2, mixMl:450, waterMl:227, gelCarbs:0,  saltPct:37.90, bag:0},
+  {id:"VP 14", name:"Brauhaus Meierei",               km:81.9, legKm:7.1, paceMin:7.0,  eta:"14:33",cutoff:"19:47",margin:"5:13", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:378, gelCarbs:25, saltPct:64.38, bag:0},
+  {id:"VP 15", name:"Gedenkstätte Griebnitzsee",      km:89.0, legKm:6.8, paceMin:7.0,  eta:"15:23",cutoff:"20:58",margin:"5:34", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:343, gelCarbs:0,  saltPct:61.23, bag:0},
+  {id:"VP 16", name:"Königsweg",                      km:95.8, legKm:6.2, paceMin:7.0,  eta:"16:10",cutoff:"22:20",margin:"6:09", tempC:37, block:"C", skopor:2, mixMl:450, waterMl:273, gelCarbs:0,  saltPct:47.23, bag:0},
+  {id:"VP 17", name:"Sportplatz Teltow",              km:102.0,legKm:6.8, paceMin:8.0,  eta:"16:54",cutoff:"23:34",margin:"6:39", tempC:36, block:"D", skopor:2, mixMl:450, waterMl:457, gelCarbs:25, saltPct:80.05, bag:3},
+  {id:"VP 18", name:"Osdorfer Straße",                km:108.8,legKm:6.2, paceMin:8.0,  eta:"17:48",cutoff:"0:43", margin:"6:54", tempC:35, block:"D", skopor:2, mixMl:450, waterMl:377, gelCarbs:25, saltPct:64.05, bag:0},
+  {id:"VP 19", name:"Lichtenrade",                    km:115.0,legKm:8.7, paceMin:8.0,  eta:"18:38",cutoff:"1:57", margin:"7:18", tempC:34, block:"D", skopor:2, mixMl:450, waterMl:710, gelCarbs:40, saltPct:128.41,bag:0, flask3:true},
+  {id:"VP 20", name:"Buckow",                         km:123.7,legKm:6.9, paceMin:8.0,  eta:"19:47",cutoff:"3:42", margin:"7:54", tempC:33, block:"D", skopor:2, mixMl:450, waterMl:470, gelCarbs:25, saltPct:82.72, bag:0},
+  {id:"VP 21", name:"Rudow",                          km:130.6,legKm:5.9, paceMin:8.0,  eta:"20:43",cutoff:"5:05", margin:"8:21", tempC:31, block:"E", skopor:2, mixMl:450, waterMl:337, gelCarbs:0,  saltPct:59.90, bag:0},
+  {id:"VP 22", name:"Johannisthaler Chaussee",        km:136.5,legKm:5.7, paceMin:8.0,  eta:"21:30",cutoff:"6:15", margin:"8:44", tempC:29, block:"E", skopor:2, mixMl:450, waterMl:310, gelCarbs:0,  saltPct:54.56, bag:0},
+  {id:"VP 23", name:"Dammweg",                        km:142.2,legKm:5.9, paceMin:8.0,  eta:"22:15",cutoff:"7:31", margin:"9:15", tempC:28, block:"E", skopor:2, mixMl:450, waterMl:337, gelCarbs:0,  saltPct:59.90, bag:0},
+  {id:"VP 24", name:"East Side Gallery",              km:148.1,legKm:4.7, paceMin:8.0,  eta:"23:03",cutoff:"8:50", margin:"9:46", tempC:26, block:"E", skopor:2, mixMl:450, waterMl:177, gelCarbs:0,  saltPct:27.90, bag:0},
+  {id:"VP 25", name:"Checkpoint Charlie",             km:152.8,legKm:4.5, paceMin:8.0,  eta:"23:40",cutoff:"9:53", margin:"10:12",tempC:26, block:"E", skopor:2, mixMl:450, waterMl:150, gelCarbs:0,  saltPct:22.56, bag:0},
+  {id:"VP 26", name:"Gedenkstätte Günter Litfin",     km:157.3,legKm:4.8, paceMin:8.0,  eta:"0:16", cutoff:"10:53",margin:"10:36",tempC:25, block:"E", skopor:2, mixMl:450, waterMl:190, gelCarbs:0,  saltPct:30.56, bag:0},
+  {id:"Ziel",  name:"Friedrich-Ludwig-Jahnsportpark", km:162.1,legKm:0,   paceMin:0,    eta:"0:55", cutoff:"12:00",margin:"11:04",tempC:24, block:"E", skopor:0, mixMl:0,   waterMl:0,   gelCarbs:0,  saltPct:0,     bag:0}
+];
+
+// Caffeine plan from the 2026-08-10 execution card (first dose moved to km 102).
+const CAFFEINE = {
+  "VP 17": "Caffeine now: 100 mg tablet at this bag (with night gear).",
+  "VP 21": "Night caffeine: 30–100 mg per depot as needed (tablets, not gels).",
+  "VP 24": "U Intend 250 mg here (~km 148) — the final one-shot."
+};
+
+const KEY = "mauerweg-2026-visited";
+const TOTAL_KM = 162.1;
+const ZIEL = VPS.length - 1;
+
+let visited = parseInt(localStorage.getItem(KEY) ?? "-1", 10);
+if (isNaN(visited) || visited < -1 || visited > ZIEL) visited = -1;
+
+function saltInstruction(pct) {
+  if (pct >= 110) return {main: "2 × U Hydrate", sub: pct.toFixed(0) + "% of a tablet on this leg"};
+  if (pct >= 70)  return {main: "1 × U Hydrate", sub: pct.toFixed(0) + "% of a tablet on this leg"};
+  if (pct >= 15)  return {main: "½ U Hydrate",   sub: pct.toFixed(0) + "% of a tablet on this leg"};
+  return {main: "No extra salt", sub: "mix covers it"};
+}
+
+function gelInstruction(g) {
+  if (g === 40) return {main: "1 × Maurten Gel 160", sub: "40 g carbs — the big one"};
+  if (g === 25) return {main: "1 × Maurten Gel 100", sub: "25 g carbs"};
+  return {main: "No gel", sub: "drink only this leg"};
+}
+
+function fmtMargin(m) { return m ? "+" + m : "—"; }
+
+function renderNow() {
+  const el = document.getElementById("now");
+
+  if (visited === ZIEL) {
+    el.className = "finished";
+    el.innerHTML = `<h2>FINISHED 🏁</h2>
+      <p>162.1 km. Planned finish 0:55, cut-off 12:00 — margin +11:04.</p>
+      <p>Keep drinking. You earned the cola.</p>`;
+    return;
+  }
+
+  el.className = "";
+  const i = Math.max(visited, 0);
+  const from = VPS[i], to = VPS[i + 1];
+  const preStart = visited === -1;
+
+  const mixCarbs = Math.round(from.mixMl / 450 * from.skopor * 30);
+  const legCarbs = mixCarbs + from.gelCarbs;
+  const totalMl = from.mixMl + from.waterMl;
+  const effPct = (mixCarbs / totalMl * 100).toFixed(1);
+  const legH = from.paceMin * from.legKm / 60;
+  const gPerH = Math.round(legCarbs / legH);
+  const mlPerH = Math.round(totalMl / legH / 10) * 10;
+  const mixLabel = from.mixMl === 450 ? "1 flask" : "½ flask";
+  const salt = saltInstruction(from.saltPct);
+  const gel = gelInstruction(from.gelCarbs);
+  const caffeine = CAFFEINE[from.id];
+
+  const badges = [];
+  if (from.flask3) badges.push('<span class="badge flask3">Carry 3rd flask</span>');
+  if (to.bag) badges.push('<span class="badge bag">Drop bag ' + to.bag + ' at ' + to.id + '</span>');
+  if (caffeine) badges.push('<span class="badge caffeine">Caffeine</span>');
+  if (from.block === "E") badges.push('<span class="badge night">Night — lamp + vest</span>');
+
+  el.innerHTML = `
+    <div class="leg-label">${preStart ? "First leg — tap Start below at the gun" : "Now running"}</div>
+    <h2>${from.id} &rarr; ${to.id} · ${from.legKm} km</h2>
+    <div class="dest">to ${to.name} (km ${to.km}) · block ${from.block} · ~${from.tempC}&nbsp;°C</div>
+    ${badges.length ? '<div class="badges">' + badges.join("") + "</div>" : ""}
+    <div class="rows">
+      <div class="frow mix"><span class="k">Mix</span>
+        <span class="v">${from.mixMl} ml <small>${mixLabel} @ ${from.skopor} skopor · ${mixCarbs} g carbs · ~${effPct}% in the stomach with the water</small></span></div>
+      <div class="frow water"><span class="k">Water</span>
+        <span class="v">${from.waterMl} ml <small>plain, alongside the mix — never into it</small></span></div>
+      <div class="frow gel"><span class="k">Gel</span>
+        <span class="v">${gel.main} <small>${gel.sub}</small></span></div>
+      <div class="frow salt"><span class="k">Salt</span>
+        <span class="v">${salt.main} <small>${salt.sub}</small></span></div>
+    </div>
+    ${caffeine ? '<div class="note">☕ ' + caffeine + "</div>" : ""}
+    <div class="eta-strip">
+      <div class="eta-cell"><div class="l">ETA ${to.id}</div><div class="t mono">${to.eta}</div></div>
+      <div class="eta-cell"><div class="l">Cut-off</div><div class="t mono">${to.cutoff ?? "—"}</div></div>
+      <div class="eta-cell margin"><div class="l">Margin</div><div class="t mono">${fmtMargin(to.margin)}</div></div>
+    </div>
+    <div class="foot"><span>&asymp; ${legCarbs} g carbs · ${gPerH} g/h</span><span>&asymp; ${totalMl} ml · ${mlPerH} ml/h</span></div>`;
+}
+
+function renderList() {
+  const list = document.getElementById("list");
+  list.innerHTML = VPS.map((vp, i) => {
+    const done = i <= visited;
+    const next = i === visited + 1;
+    const bagtag = vp.bag ? `<span class="bagtag">BAG ${vp.bag}</span>` : "";
+    return `<button class="vp ${done ? "done" : ""} ${next ? "next" : ""}" data-i="${i}" type="button">
+      <span class="tick">✓</span>
+      <span class="who"><span class="nm">${vp.id} · ${vp.name}${bagtag}</span>
+        <span class="sub mono">km ${vp.km}${vp.legKm ? " · " + vp.legKm + " km to next" : ""}</span></span>
+      <span class="times"><span class="eta mono">${vp.eta}</span><br>cut ${vp.cutoff ? '<span class="mono">' + vp.cutoff + "</span>" : "—"}</span>
+    </button>`;
+  }).join("");
+
+  const doneKm = visited >= 0 ? VPS[visited].km : 0;
+  document.getElementById("progress").innerHTML =
+    `<b>${doneKm}</b> / ${TOTAL_KM} km`;
+}
+
+function setVisited(v) {
+  visited = v;
+  localStorage.setItem(KEY, String(v));
+  renderNow();
+  renderList();
+}
+
+document.getElementById("list").addEventListener("click", e => {
+  const btn = e.target.closest(".vp");
+  if (!btn) return;
+  const i = parseInt(btn.dataset.i, 10);
+  // Tap an unvisited VP: mark it (and everything before it — the race is monotonic).
+  // Tap a visited VP: unmark it and everything after (undo a fat-finger).
+  setVisited(i <= visited ? i - 1 : i);
+});
+
+// Two-tap reset (no window.confirm — it blocks automation and is easy to mis-tap).
+const resetBtn = document.getElementById("reset");
+let resetArmed = false, resetTimer = null;
+resetBtn.addEventListener("click", () => {
+  if (resetArmed) {
+    clearTimeout(resetTimer);
+    resetArmed = false;
+    resetBtn.classList.remove("armed");
+    resetBtn.textContent = "reset progress";
+    setVisited(-1);
+  } else {
+    resetArmed = true;
+    resetBtn.classList.add("armed");
+    resetBtn.textContent = "tap again to reset";
+    resetTimer = setTimeout(() => {
+      resetArmed = false;
+      resetBtn.classList.remove("armed");
+      resetBtn.textContent = "reset progress";
+    }, 3000);
+  }
+});
+
+renderNow();
+renderList();
+</script>
+</body>
+</html>
