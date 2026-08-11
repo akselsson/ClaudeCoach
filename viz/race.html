@@ -140,7 +140,7 @@
 <section id="list"></section>
 
 <footer>
-  <div class="src">Snapshot of the fuelling sheet, 2026-08-11 · concentrate architecture (3&rarr;2 skopor) · keep this tab open — reload needs network</div>
+  <div class="src">Snapshot of the fuelling sheet, 2026-08-11 · concentrate architecture (3&rarr;2 skopor) · works offline after first open</div>
   <button id="reset">reset progress</button>
 </footer>
 
@@ -328,6 +328,10 @@ resetBtn.addEventListener("click", () => {
 
 renderNow();
 renderList();
+
+// Offline resilience: as an iOS home-screen app, every relaunch is a network
+// load unless a service worker serves it from cache.
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
