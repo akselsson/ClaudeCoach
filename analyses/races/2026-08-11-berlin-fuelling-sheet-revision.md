@@ -10,7 +10,7 @@ summary: Patrik rebuilt the Berlin fuelling plan as a live Google Sheet keyed to
 
 This file records the changes made on Aug 11 to the fuelling plan in `races/2026-08-10-berlin-hydration-execution-card.md`. **The card is still the reference for cooling, decision gates, red flags, thermos technique and caffeine — none of that changed.** What changed is how carbohydrate, fluid and sodium are carried and counted.
 
-**The operating artifact is now a Google Sheet**, not `races/2026-08-10-berlin-checkpoint-fuelling.csv`. The CSV and `scripts/gen_vp_sheet.py` are superseded for race day; keep them as the derivation of the VP table (official km marks, cut-offs, ETA scaffold, air temperature), which the sheet inherited unchanged.
+**The operating artifact is now a Google Sheet** (https://docs.google.com/spreadsheets/d/1e0YP03SIDlz9ndvT3qJrxpKncOu_5sLQcj3rzoEfMew — link-shared; it is not in the Drive account connected to Claude, so read it via the CSV export URL), not `races/2026-08-10-berlin-checkpoint-fuelling.csv`. The CSV and `scripts/gen_vp_sheet.py` are superseded for race day; keep them as the derivation of the VP table (official km marks, cut-offs, ETA scaffold, air temperature), which the sheet inherited unchanged.
 
 ---
 

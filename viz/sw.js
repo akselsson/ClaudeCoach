@@ -2,7 +2,7 @@
 // Cache-first with background refresh: the page must open instantly and
 // offline mid-race (iOS kills home-screen apps and relaunches load from
 // network), while still picking up redeploys whenever coverage exists.
-const CACHE = 'race-2026-08';
+const CACHE = 'race-2026-08-12';
 const ASSETS = ['race', 'race.html', 'favicon.svg'];
 
 self.addEventListener('install', e => {
