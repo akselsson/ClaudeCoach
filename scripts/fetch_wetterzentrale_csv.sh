@@ -14,14 +14,14 @@
 #   -m  model   model id, e.g. ico     (default ico = ICON)
 #   -r  run     model run, e.g. 00/12  (default 00)
 #   -d  date    run date YYYY-MM-DD    (default today)
-#   -o  outfile output CSV path        (default wetterzentrale-2m-temp.csv)
+#   -o  outfile output CSV path        (default tmp/wetterzentrale-2m-temp.csv)
 set -euo pipefail
 
 geoid=140524
 model=ico
 run=00
 date=$(date +%Y-%m-%d)
-outfile=wetterzentrale-2m-temp.csv
+outfile=tmp/wetterzentrale-2m-temp.csv
 
 while getopts "g:m:r:d:o:h" opt; do
   case $opt in
@@ -34,6 +34,8 @@ while getopts "g:m:r:d:o:h" opt; do
     *) exit 1 ;;
   esac
 done
+
+mkdir -p "$(dirname "$outfile")"
 
 url="https://wetterzentrale.de/op_feed.php?geoid=${geoid}&var=4,5,10,83,82,86,87&run=${run}&date=${date}&model=${model}&member=OP&bw=1&tr=3"
 
