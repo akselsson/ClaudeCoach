@@ -37,7 +37,7 @@ done
 
 mkdir -p "$(dirname "$outfile")"
 
-url="https://wetterzentrale.de/op_feed.php?geoid=${geoid}&var=4,5,10,83,82,86,87&run=${run}&date=${date}&model=${model}&member=OP&bw=1&tr=3"
+url="https://wetterzentrale.de/op_feed.php?geoid=${geoid}&var=4,5,10,83,82,86,87&run=${run}&date=${date}&model=${model}&member=OP&bw=1&tr=1"
 
 curl -fsS "$url" \
   | jq -r '
