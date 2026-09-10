@@ -85,6 +85,17 @@ Implications for the weekly plan:
 
 Her own training is not tracked in this notebook — only its impact on Patrik's weekend shape is recorded here. If her race plans change (drops out, picks a different race, ramps faster than expected) update this section.
 
+## Physiology: heart rate is volume-dependent
+
+**Resting HR of 44 is a high-volume baseline, not an all-conditions one.** Patrik only sits at 44 during higher-volume periods (~75–110 km/week). In a low-volume stretch it drifts up a few beats, and **running HR at a given pace rises with it** — same mechanism, plasma volume and stroke volume, which move within days-to-weeks of a change in training load.
+
+Practical consequences when reading data:
+
+- **Do not treat a resting HR of 46–48 measured off a low-volume week as an illness, overtraining or non-recovery signal.** Check the preceding weeks' volume first. Confirmed 2026-09-10, when +2 bpm resting and ~+5 bpm at matched grade-adjusted pace were initially read as post-fever residue and were in fact four weeks of detraining (2/34/17/10 km after 96–109 km weeks in July).
+- **The treatment for the detrained version is running, not rest.** These two states — under-recovered and under-trained — produce a similar HR picture and take opposite prescriptions. Volume history is what distinguishes them.
+- **HR-based gates written during a layoff will mis-fire.** A pass criterion like "≤145 bpm at 5:15/km" implicitly assumes the training state it was written in. Re-derive the threshold against recent volume before treating a miss as a red flag.
+- `config/training.json` keeps `resting_hr: 44` unchanged so TRIMP stays comparable across the full history. Adjust the *interpretation*, not the constant.
+
 ## Cross-training
 
 - **Bike commute:** target 1×/week, in practice often 1–2×/month. 17 km each way (34 km round trip), ridden fairly hard — mostly Z2 with Z3 on uphills. This is real aerobic load, not commuting overhead. Count it as a training day when planning weekly load. Don't double up on a day before a quality run session or on legs that are already tired.
