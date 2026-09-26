@@ -96,6 +96,15 @@ Practical consequences when reading data:
 - **HR-based gates written during a layoff will mis-fire.** A pass criterion like "≤145 bpm at 5:15/km" implicitly assumes the training state it was written in. Re-derive the threshold against recent volume before treating a miss as a red flag.
 - `config/training.json` keeps `resting_hr: 44` unchanged so TRIMP stays comparable across the full history. Adjust the *interpretation*, not the constant.
 
+## Shoe rotation and the shins (added 2026-09-26)
+
+Patrik's on-and-off shin problem began in the Nov 2025 PRT build and now shows mainly under **high mileage in unstable shoes — the Adidas Boston 13 and both Evo SL pairs**. Standing rule for any block above ~70 km/week:
+
+- **Volume runs (easy, medium-long, long) in Altra Torin, Superblast or Megablast**, rotated.
+- **Boston 13 and Evo SL capped at ≤10 km per outing** and never on the long run. The larger Evo SL may take a race-effort segment of 30–90 min inside a long run when it is a race-shoe candidate.
+- **Lone Peak for trail variety**, weekend daylight only.
+- On any shin symptom, check the last week's shoe log before touching volume.
+
 ## Cross-training
 
 - **Bike commute:** target 1×/week, in practice often 1–2×/month. 17 km each way (34 km round trip), ridden fairly hard — mostly Z2 with Z3 on uphills. This is real aerobic load, not commuting overhead. Count it as a training day when planning weekly load. Don't double up on a day before a quality run session or on legs that are already tired.
