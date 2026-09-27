@@ -12,11 +12,11 @@ If any of this changes — long-run day shifts, a chronic niggle appears, work s
 
 ## Weekly shape
 
-Patrik runs 5 days/week by default; can push to 6 in peak weeks with a recovery jog added to a current rest day, but Mon and Wed mornings are not negotiable.
+Patrik runs 5 days/week by default, with a **sixth-day option on Monday evening in build and peak weeks** (added 2026-09-27, see below) — not in recovery, down or race weeks. Mon and Wed mornings are not negotiable; Wed stays the off day.
 
 | Day | Default role | Time of day | Notes |
 |---|---|---|---|
-| **Mon** | Off | — | Work blocks morning runs; evenings are available if the plan needs a light run. Easy spin OK if legs are restless. |
+| **Mon** | Off, or **optional sixth day** (evening) | Evening | Work blocks morning runs. **Fill option (2026-09-27): a commute-home run when the work schedule allows, otherwise 8–10 km easy.** Easy only, HR <140, no strides, in a volume shoe (Torin / Superblast / Megablast) — Kundo is the next evening. Counts on top of the week's target, not inside it. Off in recovery, down and race weeks. Easy spin OK if legs are restless. |
 | **Tue** | **Quality — work-group session + heavy strength** | Evening | The group (Kundo) sets the workout format each week; Patrik tunes the paces to where he is in the cycle. Build week → reps at prescribed effort. Recovery week → same reps jogged at recovery pace. Heavy strength stacks onto the run (see Strength section). Group runs are always 8–10 km — never more. |
 | **Wed** | Off | — | Work blocks morning runs; evenings are available if the plan needs a light run. Bike commute fits here when it happens. |
 | **Thu** | Easy or medium-long + maintenance strength | Afternoon/evening | Volume buffer day — flex up for higher-volume weeks, flex down for recovery. Light maintenance strength after the run (see Strength section). |
@@ -24,7 +24,7 @@ Patrik runs 5 days/week by default; can push to 6 in peak weeks with a recovery 
 | **Sat** | Medium-long / B2B continuation, or daughter run | Morning | Stacked the day after Friday long when the block calls for B2B; otherwise the daughter long run lands here (see below) or it's easy / off. |
 | **Sun** | Easy recovery, or daughter run | Flexible | Daughter long run lands here when she doesn't take Saturday; otherwise short conversational recovery. |
 
-**Stress-day spacing:** Tue and Fri are the two stress anchors. Wed off is the natural buffer between them. The weekend has one committed easy slot (the daughter run, see below) and one flex slot — the flex slot stays easy or off unless the block explicitly calls for a B2B continuation, in which case it stacks onto the Friday long.
+**Stress-day spacing:** Tue and Fri are the two stress anchors. Wed off is the natural buffer between them — which is why the sixth-day fill goes on Monday, not Wednesday (decided 2026-09-27 when Patrik asked to fill one of the two off days). The weekend has one committed easy slot (the daughter run, see below) and one flex slot — the flex slot stays easy or off unless the block explicitly calls for a B2B continuation, in which case it stacks onto the Friday long.
 
 **Flexible B2B placement (work-leave / vacation window, Jun 18 – Aug 18).** During the work-leave window the Mon/Wed morning embargo is lifted (see "Calendar disruptions"), so a back-to-back does **not** have to be Fri long + Sat continuation. It can land on **any two consecutive days** that fit the social vacation calendar — Wed/Thu, Thu/Fri, Sat/Sun, whatever keeps the training out of the way of the week's social plans. When a weekend piles up with social commitments, move the B2B earlier in the week rather than compressing or skipping it. Guardrails that survive the shuffle:
 
@@ -107,6 +107,7 @@ Patrik's on-and-off shin problem began in the Nov 2025 PRT build and now shows m
 
 ## Cross-training
 
+- **Run commute (home, Mondays):** an option from 2026-09-27, schedule permitting. It is the Monday sixth-day fill — easy, HR <140, volume shoe carried to work. Distance is whatever the route gives (the bike route is 17 km; a shorter train-assisted leg is fine). Counts as running volume.
 - **Bike commute:** target 1×/week, in practice often 1–2×/month. 17 km each way (34 km round trip), ridden fairly hard — mostly Z2 with Z3 on uphills. This is real aerobic load, not commuting overhead. Count it as a training day when planning weekly load. Don't double up on a day before a quality run session or on legs that are already tired.
 
 ## Strength
