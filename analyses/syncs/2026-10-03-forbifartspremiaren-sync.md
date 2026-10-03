@@ -1,7 +1,7 @@
 ---
 date: 2026-10-03
 type: activity-sync
-summary: Sat Oct 3 Förbifartspremiären 12 km, day 7 after Lidingö. 50:24 (4:12/km on the official 12 km), avg HR 161, max 178, Megablast. Raced rather than run as the prescribed progression. HR passed the 155 cap by km 3, sat at 160–170 from km 4 and finished at 177. 67% of the time was above 160. TRIMP 137 / Edwards 186, so about 29% of Lidingö and below the Sep 18 threshold session: a hard tempo, not a second Lidingö. The forward plan is unchanged. Lesson for PRT: on rolling terrain Patrik speeds up on the descents and doesn't back off on the climbs, and HR ratchets up as a result.
+summary: Sat Oct 3 Förbifartspremiären 12 km, day 7 after Lidingö. 50:24 (4:12/km on the official 12 km), avg HR 161, max 178, Megablast. Raced rather than run as the prescribed progression. HR passed the 155 cap by km 3, sat at 160–170 from km 4 and finished at 177. 67% of the time was above 160. TRIMP 137 / Edwards 186, so about 29% of Lidingö and below the Sep 18 threshold session: a hard tempo, not a second Lidingö. The forward plan is unchanged. What carries to PRT (indoor, flat 350 m loop) is not the terrain. It's that in a race atmosphere he went straight past a by-feel HR cap.
 ---
 
 # Sat Oct 3 — Förbifartspremiären 12 km
@@ -56,7 +56,8 @@ Patrik's account: the legs felt fine, he got carried away by the race atmosphere
 
 - **The by-feel branch never happened.** HR was 153 on km 2 and 167 by km 4. The cruise phase lasted about 1.5 km, and the last 4 km ran about 20 bpm above the 145–150 target.
 - **Patrik's terrain read is right, and the HR shows it.** Each climb (laps 2, 4, 8, 11) steps HR up 3–10 bpm. The descents in laps 5–7 bring it down only 167 → 163 → 160, and it never returned below 157 after lap 3. It ratchets upward, so each descent hides the cost of the climb before it.
-- **This is the PRT lesson.** In a 100 km race, a ratchet like this over hours is how 145–150 turns into 160 by halfway. The race-day rule that follows: on rolling sections, **cap HR on the climbs and let pace fall**, and don't bank speed on the descents. Rehearse it in the Friday closing segments when the route rolls.
+- **What this means for PRT (indoor, flat 350 m loop, so no terrain).** The climb/descent pattern doesn't carry over. What does is the atmosphere effect: with a field around him and legs feeling good, a by-feel cap of 155 was gone by km 3. The race plan should pace 100 km by fixed HR and lap-time numbers, not by feel, especially in the first hours when the legs always feel fine.
+- **Where the terrain pattern does matter: the Friday closing segments.** The 145–150 pace reads (Oct 16 onward) and the Nov 13 sub-9 gate need routes that are as flat as possible. On rolling routes, cap HR on the climbs so the pace-at-HR number isn't inflated by descents.
 - **Fitness signal (loose).** 4:12/km at avg HR 161 on rolling terrain, a week after a 30 km race at HR 169, with legs reported fine. That's encouraging, but it says nothing about pace at 145–150, which is the number the block is built on. That read still comes from Fri Oct 16.
 - **Shoe:** Megablast instead of the prescribed Superblast or Torin. At 12 km it's a non-issue: the Megablast is on the volume-shoe list, and the shin rule is about Boston and Evo SL.
 - **The rest of week 0 ran a bit warm too.** Oct 1 averaged HR 142 and Oct 2 averaged 139, with second-half drift to 144. That isn't alarming in a recovery week, and he runs above prescription by habit. But the week as a whole carried more intensity than "recovery" implies.
