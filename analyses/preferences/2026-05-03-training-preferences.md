@@ -55,7 +55,7 @@ The group run is always **8–10 km**, never more. Plan accordingly — Tuesday 
 
 Formats Kundo cycles through:
 
-- **4×4 min** — Patrik's reference pace: interval (~5k–10k effort, HR up toward threshold) in a build week; recovery-pace jog with the same rep structure in a recovery week.
+- **4×4 min** — **VO2 max, by decision (2026-10-11).** In a build week Patrik runs the 4×4 as a VO2 session (reps plateau 170–177) and the plan accepts that as the week's one hard day. It is a repeated reference format, so hold the reps even (rep 1 pace throughout) to keep the Sep 15 / Oct 6 / Oct 12 comparison readable, rather than progressing 4:01 → 3:48. Do not write "take it at threshold" for this format — it was prescribed twice (Sep 15, Oct 6) and held neither time; the rep length makes it VO2 by construction. Recovery week → recovery-pace jog with the same rep structure.
 - **5×6 min** — Patrik's reference pace: threshold (HR 158–163) in a build week; steady or easy in a recovery week.
 - **Easy group run** — straight easy night with no reps.
 
@@ -64,7 +64,7 @@ How the plan uses this rule:
 - **Build week with quality budget available** → Patrik runs the reps at the prescribed effort. The group's choice IS the workout.
 - **Recovery week** → Patrik runs the reps at recovery pace. Same sawtooth structure, no cardiovascular stress. Gets the social run, skips the load.
 - **Race week or post-race week** → easy with the group or skip entirely; don't fake-jog the reps.
-- **VO2 (4×4 min) two weeks in a row in a build phase** → take the second one at threshold pace rather than interval pace, to avoid stacking VO2 stimulus when the plan's intent is aerobic-power.
+- **VO2 (4×4 min) two weeks in a row in a build phase** → run both as VO2 (decision 2026-10-11, replacing the earlier "second one at threshold" rule). Patrik's view, accepted: consistency in a repeated format — running form and raising the top end — is worth more than a one-off threshold substitution. Threshold minutes come from Kundo's 5×6 weeks and from the Friday closing segments; the plan must not add a second hard run to compensate. Recovery and down weeks still jog the reps.
 
 This rule replaces the earlier framing (where the block plan tried to dictate Tuesday's workout type). Three weekly reviews in a row — Apr 28, May 5, May 12 — showed the group session happening regardless of the plan's prescription. The plan now designs around that reality rather than against it.
 
