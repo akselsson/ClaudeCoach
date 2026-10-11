@@ -16,8 +16,8 @@ Patrik runs 5 days/week by default, with a **sixth-day option on Monday evening 
 
 | Day | Default role | Time of day | Notes |
 |---|---|---|---|
-| **Mon** | Off, or **optional sixth day** (evening) | Evening | Work blocks morning runs. **Fill option (2026-09-27): a commute-home run when the work schedule allows, otherwise 8–10 km easy.** Easy only, HR <140, no strides, in a volume shoe (Torin / Superblast / Megablast) — Kundo is the next evening. Counts on top of the week's target, not inside it. Off in recovery, down and race weeks. Easy spin OK if legs are restless. |
-| **Tue** | **Quality — work-group session + heavy strength** | Evening | The group (Kundo) sets the workout format each week; Patrik tunes the paces to where he is in the cycle. Build week → reps at prescribed effort. Recovery week → same reps jogged at recovery pace. Heavy strength stacks onto the run (see Strength section). Group runs are always 8–10 km — never more. |
+| **Mon** | Off, or **optional sixth day** (evening) | Evening | Work blocks morning runs. **Fill option (2026-09-27): a commute-home run when the work schedule allows, otherwise 8–10 km easy.** Easy only, HR <140, no strides, in a volume shoe (Torin / Superblast / Megablast) — Kundo is the next day at lunch, under 24 h later, so the Monday run must cost nothing. Counts on top of the week's target, not inside it. Off in recovery, down and race weeks. Easy spin OK if legs are restless. |
+| **Tue** | **Quality — work-group session + heavy strength** | Lunch (run), evening (strength) | The group (Kundo) run is a **lunch** session and always has been (corrected 2026-10-11; earlier versions of this file said evening). Heavy strength goes in the evening of the same day. The group sets the workout format each week; Patrik tunes the paces to where he is in the cycle. Build week → reps at prescribed effort. Recovery week → same reps jogged at recovery pace. Heavy strength stacks onto the run (see Strength section). Group runs are always 8–10 km — never more. |
 | **Wed** | Off | — | Work blocks morning runs; evenings are available if the plan needs a light run. Bike commute fits here when it happens. |
 | **Thu** | Easy or medium-long + maintenance strength | Afternoon/evening | Volume buffer day — flex up for higher-volume weeks, flex down for recovery. Light maintenance strength after the run (see Strength section). |
 | **Fri** | **Long run — Z2 (HR 140–150)** | Morning | Patrik's preferred long-run day. The week's anchor. Z2 explicitly: aim for steady, not drift-up-from-easy. B2B partner-day for big weekends. |
@@ -116,7 +116,7 @@ Adopted 2026-05-10 mid-Berlin-build. Two sessions per week — one heavy, one ma
 
 | Slot | Day | Focus | Cost |
 |---|---|---|---|
-| **Heavy** | Tue (after work-group quality) | Squat / deadlift / lunge variations, 4–6 reps × 3–4 sets. Big-pattern, heavy-but-not-grindy. | Stacks on a day that's already a stress day — protects the rest of the week's recovery. |
+| **Heavy** | Tue evening (the Kundo run is at lunch) | Squat / deadlift / lunge variations, 4–6 reps × 3–4 sets. Big-pattern, heavy-but-not-grindy. | Stacks on a day that's already a stress day — protects the rest of the week's recovery. |
 | **Maintenance** | Thu (after the easy/medium-long run) | Single-leg work, hip/core/calf integrity (split squats, step-ups, calf raises, planks/side-planks, hip thrusts). 2–3 sets, technique-focused, no chasing failure. | 20–30 min. Must stay light enough that Fri's long run isn't compromised — if Thu's run was harder than planned, drop the strength or trim it. |
 
 **Rules of thumb:**
