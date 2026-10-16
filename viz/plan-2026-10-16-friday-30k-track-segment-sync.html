@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRT 100K — Ten-Week Build</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0a0d0e;
+    --bg-dark-2: #11161a;
+    --grid: rgba(255,255,255,0.045);
+    --bg-light: #f5f0e6;
+    --paper: #efe8d9;
+    --ink-dark: #e8e6e0;
+    --ink-dark-dim: #9aa5a5;
+    --ink-dark-faint: #5d6868;
+    --ink-light: #1f1f1d;
+    --ink-light-dim: #7c756a;
+    --rule-light: #d8cfba;
+    --amber: #ffb547;
+    --amber-soft: rgba(255,181,71,0.18);
+    --oxblood: #7a2e2e;
+    --oxblood-dim: #9d5757;
+
+    --phase-history: #2c3539;
+    --phase-recovery: #4a7a7a;
+    --phase-reintro: #7aa570;
+    --phase-base-1: #8eb056;
+    --phase-base-2: #b4a850;
+    --phase-base-3: #c89a45;
+    --phase-italy: #5e564a;
+    --phase-specificity: #c47340;
+    --phase-taper: #b8c4cc;
+    --phase-race: #ffb547;
+    --phase-postrace: #4a6a7a;
+    --phase-sharpen: #7a9a8e;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Sora", system-ui, sans-serif;
+    color: var(--ink-light);
+    background: var(--bg-light);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ───────────────────────────────────── HEADER ───────────────────────────────────── */
+  .deck {
+    background: var(--bg-dark);
+    color: var(--ink-dark);
+    padding: 32px 48px 56px;
+    position: relative;
+    overflow: hidden;
+    background-image:
+      repeating-linear-gradient(to right, var(--grid) 0 1px, transparent 1px 80px),
+      radial-gradient(ellipse at top right, rgba(255,181,71,0.06), transparent 60%);
+  }
+  .deck::after {
+    content: "";
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    mix-blend-mode: screen;
+    opacity: 0.7;
+  }
+  .deck > * { position: relative; z-index: 1; }
+
+  .deck .topstrip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dark-dim);
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .deck .topstrip .signal { color: var(--amber); }
+  .deck .topstrip .signal::before {
+    content: "●";
+    margin-right: 8px;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .deck .title-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+    margin: 36px 0 20px;
+  }
+  .deck h1 {
+    font-family: "Archivo Black", sans-serif;
+    font-size: clamp(48px, 7vw, 96px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--ink-dark);
+    text-transform: uppercase;
+  }
+  .deck h1 em {
+    font-style: normal;
+    color: var(--amber);
+  }
+  .deck .subtitle {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-dark-dim);
+    line-height: 1.7;
+    max-width: 320px;
+    text-align: right;
+  }
+  .deck .subtitle strong { color: var(--ink-dark); font-weight: 500; }
+
+  .chips {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin: 28px 0 40px;
+  }
+  .chip {
+    background: var(--bg-dark);
+    padding: 14px 18px 16px;
+  }
+  .chip .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+  }
+  .chip .val {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 32px;
+    line-height: 1;
+    margin-top: 8px;
+    letter-spacing: -0.01em;
+  }
+  .chip .unit {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-dark-dim);
+    margin-left: 6px;
+    letter-spacing: 0.08em;
+  }
+  .chip.accent .val { color: var(--amber); }
+
+  .panel-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+    margin: 24px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .panel-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* SVG containers */
+  .svg-wrap { width: 100%; }
+  .svg-wrap svg { width: 100%; height: auto; display: block; }
+
+  /* HR zone strip */
+  .hr-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-top: 18px;
+  }
+  .hr-cell {
+    background: var(--bg-dark);
+    padding: 12px 14px 14px;
+    position: relative;
+  }
+  .hr-cell::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .hr-cell.easy::before { background: #5a8a8a; }
+  .hr-cell.steady::before { background: #8eb056; }
+  .hr-cell.subt::before { background: #c89a45; }
+  .hr-cell.thresh::before { background: #c47340; }
+  .hr-cell.vo2::before { background: #b8424c; }
+  .hr-cell .name {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dark-dim);
+  }
+  .hr-cell .bpm {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 18px;
+    margin-top: 6px;
+  }
+  .hr-cell .bpm small {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-dark-faint);
+    margin-left: 6px;
+    font-weight: 400;
+  }
+
+  /* ─────────────────────────── TRANSITION STRIP ─────────────────────────── */
+  .transition {
+    background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark) 50%, var(--bg-light) 50%, var(--bg-light) 100%);
+    padding: 0 48px;
+    position: relative;
+  }
+  .transition .rule {
+    border: none;
+    border-top: 1px solid var(--amber);
+    margin: 0;
+    position: relative;
+  }
+  .transition .caption {
+    position: relative;
+    transform: translateY(-50%);
+    background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark) 50%, var(--bg-light) 50%, var(--bg-light) 100%);
+    display: inline-block;
+    padding: 0 18px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-left: 40px;
+  }
+
+  /* ─────────────────────────── EDITORIAL JOURNAL ─────────────────────────── */
+  .journal {
+    padding: 80px 48px 48px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .journal .preamble {
+    max-width: 640px;
+    margin: 0 auto 80px;
+    text-align: center;
+  }
+  .journal .preamble h2 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 400;
+    font-size: clamp(36px, 4vw, 56px);
+    line-height: 1.05;
+    margin: 0 0 18px;
+    letter-spacing: -0.015em;
+  }
+  .journal .preamble h2 em {
+    font-style: italic;
+    color: var(--oxblood);
+  }
+  .journal .preamble p {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--ink-light-dim);
+    margin: 0;
+  }
+
+  .block-heading {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 24px;
+    margin: 64px 0 32px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .block-heading h3 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 500;
+    font-size: 32px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .block-heading h3 em { font-style: italic; color: var(--oxblood); }
+  .block-heading .meta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+  }
+
+  .week {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 56px;
+    padding: 36px 0;
+    border-bottom: 1px solid var(--rule-light);
+    position: relative;
+  }
+  .week:last-child { border-bottom: none; }
+  .week .rail {
+    position: relative;
+  }
+  .week .wknum {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--oxblood);
+    font-size: 88px;
+    line-height: 0.85;
+    letter-spacing: -0.02em;
+  }
+  .week .phase-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-top: 8px;
+    color: var(--ink-light-dim);
+  }
+  .week .dates {
+    font-family: "Sora", sans-serif;
+    font-size: 14px;
+    margin-top: 14px;
+    color: var(--ink-light);
+    font-weight: 500;
+  }
+  .week .vol {
+    margin-top: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-light-dim);
+  }
+  .week .vol strong {
+    color: var(--ink-light);
+    font-weight: 500;
+  }
+
+  .week .body {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .week .intent {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 36;
+    font-size: 18px;
+    line-height: 1.45;
+    color: var(--oxblood);
+    margin: 0 0 22px;
+    border-left: 2px solid var(--oxblood);
+    padding-left: 16px;
+  }
+  .week ul.days {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .week ul.days li {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 18px;
+    padding: 9px 0;
+    border-top: 1px dotted var(--rule-light);
+    align-items: baseline;
+  }
+  .week ul.days li:first-child { border-top: none; padding-top: 4px; }
+  .week ul.days .day {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+    padding-top: 2px;
+  }
+  .week ul.days .day.race {
+    color: var(--oxblood);
+    font-weight: 700;
+  }
+  .week ul.days .day.done {
+    color: var(--ink-light-dim);
+    opacity: 0.85;
+  }
+  .week ul.days .day.today {
+    color: var(--amber);
+    font-weight: 700;
+  }
+  .week ul.days li.done .session { color: var(--ink-light-dim); }
+  .week ul.days li.done .session strong { color: var(--ink-light-dim); font-weight: 500; }
+  .week ul.days li.today {
+    background: linear-gradient(90deg, var(--amber-soft) 0%, transparent 80%);
+    border-left: 2px solid var(--amber);
+    padding-left: 10px;
+    margin-left: -12px;
+  }
+  .week ul.days .session {
+    font-size: 15.5px;
+    line-height: 1.5;
+  }
+  .week ul.days .session .tag {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--paper);
+    color: var(--ink-light-dim);
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: 1px;
+  }
+  .week ul.days .session .tag.race { background: var(--oxblood); color: #fff; }
+  .week ul.days .session .tag.long { background: #2c3e3e; color: #fff; }
+  .week ul.days .session .tag.qual { background: var(--amber); color: var(--ink-light); }
+  .week ul.days .session .tag.b2b { background: var(--phase-specificity); color: #fff; }
+  .week ul.days .session .tag.group { background: #5a8a8a; color: #fff; }
+  .week ul.days .session .tag.partner { background: transparent; color: #5a8a8a; border: 1px solid #5a8a8a; }
+  .week ul.days .session .tag.z1 { background: transparent; color: #5a8a8a; border: 1px solid #5a8a8a; font-weight: 600; }
+  .week ul.days .session .tag.z2 { background: transparent; color: #8eb056; border: 1px solid #8eb056; font-weight: 600; }
+  .week ul.days .session .tag.str { background: #2c3e3e; color: #d8c98a; border: 1px solid #d8c98a; }
+  .week ul.days .session .tag.str.maint { background: transparent; color: #7c756a; border: 1px dashed #b9ad8c; }
+  .week ul.days .session .tag.off { background: transparent; border: 1px solid var(--rule-light); }
+  .week ul.days .session .tag.done { background: transparent; color: var(--ink-light-dim); border: 1px dashed var(--rule-light); }
+  .week ul.days .session .tag.dev { background: transparent; color: var(--oxblood); border: 1px solid var(--oxblood); }
+  .week ul.days .session .tag.shoe { background: transparent; color: #5a7a5a; border: 1px dashed rgba(90,122,90,0.55); font-size: 9.5px; letter-spacing: 0.1em; }
+  .week ul.days .session .tag.fit { background: rgba(180,120,40,0.10); color: #b47828; border: 1px solid rgba(180,120,40,0.4); }
+  .week ul.days .session .tag.risk { background: rgba(122,46,46,0.08); color: var(--oxblood); border: 1px dashed rgba(122,46,46,0.5); }
+  .week ul.days .session strong { font-weight: 600; }
+
+  /* Block 2 narrative cards */
+  .narrative-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px 32px;
+    margin-top: 12px;
+  }
+  .narr-card {
+    border: 1px solid var(--rule-light);
+    padding: 26px 28px 28px;
+    background: rgba(255,255,255,0.4);
+    position: relative;
+  }
+  .narr-card.hatched {
+    background:
+      repeating-linear-gradient(135deg, transparent 0 8px, rgba(125,109,80,0.07) 8px 9px),
+      rgba(255,255,255,0.3);
+  }
+  .narr-card .nrange {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+  }
+  .narr-card h4 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 72;
+    font-weight: 500;
+    font-size: 24px;
+    margin: 6px 0 10px;
+    letter-spacing: -0.005em;
+  }
+  .narr-card h4 em { font-style: italic; color: var(--oxblood); }
+  .narr-card p {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-light);
+    margin: 0 0 10px;
+  }
+  .narr-card .keys {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-light-dim);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dotted var(--rule-light);
+  }
+  .narr-card .keys span { color: var(--ink-light); font-weight: 500; }
+
+  /* ─────────────────────────── BERLIN BANNER ─────────────────────────── */
+  .race-banner {
+    margin-top: 100px;
+    background: var(--bg-dark);
+    color: var(--ink-dark);
+    padding: 80px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .race-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 50%, rgba(255,181,71,0.20), transparent 55%),
+      radial-gradient(ellipse at 80% 80%, rgba(122,46,46,0.30), transparent 60%);
+  }
+  .race-banner .inner {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .race-banner .a-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .race-banner h2 {
+    font-family: "Archivo Black", sans-serif;
+    font-size: clamp(44px, 6vw, 84px);
+    line-height: 0.92;
+    text-transform: uppercase;
+    margin: 14px 0 14px;
+    color: var(--ink-dark);
+    letter-spacing: -0.01em;
+  }
+  .race-banner h2 em {
+    font-style: normal;
+    color: var(--amber);
+  }
+  .race-banner .race-date {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-dark-dim);
+    letter-spacing: 0.12em;
+  }
+  .race-banner .race-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .race-banner .race-stats .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+  }
+  .race-banner .race-stats .val {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 26px;
+    margin-top: 6px;
+    color: var(--ink-dark);
+  }
+  .race-banner .creed {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 1.3;
+    color: var(--ink-dark);
+    margin: 0;
+  }
+  .race-banner .creed strong {
+    color: var(--amber);
+    font-weight: 500;
+  }
+  .race-banner .creed::before {
+    content: "\201C";
+    color: var(--amber);
+    font-size: 1.5em;
+    line-height: 0;
+    vertical-align: -0.15em;
+    margin-right: 0.05em;
+  }
+  .race-banner .creed::after {
+    content: "\201D";
+    color: var(--amber);
+    font-size: 1.5em;
+    line-height: 0;
+    vertical-align: -0.15em;
+  }
+
+  /* ─────────────────────────── POST-BERLIN ─────────────────────────── */
+  .postscript {
+    background: var(--bg-light);
+    padding: 80px 48px 64px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .postscript .ps-head {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-light-dim);
+    margin-bottom: 12px;
+  }
+  .postscript h3 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 500;
+    font-size: 38px;
+    line-height: 1.1;
+    margin: 0 0 18px;
+    max-width: 720px;
+    letter-spacing: -0.01em;
+  }
+  .postscript h3 em { font-style: italic; color: var(--oxblood); }
+  .postscript .ps-body {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 56px;
+    margin-top: 24px;
+  }
+  .postscript .ps-body p {
+    font-size: 16px;
+    line-height: 1.65;
+    margin: 0 0 14px;
+    max-width: 560px;
+  }
+  .ps-finish {
+    border-left: 3px solid var(--oxblood);
+    padding: 8px 0 8px 22px;
+  }
+  .ps-finish .label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+  .ps-finish h4 {
+    font-family: "Archivo Black", sans-serif;
+    text-transform: uppercase;
+    font-size: 28px;
+    margin: 6px 0 4px;
+    letter-spacing: -0.005em;
+  }
+  .ps-finish .when {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-light-dim);
+    letter-spacing: 0.1em;
+  }
+  .ps-finish p {
+    margin-top: 12px !important;
+    font-size: 14.5px !important;
+    color: var(--ink-light-dim);
+  }
+
+  /* ─────────────────────────── FOOTER ─────────────────────────── */
+  footer {
+    background: var(--bg-dark);
+    color: var(--ink-dark-dim);
+    padding: 40px 48px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    line-height: 1.7;
+  }
+  footer .foot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  footer .foot-grid h5 {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dark-faint);
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+  footer code {
+    color: var(--amber);
+    font-size: 11px;
+  }
+  footer ul { padding-left: 18px; margin: 0; }
+  footer li { margin-bottom: 4px; }
+
+  /* ─────────────────────────── RESPONSIVE ─────────────────────────── */
+  @media (max-width: 920px) {
+    .deck { padding: 24px 22px 40px; }
+    .deck .title-row { grid-template-columns: 1fr; }
+    .deck .subtitle { text-align: left; max-width: none; }
+    .chips { grid-template-columns: 1fr 1fr; }
+    .hr-strip { grid-template-columns: 1fr 1fr; }
+    .journal { padding: 60px 22px 32px; }
+    .week { grid-template-columns: 1fr; gap: 18px; }
+    .week .wknum { font-size: 64px; }
+    .narrative-grid { grid-template-columns: 1fr; }
+    .race-banner { padding: 56px 22px; }
+    .race-banner .inner { grid-template-columns: 1fr; gap: 28px; }
+    .postscript { padding: 56px 22px 40px; }
+    .postscript .ps-body { grid-template-columns: 1fr; gap: 28px; }
+    .transition { padding: 0 22px; }
+    .transition .caption { margin-left: 0; }
+    footer { padding: 32px 22px; }
+    footer .foot-grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  /* ─────────────────────────── MOTION ─────────────────────────── */
+  @keyframes wipe {
+    from { transform: scaleX(0); opacity: 0; }
+    to { transform: scaleX(1); opacity: 1; }
+  }
+  @keyframes rise {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .week, .narr-card { animation: rise 0.7s ease-out backwards; }
+  .week:nth-child(1) { animation-delay: 0.05s; }
+  .week:nth-child(2) { animation-delay: 0.12s; }
+  .week:nth-child(3) { animation-delay: 0.19s; }
+  .week:nth-child(4) { animation-delay: 0.26s; }
+  .week:nth-child(5) { animation-delay: 0.33s; }
+  .week:nth-child(6) { animation-delay: 0.40s; }
+  .narr-card:nth-child(1) { animation-delay: 0.15s; }
+  .narr-card:nth-child(2) { animation-delay: 0.22s; }
+  .narr-card:nth-child(3) { animation-delay: 0.29s; }
+  .narr-card:nth-child(4) { animation-delay: 0.36s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .deck .topstrip .signal::before { animation: none; }
+  }
+
+  /* ─────────────────────────── PRINT ─────────────────────────── */
+  @media print {
+    .deck { background: #fff; color: #000; padding: 16px; }
+    .deck::after { display: none; }
+    .deck h1, .chip .val, .chip .lbl, .panel-label, .topstrip { color: #000 !important; }
+    .deck .topstrip .signal::before { animation: none; color: #000; }
+    .race-banner { background: #fff; color: #000; }
+    .race-banner h2, .race-banner .creed { color: #000 !important; }
+    .race-banner h2 em, .race-banner .creed strong { color: #c47340 !important; }
+    .race-banner::before { display: none; }
+    footer { background: #fff; color: #000; }
+    .week, .narr-card { animation: none !important; }
+    body { background: #fff; }
+    .race-banner, .deck { box-shadow: none; }
+  }
+
+  /* ────────────────────────── COLLAPSIBLE WEEKS ────────────────────────── */
+  /* Each week is a <details class="week"> (keeps the .week grid + rise anim).
+     <summary class="rail"> is the click target (grid col 1); .body is col 2,
+     hidden natively when closed. Past weeks render without [open]; current +
+     future with [open]. The fold script (end of body) refines this by real date. */
+  details.week > summary {
+    display: block;
+    list-style: none;
+    cursor: pointer;
+    outline: none;
+  }
+  details.week > summary::-webkit-details-marker { display: none; }
+  details.week > summary::marker { content: ""; }
+  details.week > summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
+  .week .chev {
+    display: block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--ink-light-dim);
+    transition: transform 0.2s ease;
+    margin-bottom: 8px;
+  }
+  details.week[open] > summary .chev { transform: rotate(90deg); }
+  /* collapsed = compact folded strip: slim the big wknum so past weeks don't tower */
+  details.week:not([open]) { padding: 18px 0; }
+  details.week:not([open]) .wknum { font-size: 40px; }
+  details.week:not([open]) .phase-tag { margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- DATA-INSTRUMENT HEADER                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="deck">
+  <div class="topstrip">
+    <span class="signal">PLAN ACTIVE · BLOCK 01 · WEEK 2 · 10-WK BUILD TO PRT</span>
+    <span>2026 — RUNNING SEASON DASHBOARD</span>
+    <span>UPDATED 2026·10·16 · 2026-10-16-FRIDAY-30K-TRACK-SEGMENT-SYNC</span>
+  </div>
+
+  <div class="title-row"><h1>PRT 100K:<br><em>Ten Weeks to Dec 4</em></h1>
+    <div class="subtitle">
+      Lidingöloppet done (2:27:15).<br>
+      Recovery week, then rebuild<br>
+      60→85→70 km to a 95–110 km<br>
+      peak. Stretch sub-9, floor sub-10.
+    </div></div>
+
+  <div class="chips"><div class="chip"><div class="lbl">Today</div><div class="val">Oct 16<span class="unit">2026</span></div></div>
+    <div class="chip accent"><div class="lbl">To PRT 100k</div><div class="val">49<span class="unit">days</span></div></div>
+    <div class="chip"><div class="lbl">To sub-9 gate</div><div class="val">28<span class="unit">days</span></div></div>
+    <div class="chip"><div class="lbl">Block week</div><div class="val">2<span class="unit">/ 10</span></div></div></div>
+
+  <div class="panel-label">Season gantt — phase &amp; race timeline</div>
+  <div class="svg-wrap"><svg viewBox="0 0 628.1 180" preserveAspectRatio="none" aria-label="Season gantt timeline">
+      <g font-family="JetBrains Mono, monospace" font-size="9" fill="#5d6868" letter-spacing="2">
+        <text x="0" y="14">SEP</text>
+        <text x="57.1" y="14">OCT</text>
+        <text x="342.6" y="14">NOV</text>
+        <text x="571.0" y="14">DEC</text>
+      </g>
+
+      <g stroke="rgba(255,255,255,0.06)" stroke-width="1">
+        <line x1="0.0" y1="22" x2="0.0" y2="30"/>
+        <line x1="57.1" y1="22" x2="57.1" y2="30"/>
+        <line x1="114.2" y1="22" x2="114.2" y2="30"/>
+        <line x1="171.3" y1="22" x2="171.3" y2="30"/>
+        <line x1="228.4" y1="22" x2="228.4" y2="30"/>
+        <line x1="285.5" y1="22" x2="285.5" y2="30"/>
+        <line x1="342.6" y1="22" x2="342.6" y2="30"/>
+        <line x1="399.7" y1="22" x2="399.7" y2="30"/>
+        <line x1="456.8" y1="22" x2="456.8" y2="30"/>
+        <line x1="513.9" y1="22" x2="513.9" y2="30"/>
+        <line x1="571.0" y1="22" x2="571.0" y2="30"/>
+        <line x1="628.1" y1="22" x2="628.1" y2="30"/>
+      </g>
+
+      <!-- ───── PHASE BANDS (y=40..78) ───── -->
+      <rect x="0.0" y="40" width="57.1" height="38" fill="#2c3539" opacity="0.65"/>
+      <rect x="57.1" y="40" width="57.1" height="38" fill="#4a7a7a"/>
+      <rect x="114.2" y="40" width="57.1" height="38" fill="#8eb056"/>
+      <rect x="171.3" y="40" width="57.1" height="38" fill="#9cb050"/>
+      <rect x="228.4" y="40" width="57.1" height="38" fill="#b4a850"/>
+      <rect x="285.5" y="40" width="57.1" height="38" fill="#c89a45"/>
+      <rect x="285.5" y="40" width="57.1" height="38" fill="none" stroke="#9aa5a5" stroke-width="1" stroke-dasharray="3 2"/>
+      <rect x="342.6" y="40" width="57.1" height="38" fill="#c47340"/>
+      <rect x="399.7" y="40" width="57.1" height="38" fill="#b85a32"/>
+      <rect x="456.8" y="40" width="57.1" height="38" fill="#c9986a"/>
+      <rect x="513.9" y="40" width="57.1" height="38" fill="#b8c4cc"/>
+      <rect x="571.0" y="40" width="57.1" height="38" fill="#d8dde0"/>
+      <rect x="571.0" y="40" width="57.1" height="38" fill="none" stroke="#ffb547" stroke-width="1.5"/>
+
+      <!-- Phase labels -->
+      <g font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700" text-anchor="middle" letter-spacing="1.5">
+        <text x="28.6" y="63" fill="#e8f0f0">RACE</text>
+        <text x="28.6" y="74" fill="#e8f0f0" font-size="7.5">DONE</text>
+        <text x="85.7" y="63" fill="#e8f0f0">RECOVERY</text>
+        <text x="228.4" y="63" fill="#0a0d0e">REBUILD</text>
+        <text x="314.1" y="74" fill="#0a0d0e" font-size="7.5">DOWN WK</text>
+        <text x="428.2" y="63" fill="#0a0d0e">PEAK</text>
+        <text x="428.2" y="74" fill="#0a0d0e" font-size="7.5">B2B + GATE</text>
+        <text x="542.4" y="63" fill="#0a0d0e">TAPER</text>
+        <text x="599.5" y="63" fill="#0a0d0e">RACE WK</text>
+        <text x="599.5" y="74" fill="#0a0d0e" font-size="7.5">PRT 100K FRI</text>
+      </g>
+
+      <!-- ───── LIDINGÖLOPPET — DONE, B-race ───── -->
+      <g>
+        <line x1="44.9" y1="40" x2="44.9" y2="120" stroke="#a4baa8" stroke-width="1.5"/>
+        <circle cx="44.9" cy="100" r="7" fill="#a4baa8"/>
+        <text x="44.9" y="103" text-anchor="middle" font-family="Archivo Black, sans-serif" font-size="9" fill="#0a0d0e">B</text>
+        <text x="44.9" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#a4baa8" letter-spacing="0.5">LIDINGÖ</text>
+        <text x="44.9" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#a4baa8">2:27:15 · DONE</text>
+      </g>
+
+      <!-- ───── NOV 1 REVIEW ───── -->
+      <g>
+        <line x1="342.6" y1="40" x2="342.6" y2="120" stroke="#9aa5a5" stroke-width="1" stroke-dasharray="2 3"/>
+        <rect x="338.6" y="96" width="8" height="8" fill="#0a0d0e" stroke="#9aa5a5" stroke-width="1.2" transform="rotate(45 342.6 100)"/>
+        <text x="342.6" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5" letter-spacing="0.5">NOV 1 REVIEW</text>
+        <text x="342.6" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#7c756a">PEAK CEILING · VANISH</text>
+      </g>
+
+      <!-- ───── SUB-9 GATE, Nov 13 ───── -->
+      <g>
+        <line x1="436.4" y1="40" x2="436.4" y2="120" stroke="#ffb547" stroke-width="1" stroke-dasharray="2 3" opacity="0.7"/>
+        <rect x="432.4" y="96" width="8" height="8" fill="#7a2e2e" stroke="#ffb547" stroke-width="1.2" transform="rotate(45 436.4 100)"/>
+        <text x="436.4" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700" letter-spacing="0.5">SUB-9 GATE</text>
+        <text x="436.4" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#9aa5a5">30K ≤148HR ≤5:25</text>
+      </g>
+
+      <!-- ───── A-RACE: PRT 100K, Dec 4 ───── -->
+      <g>
+        <line x1="607.7" y1="40" x2="607.7" y2="120" stroke="#ffb547" stroke-width="2"/>
+        <circle cx="607.7" cy="100" r="9" fill="#ffb547"/>
+        <text x="607.7" y="103" text-anchor="middle" font-family="Archivo Black, sans-serif" font-size="11" fill="#0a0d0e">A</text>
+        <text x="607.7" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#ffb547" letter-spacing="0.5">PRT 100K</text>
+        <text x="607.7" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547">~100KM · DEC 4</text>
+      </g>
+
+      <!-- ───── TODAY rule (Fri Oct 16) ───── -->
+      <g>
+        <line x1="208.1" y1="34" x2="208.1" y2="170" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.85"/>
+        <circle cx="208.1" cy="34" r="3" fill="#ffb547"/>
+        <text x="214.4" y="170" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700" letter-spacing="1">TODAY</text>
+      </g>
+    </svg></div>
+
+  <div class="panel-label">Weekly running volume — kilometres (Week 0 recovery 35–45 km after the Sep 27 Förbifartspremiären swap; weeks 1–3 rebuild 60→75→85 km base, ~72–77 km in week 1 with the optional Monday commute-run sixth day (dashed outline); week 2 has no Monday option — Monday is the moved 4×4, ~75 km target, landing ~73; week 3 Monday option withdrawn Oct 16, five-day grid ~85 km; week 4 down week 70 km, no Monday option; Friday longs 25→30→32→36 km; weeks 5–7 peak 95–110 km, provisional pending the Nov 1 review&#8217;s peak-ceiling call; week 8 taper 45–55 km; week 9 race week ~15 km plus the race Friday Dec 4)</div>
+  <div class="svg-wrap"><svg viewBox="0 0 628.1 180" preserveAspectRatio="none" aria-label="Weekly volume chart">
+      <line x1="0" y1="160" x2="628.1" y2="160" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+
+      <g stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="2 4">
+        <line x1="0" y1="40"  x2="628.1" y2="40"/>
+        <line x1="0" y1="100" x2="628.1" y2="100"/>
+      </g>
+      <g font-family="JetBrains Mono, monospace" font-size="8" fill="#5d6868" letter-spacing="1">
+        <text x="4" y="38">— 120 KM</text>
+        <text x="4" y="98">— 60 KM</text>
+      </g>
+
+      <g>
+        <rect x="8.0" y="116" width="41" height="44" fill="#a4baa8"/>
+        <text x="28.5" y="111" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">44</text>
+        <rect x="65.1" y="120" width="41" height="40" fill="#4a7a7a"/>
+        <text x="85.6" y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">35–45</text>
+        <rect x="122.2" y="100" width="41" height="60" fill="#8eb056"/>
+        <rect x="122.2" y="83" width="41" height="17" fill="none" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2"/>
+        <text x="142.7" y="95" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">60</text>
+        <text x="142.7" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#ffb547">+opt ~77</text>
+        <rect x="179.3" y="85" width="41" height="75" fill="#9cb050"/>
+        <text x="199.8" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">75</text>
+        <rect x="236.4" y="75" width="41" height="85" fill="#b4a850"/>
+        <text x="256.9" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">85</text>
+        <text x="256.9" y="55" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#9aa5a5">MON OFF</text>
+        <rect x="293.5" y="90" width="41" height="70" fill="#c89a45"/>
+        <rect x="293.5" y="90" width="41" height="70" fill="none" stroke="#9aa5a5" stroke-width="1" stroke-dasharray="3 2"/>
+        <text x="314.0" y="85" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">70</text>
+        <rect x="350.6" y="60" width="41" height="100" fill="#c47340"/>
+        <text x="371.1" y="55" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700">~100</text>
+        <rect x="407.7" y="55" width="41" height="105" fill="#b85a32"/>
+        <text x="428.2" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700">~105</text>
+        <rect x="464.8" y="75" width="41" height="85" fill="#c9986a"/>
+        <text x="485.3" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">~85</text>
+        <rect x="521.9" y="110" width="41" height="50" fill="#b8c4cc"/>
+        <text x="542.4" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9aa5a5">~50</text>
+        <rect x="579.0" y="145" width="41" height="15" fill="#d8dde0"/>
+        <rect x="579.0" y="145" width="41" height="15" fill="none" stroke="#ffb547" stroke-width="1.5"/>
+        <text x="599.5" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb547" font-weight="700">~15 + RACE</text>
+        <text x="428.2" y="42" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#ffb547" letter-spacing="0.5">B2B</text>
+        <text x="8" y="174" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#9aa5a5">DASHED = OPTIONAL MONDAY COMMUTE RUN, ON TOP OF BASE TARGET · WEEK 3 OPTION WITHDRAWN OCT 16 (SHOE RULE BROKEN)</text>
+      </g>
+
+      <line x1="208.1" y1="20" x2="208.1" y2="160" stroke="#ffb547" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.7"/>
+    </svg></div>
+
+  <div class="panel-label">Heart-rate zones — current calibration (max HR 184 · resting 44)</div>
+  <div class="hr-strip"><div class="hr-cell easy"><div class="name">Easy</div><div class="bpm">&lt;140<small>bpm</small></div></div>
+    <div class="hr-cell steady"><div class="name">Steady</div><div class="bpm">140–150<small>bpm</small></div></div>
+    <div class="hr-cell subt"><div class="name">Sub-threshold</div><div class="bpm">150–160<small>bpm</small></div></div>
+    <div class="hr-cell thresh"><div class="name">Threshold</div><div class="bpm">160–170<small>bpm</small></div></div>
+    <div class="hr-cell vo2"><div class="name">VO2 / race cap</div><div class="bpm">170+<small>bpm</small></div></div></div>
+</section>
+
+<!-- transition -->
+<div class="transition">
+  <hr class="rule">
+  <span class="caption">—— BLOCK 01 · WEEK-BY-WEEK ——</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- EDITORIAL TRAINING JOURNAL                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<main class="journal">
+
+  <div class="preamble"><h2>Ten weeks, one <em>closing segment</em>.</h2>
+    <p>Lidingöloppet is done — 2:27:15, time lost to a congested start and a surrendered final climb, not a blow-up in between. The next ten weeks rebuild toward PRT 100 km on Dec 4: a recovery week, four weeks taking volume from 60 to 85 km with the Friday long growing to 36 km, a three-week peak at 95–110 km carrying the sub-9 pacing gate, then a two-step taper into race week. The specific work lives entirely inside the Friday long's closing segment — 30 to 90 minutes at HR 145–150, 100 km effort. Everything else stays easy. Shins are the one thing that broke last year's build at this exact point in the calendar; the shoe rotation below exists so that doesn't repeat.</p>
+    <p>Updated Sep 27: Saturday Oct 3 becomes Förbifartspremiären, a one-off 12 km run by feel; and weeks 1–3 pick up an optional sixth day — a Monday commute-home run, easy and on top of the week's target, filling the block's second off day while Wednesday stays the buffer before Kundo. Week 3's version is the watch item: it pushes the week near 100 km, last year's shin-injury volume, so it only runs if the shins have stayed silent.</p>
+    <p>Updated Oct 11: week 2 (Oct 12–18) loses its Tuesday Kundo slot. The quality session moves to Monday Oct 12 as a solo 4×4 at VO2, heavy strength takes Tuesday with no run, and Thursday&#8217;s maintenance lift is dropped so Friday&#8217;s 30 km with the last 30 min at HR 145–150 stays the protected key session. Kundo 4×4s run as VO2 from now on.</p>
+    <p>Updated Oct 16: Friday&#8217;s first closing segment is in — <strong>block-1 baseline: Oct 16, Sollentunavallen track, 6.14 km in 30:51 at 5:02/km for HR 147.7</strong> (the reference for Oct 23 and Oct 30 on the same track; not directly comparable to the sub-9 road gate). The run was 30.9 km entirely in the Evo SL Silver, which the shoe rule bars from long runs, so the week-3 Monday sixth-day run is withdrawn: <strong>Mon Oct 19 is off</strong> and week 3 runs the five-day grid, ~85 km. The option returns for discussion at the Nov 1 review. Fri Oct 23&#8217;s preamble aims at the low half of Z2, HR 140–145, before the 45 min closing segment.</p></div>
+
+  <div class="block-heading">
+    <h3>Block <em>01</em> — Recovery &amp; Rebuild</h3>
+    <span class="meta">Sep 28 – Nov 1 · 5 weeks · 35 → 60(–77) → 75 → 85 → 70 km</span>
+  </div>
+
+  <details class="week" data-end="2026-10-04" open>
+    <summary class="rail">
+      <span class="chev">▸</span>
+      <div class="wknum">00</div>
+      <div class="phase-tag">RECOVERY</div>
+      <div class="dates">Sep 28 — Oct 4</div>
+      <div class="vol">Target <strong>35–45 km</strong></div>
+    </summary>
+    <div class="body">
+      <p class="intent">Every run optional; stop at any niggle. This is the tail of the Lidingöloppet recovery prescription, not the start of the build — except Saturday, which picks up a one-off race by feel.</p>
+      <ul class="days">
+        <li><span class="day">MON 28</span><span class="session"><span class="tag off">OFF</span>Walk.</span></li>
+        <li><span class="day">TUE 29</span><span class="session"><span class="tag group">KUNDO</span>Easy with the group or skip. Jog any reps. ≤8 km. No strength.</span></li>
+        <li><span class="day">WED 30</span><span class="session"><span class="tag off">OFF</span></span></li>
+        <li><span class="day">THU 1</span><span class="session"><span class="tag z1">EASY</span>30–45 min, HR &lt;140. <span class="tag str maint">STR LIGHT</span> <span class="tag shoe">Torin</span></span></li>
+        <li><span class="day">FRI 2</span><span class="session"><span class="tag z1">EASY</span>40–45 min, HR &lt;140.</span></li>
+        <li><span class="day race">SAT 3</span><span class="session"><span class="tag race">FÖRBIFARTSPREMIÄREN</span><strong>12 km, by feel.</strong> Default: cruise easy HR &lt;140 throughout. If legs are good: cruise to ~6 km, then last 6 km at 100 km effort HR 145–150, never above 155 — not a race effort, day 7 post-Lidingöloppet with the first quality day Tue Oct 6. <span class="tag shoe">Superblast/Torin</span></span></li>
+        <li><span class="day">SUN 4</span><span class="session"><span class="tag partner">DAUGHTER</span>Z1, or 40–45 min easy HR &lt;140, or off. <em>(Not the 60–75 min that was here — the 12 km took that slot.)</em></span></li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="week" data-end="2026-10-11">
+    <summary class="rail">
+      <span class="chev">▸</span>
+      <div class="wknum">01</div>
+      <div class="phase-tag">REBUILD</div>
+      <div class="dates">Oct 5 — Oct 11</div>
+      <div class="vol">Target <strong>~60 km</strong>, <strong>~72–77 km</strong> with the Monday option</div>
+    </summary>
+    <div class="body">
+      <p class="intent">First quality day since the race — reps at threshold rather than VO2 if Kundo runs 4×4. No closing segment yet; the Friday long just holds Z2 to the end without drift. First week of the optional sixth day: Monday can now be filled.</p>
+      <ul class="days">
+        <li><span class="day">MON 5</span><span class="session"><span class="tag off">OFF</span> — or the option: <span class="tag z1">COMMUTE/EASY</span>commute-home run or 8–10 km easy, HR &lt;140, no strides, volume shoe — counts on top of the week's target, not inside it. <span class="tag shoe">Torin/Superblast/Megablast</span></span></li>
+        <li><span class="day">TUE 6</span><span class="session"><span class="tag group">KUNDO</span>8–10 km, reps at prescribed effort — first quality since the race. If 4×4, take it at threshold. <span class="tag str">HEAVY STR</span> <span class="tag shoe">Boston/Evo SL fine</span></span></li>
+        <li><span class="day">WED 7</span><span class="session"><span class="tag off">OFF</span></span></li>
+        <li><span class="day">THU 8</span><span class="session"><span class="tag z1">EASY</span>12 km + 4×20 s strides. <span class="tag str maint">MAINT STR</span> <span class="tag shoe">Torin</span></span></li>
+        <li><span class="day">FRI 9</span><span class="session"><span class="tag long">LONG</span><span class="tag z2">Z2</span>25 km, HR 140–150 — hold Z2 to the end, no drift, no closing segment this week. <span class="tag shoe">Superblast</span></span></li>
+        <li><span class="day">SAT 10</span><span class="session"><span class="tag partner">DAUGHTER</span>Z1. <span class="tag shoe">Megablast</span></span></li>
+        <li><span class="day">SUN 11</span><span class="session"><span class="tag z1">RECOVERY</span>8 km, HR &lt;135, or Lone Peak trail with daylight and company.</span></li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="week" data-end="2026-10-18" open>
+    <summary class="rail">
+      <span class="chev">▸</span>
+      <div class="wknum">02</div>
+      <div class="phase-tag">REBUILD</div>
+      <div class="dates">Oct 12 — Oct 18</div>
+      <div class="vol">Target <strong>~75 km</strong>, no Monday option</div>
+    </summary>
+    <div class="body">
+      <p class="intent">Tuesday's Kundo slot is gone, so quality moves to Monday and strength to Tuesday — every placement protects Friday's 30 km, the first data point on the closing segment (25 km Z2, then the last 30 min at HR 145–150; watch what pace it produces). One strength session this week, not two: a one-off, not a trend. <strong>Fri Oct 16 baseline: 6.14 km in 30:51 at 5:02/km, HR 147.7 on the Sollentunavallen track</strong> — the reference for the next two Fridays.</p>
+      <ul class="days">
+        <li><span class="day">MON 12</span><span class="session"><span class="tag group">4×4 VO2</span><strong>Solo, evening.</strong> 2 km warm-up, 4 × 4:00 with ~2:00 jog or walk, 2 km cool-down, ~10 km. Hold all four reps at rep-1 pace (~4:00/km), no progression — the point is the comparison with Oct 6. No strength. <span class="tag shoe">Endorphin Speed, or Boston/Evo SL at ≤10 km</span></span></li>
+        <li><span class="day">TUE 13</span><span class="session"><span class="tag str">HEAVY STR</span>Evening, no run. Squat / deadlift / lunge, 4–6 reps × 3–4 sets. Tuesday is otherwise off.</span></li>
+        <li><span class="day">WED 14</span><span class="session"><span class="tag off">OFF</span></span></li>
+        <li><span class="day">THU 15</span><span class="session"><span class="tag z1">EASY</span>14 km, HR &lt;140, 4×20 s strides. <strong>No strength this week.</strong> <span class="tag shoe">Torin</span></span></li>
+        <li><span class="day">FRI 16</span><span class="session"><span class="tag long">LONG</span><span class="tag z2">Z2</span>30 km: 25 km Z2 (HR 140–150) from km 1, then the last 30 min at HR 145–150 (100 km effort). Flat route, cap HR on climbs; write pace / HR / leg feel in the description. <span class="tag fit">RACE-SHOE SEGMENT</span> <span class="tag shoe">race candidate, else Superblast</span></span></li>
+        <li><span class="day">SAT 17</span><span class="session"><span class="tag partner">DAUGHTER</span>Z1. <span class="tag shoe">Megablast</span></span></li>
+        <li><span class="day">SUN 18</span><span class="session"><span class="tag z1">RECOVERY</span>8–10 km, HR &lt;135, or trail. Genuinely easy after Friday&#8217;s TRIMP 277; Monday Oct 19 is off.</span></li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="week" data-end="2026-10-25" open>
+    <summary class="rail">
+      <span class="chev">▸</span>
+      <div class="wknum">03</div>
+      <div class="phase-tag">REBUILD</div>
+      <div class="dates">Oct 19 — Oct 25</div>
+      <div class="vol">Target <strong>~85 km</strong>, Monday option withdrawn</div>
+    </summary>
+    <div class="body">
+      <p class="intent">The volume where last year's build started to break — shins are a watch item from here. First fuelling rehearsal: 60 g/h race mix from the start. The Monday sixth-day run is <strong>withdrawn</strong>: the Sep 27 condition (every volume run in weeks 2–3 in the rotation shoes) failed on Oct 16, when all 31 km ran in the Evo SL Silver. Week 3 runs the five-day grid; the option returns for discussion at the Nov 1 review.</p>
+      <ul class="days">
+        <li><span class="day">MON 19</span><span class="session"><span class="tag off">OFF</span>Sixth-day option withdrawn Oct 16 — shoe rule broken on the Friday long. Kundo is Tuesday.</span></li>
+        <li><span class="day">TUE 20</span><span class="session"><span class="tag group">KUNDO</span>4×4 runs as VO2 if the group does it, no cap. <span class="tag str">HEAVY STR</span></span></li>
+        <li><span class="day">WED 21</span><span class="session"><span class="tag off">OFF</span>Bike commute possible.</span></li>
+        <li><span class="day">THU 22</span><span class="session"><span class="tag z1">EASY</span>16 km + strides. <span class="tag str maint">MAINT STR</span> <span class="tag shoe">Torin</span></span></li>
+        <li><span class="day">FRI 23</span><span class="session"><span class="tag long">LONG</span><span class="tag z2">Z2</span>32 km: preamble in the low half of Z2, <strong>HR 140–145</strong> (the last two Fridays ran 137 and 135), flattest route available; last 45 min at HR 145–150 at Sollentunavallen, compare with the Oct 16 baseline (5:02/km at HR 147.7). Rotation shoe for the road; Evo SL or Metaspeed for the segment only. <span class="tag fit">FUEL 60G/H FROM THE START</span> <span class="tag risk">SHIN WATCH FROM HERE</span> <span class="tag shoe">race candidate</span></span></li>
+        <li><span class="day">SAT 24</span><span class="session"><span class="tag partner">DAUGHTER</span>Z1. <span class="tag shoe">Megablast</span></span></li>
+        <li><span class="day">SUN 25</span><span class="session"><span class="tag z1">RECOVERY</span>10 km, or trail.</span></li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="week" data-end="2026-11-01" open>
+    <summary class="rail">
+      <span class="chev">▸</span>
+      <div class="wknum">04</div>
+      <div class="phase-tag">REBUILD · DOWN WK</div>
+      <div class="dates">Oct 26 — Nov 1</div>
+      <div class="vol">Target <strong>~70 km</strong></div>
+    </summary>
+    <div class="body">
+      <p class="intent">The long run is <em>not</em> reduced in the down week — the rest of the week is; this is where the block's adaptation lives. 90 g/h race-mix rehearsal. Nov 1 review decides the peak ceiling, the Vanish purchase, strength, and fuelling.</p>
+      <ul class="days">
+        <li><span class="day">MON 26</span><span class="session"><span class="tag off">OFF</span>Down week — no Monday commute-run option this week.</span></li>
+        <li><span class="day">TUE 27</span><span class="session"><span class="tag group">KUNDO</span>Reps at threshold at most, or easy if the group runs VO2. <span class="tag str">HEAVY STR</span></span></li>
+        <li><span class="day">WED 28</span><span class="session"><span class="tag off">OFF</span></span></li>
+        <li><span class="day">THU 29</span><span class="session"><span class="tag z1">EASY</span>12 km + strides. <span class="tag str maint">MAINT STR</span> <span class="tag shoe">Torin</span></span></li>
+        <li><span class="day">FRI 30</span><span class="session"><span class="tag long">LONG</span><span class="tag z2">Z2</span>36 km: Z2, last 60 min at HR 145–150. <span class="tag fit">FUEL 90G/H</span> <span class="tag shoe">race candidate</span></span></li>
+        <li><span class="day">SAT 31</span><span class="session"><span class="tag partner">DAUGHTER</span>Z1. <span class="tag shoe">Megablast</span></span></li>
+        <li><span class="day">SUN 1 Nov</span><span class="session"><span class="tag off">OFF or 6K jog</span><strong>NOV 1 REVIEW</strong> — peak-block ceiling, Vanish Carbon 3 purchase, strength, fuelling.</span></li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="block-heading">
+    <h3>Block <em>02</em> — Peak, Taper &amp; Race Week</h3>
+    <span class="meta">Nov 2 – Dec 4 · 5 weeks · day-by-day detail drafted at the Nov 1 review</span>
+  </div>
+
+  <div class="narrative-grid">
+    <div class="narr-card">
+      <div class="nrange">WEEKS 5–6 · NOV 2–15</div>
+      <h4>The <em>peak</em></h4>
+      <p>95–110 km weeks, ceiling pinned at the Nov 1 review on shins and how week 5 lands. Friday longs 40 km then 45 km, the second a back-to-back with the daughter's Saturday run. The closing segment grows to 60–90 min at HR 145–150.</p>
+      <p>Week 6's long carries the <strong>sub-9 gate</strong>: a flat 30 km at HR ≤148 holding ≤5:25/km, Nov 13, in the intended race shoe. Pass → the race plan is written for sub-9 with sub-10 as the net. Miss by &gt;10 s/km → paced for a certain sub-10, with sub-9 only if the day allows.</p>
+      <div class="keys"><span>Watch:</span> shins, Friday closing pace trending down, gut on 90 g/h.</div>
+    </div>
+    <div class="narr-card">
+      <div class="nrange">WEEK 7 · NOV 16–22</div>
+      <h4>First <em>taper</em> step</h4>
+      <p>Volume eases from the peak but the anchor doesn't: a 30 km Friday long carries the full dress-rehearsal fuelling card — race mix, cola from hour five, the table set up as on race day. Also the third of the three long runs a race shoe needs before Nov 13.</p>
+      <div class="keys"><span>Feeds:</span> the race-shoe short list, narrowing toward the Nov 13/20 calls.</div>
+    </div>
+    <div class="narr-card">
+      <div class="nrange">WEEK 8 · NOV 23–29</div>
+      <h4>Second <em>taper</em> step</h4>
+      <p>45–55 km, long run down to 20 km. Kundo easy. The race plan itself is written around Nov 20, gated on the week-6 test: sub-9 pacing with sub-10 as the net, or a sub-10 pace with sub-9 only if the day allows.</p>
+      <div class="keys"><span>Decides:</span> final race shoe, fuelling-card starting rate (90 vs 75 g/h).</div>
+    </div>
+    <div class="narr-card">
+      <div class="nrange">WEEK 9 · NOV 30–DEC 4</div>
+      <h4><em>Race</em> week</h4>
+      <p>~15 km before the race, which lands on Friday — the normal long-run day. PRT 100 km, ~350 m loop, own table: stretch sub-9:00 (5:24/km), hard floor sub-10:00 (6:00/km), the pacing call locked in by the race plan.</p>
+      <div class="keys"><span>Fuelling:</span> 90 g/h at 6–8% dilution, solids/gel from hour one, cola from ~hour five.</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- BERLIN BANNER                                                            -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="race-banner">
+  <div class="inner"><div>
+      <span class="a-tag">A-Race</span>
+      <h2>PRT <em>100</em> KM</h2>
+      <div class="race-date">Friday · 4 December 2026 · ~350 m loop, own table</div>
+      <div class="race-stats">
+        <div><div class="lbl">Stretch</div><div class="val">Sub-9:00</div></div>
+        <div><div class="lbl">Floor</div><div class="val">Sub-10:00</div></div>
+        <div><div class="lbl">Stretch pace</div><div class="val">5:24/km</div></div>
+        <div><div class="lbl">Floor pace</div><div class="val">6:00/km</div></div>
+      </div>
+    </div>
+    <div>
+      <p class="creed">Last year&#8217;s fitness, run with a fuelling fix and <strong>something to run for</strong> at km 85.</p>
+    </div></div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- POSTSCRIPT                                                               -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<section class="postscript">  <div class="ps-head">After Dec 4</div>
+  <h3>What comes after <em>the loop</em>.</h3>
+
+  <div class="ps-body">
+    <div>
+      <p>No B-race follows this one — PRT 100 km closes the 2026 season. Recovery afterward follows the same pattern as every big effort this year: days off, then easy jogging back in, no fixed timeline until the body says otherwise. The next season-plan file starts from scratch once that's clear.</p>
+      <p>One note is already banked for 2027, not for this build: next summer and autumn should carry more hills and more threshold/tempo/speed, both crowded out by two ultra builds this year. Recorded from the Lidingöloppet debrief, where <em>"till nästa år ska träna mer backe"</em> was the ironic annual ritual — the real version of it is filed here for when the 2027 season plan gets written.</p>
+    </div>
+
+    <div class="ps-finish">
+      <div class="label">Open questions</div>
+      <h4>Three calls<br>still pending</h4>
+      <div class="when">Nov 1 · Nov 13 · ~Nov 20</div>
+      <p>Peak ceiling &amp; Vanish Carbon 3 purchase (Nov 1) → sub-9 gate result (Nov 13) → race plan &amp; pacing call (~Nov 20).</p>
+    </div>
+  </div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="foot-grid"><div>
+      <h5>Source files · this snapshot</h5>
+      <ul>
+        <li><code>analyses/syncs/2026-10-16-friday-30k-track-segment-sync.md</code> — <strong>the triggering analysis.</strong> Block-1 closing-segment baseline (Oct 16, Sollentunavallen, 6.14 km in 30:51, 5:02/km at HR 147.7); Mon Oct 19 sixth-day run withdrawn; Oct 23 preamble target HR 140–145.</li>
+        <li><code>analyses/schedule/2026-10-11-week-2-tuesday-moved.md</code> — Week 2 schedule update. Week 2 (Oct 12–18): quality moves to Monday as a solo 4×4 at VO2, heavy strength to Tuesday with no run, Thursday's lift dropped; Friday's 30 km unchanged. Wins for Oct 12–18 only.</li>
+        <li><code>analyses/schedule/2026-09-27-block-1-schedule-update.md</code> — Förbifartspremiären, the optional Monday commute-run sixth day (weeks 1–3), filling the second off day.</li>
+        <li><code>analyses/schedule/2026-09-26-prt-block-1-sep28-nov1.md</code> — Block 1 day-by-day grid: recovery week + 4 rebuild weeks, Sep 28 – Nov 1.</li>
+        <li><code>analyses/preferences/2026-05-03-training-preferences.md</code> — standing schedule; Kundo 4×4s run as VO2 from Oct 11.</li>
+        <li><code>analyses/season-plan/2026-09-26-prt-100k-season-plan.md</code> — season plan, Lidingöloppet → PRT 100 km Dec 4. Unchanged by this update.</li>
+        <li><code>analyses/races/2026-09-26-lidingoloppet-race-review.md</code> — Lidingöloppet race review; historical context, confirms PRT 100 km as the next target.</li>
+        <li><code>config/training.json</code> — HR zones, max HR 184, resting 44, gear rotation.</li>
+      </ul>
+    </div>
+    <div>
+      <h5>About this page</h5>
+      <ul>
+        <li>Regenerated <strong>2026-10-16</strong> for the Oct 16 sync. Changes to the forward plan: Mon Oct 19 off (the week-3 sixth-day option is withdrawn because the shoe rule broke on the Friday long), week 3 on the five-day grid ~85 km, Fri Oct 23 preamble at HR 140–145 with the 45 min segment at Sollentunavallen and 60 g/h fuelling from the start. Baseline recorded: 5:02/km at HR 147.7.</li>
+        <li>Week 3's Monday option was conditional on silent shins and rotation shoes on every volume run in weeks 2–3; the second condition failed on Oct 16, so it is withdrawn.</li>
+        <li>Regenerated by the <code>update-plan-visualization</code> skill whenever the plan changes.</li>
+        <li>Static HTML · no build · no telemetry · no live Strava data.</li>
+        <li>Weeks are collapsible (native <code>&lt;details&gt;</code>); past weeks fold by default, current + future stay open.</li>
+        <li>Three open calls carried through this build: peak-ceiling &amp; Vanish purchase (Nov 1), the sub-9 pacing gate (Nov 13), and the race plan itself (~Nov 20). The Nov 1 review also now decides whether the peak block keeps the sixth day.</li>
+      </ul>
+    </div></div>
+</footer>
+
+
+<script>
+  /* Progressive enhancement: fold past weeks by the real date, so the fold
+     stays current between regenerations. Native <details> still handles the
+     click toggle; the baked open/closed state is the no-JS fallback. Scope is
+     limited to the week fold — the today/done markers and gantt rule stay baked. */
+  (function () {
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    document.querySelectorAll('details.week[data-end]').forEach(function (d) {
+      var end = new Date(d.getAttribute('data-end') + 'T00:00:00');
+      if (!isNaN(end.getTime())) d.open = end >= today;
+    });
+  })();
+</script>
+</body>
+</html>
