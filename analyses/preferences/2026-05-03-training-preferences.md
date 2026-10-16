@@ -102,6 +102,8 @@ Patrik's on-and-off shin problem began in the Nov 2025 PRT build and now shows m
 
 - **Volume runs (easy, medium-long, long) in Altra Torin, Superblast or Megablast**, rotated.
 - **Boston 13 and Evo SL capped at ≤10 km per outing** and never on the long run. The larger Evo SL may take a race-effort segment of 30–90 min inside a long run when it is a race-shoe candidate.
+- **PRT requires race-legal shoes (confirmed by Patrik 2026-10-16).** Superblast and Megablast are over the stack limit and cannot race; the race-shoe candidates are the Evo SL Silver, the Metaspeed Sky Paris and the un-bought Vanish Carbon 3. The volume shoes carry training only.
+- **Evo SL Silver long-run test, 2026-10-16:** 31 km (22 km rolling road + 6 km track segment) in the Silver pair, deliberately, to re-test the race candidate. Felt fine, no shin signal. Patrik's own call afterwards: save the pair for when it matters. So the cap stands by choice, with the segment-only exception; a full long run in the Evo SL is a deliberate test, not the default, and should be logged as such in the description.
 - **Lone Peak for trail variety**, weekend daylight only.
 - On any shin symptom, check the last week's shoe log before touching volume.
 

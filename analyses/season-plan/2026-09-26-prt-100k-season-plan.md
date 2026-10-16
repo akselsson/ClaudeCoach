@@ -83,7 +83,7 @@ Principle for Dec 4, to be turned into a per-hour card in the race plan:
 
 - **Any shoe that starts on Dec 4 has run at least three Friday long runs with race-effort segments before Nov 13**, including the sub-9 gate run. A shoe that has not done that is not a race shoe, however good the chart says it is.
 - The Evo SL shin rule does not apply to race-effort segments of 30–90 min in the *larger* pair — but it does mean the Evo SL is not the shoe for the first 60 km of a 100 km. If it is used at all on race day, it is the back-half shoe, when the segment is short.
-- **Check the race's stack-height rule** before deciding: Patrik's understanding is that 40 mm+ shoes are banned, which excludes the Superblast and Megablast from racing and is why the decision is Evo SL / Metaspeed / Vanish. Verify against the organiser's rules, not memory.
+- **Check the race's stack-height rule** before deciding: Patrik's understanding is that 40 mm+ shoes are banned, which excludes the Superblast and Megablast from racing and is why the decision is Evo SL / Metaspeed / Vanish. Verify against the organiser's rules, not memory. **Confirmed 2026-10-16: PRT requires race-legal shoes.** Superblast and Megablast are training-only; the decision is Evo SL Silver / Metaspeed / Vanish.
 - Decide by **Nov 1** whether the Vanish Carbon 3 is being bought. Later than that leaves no room for the three-long-run rule.
 
 ## Known disruptions
