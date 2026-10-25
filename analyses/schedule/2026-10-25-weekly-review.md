@@ -1,7 +1,7 @@
 ---
 date: 2026-10-25
 type: weekly-review
-summary: Reviews Oct 12–25 (block-1 weeks 2–3) and prescribes Oct 26 – Nov 8 (week 4 steady at 80–85 with a second 40 km, week 5 first peak week at ~92–95 with 42 km). Volume ramped 65 → 72 → 85 as the Oct 22 revision asked. Fri Oct 23 ran 40 km on the Sollentunavallen track by intention, 30 km at HR 130 flat then 10 km at HR 144 with 5:03/km where HR sat at 147 — level with Oct 16 after 8 km more running, and level-to-ahead of the Oct 17 2025 40 km on the same track once shoe, fuelling and HR lag are discounted. Patrik's finish at HR ~144 was "what I felt comfortable with; I can't see running harder than that for 100 km" — accepted, so the race-effort segment band moves from 145–150 to 142–148 (ceiling 150). Kundo 4×4 ran VO2 and even for the first time. Thursday has run steady without strides three weeks running and is now written as medium-long ≤145 with a reminder mechanism for the strides. Strength missed in week 3 (social), kept. Vanish Carbon 3 bought but undecided, Metaspeed Edge Tokyo to be tried; with three Fridays left before the Nov 13 gate, the race-shoe rule relaxes to two segments plus the gate run, and Oct 30's segment must be in a candidate.
+summary: Reviews Oct 12–25 (block-1 weeks 2–3) and prescribes Oct 26 – Nov 8 (week 4 steady at 80–85 with a second 40 km (road, finishing with the 60-min segment on the track, since Patrik is alone that day), week 5 first peak week at ~92–95 with 42 km all-track with company). Volume ramped 65 → 72 → 85 as the Oct 22 revision asked. Fri Oct 23 ran 40 km on the Sollentunavallen track by intention, 30 km at HR 130 flat then 10 km at HR 144 with 5:03/km where HR sat at 147 — level with Oct 16 after 8 km more running, and level-to-ahead of the Oct 17 2025 40 km on the same track once shoe, fuelling and HR lag are discounted. Patrik's finish at HR ~144 was "what I felt comfortable with; I can't see running harder than that for 100 km" — accepted, so the race-effort segment band moves from 145–150 to 142–148 (ceiling 150). Kundo 4×4 ran VO2 and even for the first time. Thursday has run steady without strides three weeks running and is now written as medium-long ≤145 with a reminder mechanism for the strides. Strength missed in week 3 (social), kept. Vanish Carbon 3 bought but undecided, Metaspeed Edge Tokyo to be tried; with three Fridays left before the Nov 13 gate, the race-shoe rule relaxes to two segments plus the gate run, and Oct 30's segment must be in a candidate.
 ---
 
 # Weekly review — Oct 12 to Oct 25 (block 1, weeks 2–3)
@@ -72,7 +72,7 @@ Guideposts, updated:
 | Tue Oct 27 | Kundo at the group's format, 8–10 km. If 4×4: VO2, even at ~3:50. If legs are still heavy from Friday, jog the reps and say so in the description. **Heavy strength, evening.** | Edge Tokyo trial is allowed here (≤10 km) |
 | Wed Oct 28 | Off, or bike commute. | |
 | Thu Oct 29 | **14–16 km medium-long, HR ≤145. Strides 4 × 20 s after km 3, watch alert at 20 min.** Maintenance strength if time. **If Thursday is blocked:** 10 km easy Wednesday evening instead, or skip; the week lands ~70 and that is fine, the long run is the stimulus. | Torin |
-| **Fri Oct 30** | **40 km on the track. 90 g/h race mix from the start, table at the start/finish line, every 20 min. Easy part 130–140 (partner pace if with a friend). Last 60 min at 100 km effort, HR 142–148, ceiling 150. Shoe swap at the table for the segment.** Direction change every 30–45 min. Comparison: Oct 24 2025, 43.5 km at 5:24 for HR 135. Cut to 36 on any shin signal or upward HR drift at easy pace. | Rotation shoe for 30 km; **Vanish (if keeping) or Evo SL Silver** for the segment |
+| **Fri Oct 30** | **40 km, road then track, alone.** ~28–30 km varied road (Edsviken loop or similar, HR 130–140, flat-ish, cap HR on climbs), routed to finish at Sollentunavallen for the **last 60 min (~12 km) on the track at 100 km effort, HR 142–148, ceiling 150.** This is the Oct 16 format scaled up, so the segment stays comparable with Oct 16 / Oct 23 / Nov 6. **90 g/h from the start:** carry the road part (soft flasks of race mix + gels in a vest, or loop past the car/home), table at the track for the segment. Shoe swap at the track. Direction change once mid-segment. Cut to 36 on any shin signal or upward HR drift at easy pace. | Rotation shoe for the road; **Vanish (if keeping) or Evo SL Silver** for the segment |
 | Sat Oct 31 | Daughter run, Z1, ~12 km. | Megablast / Superblast |
 | Sun Nov 1 | 8–10 km easy <135, trail OK with climbs walked. **Nov 1 check:** legs, shins, gut at 90 g/h, segment pace. Decides week 5 (below). | Lone Peak / Torin |
 
@@ -86,7 +86,7 @@ Guideposts, updated:
 | Tue Nov 3 | Kundo at the group's format, 8–10 km. Heavy strength, evening. | |
 | Wed Nov 4 | Off, or bike commute. | |
 | Thu Nov 5 | 14–16 km medium-long, HR ≤145, strides after km 3. Maintenance strength optional. | Superblast |
-| **Fri Nov 6** | **42 km, track. 90 g/h from the start. Easy part 130–140. Last 60–75 min at 100 km effort, HR 142–148.** Second candidate shoe for the segment (the one that did not run Oct 30), or the Oct 30 shoe again if the decision is already made. Cut to 38 on any shin signal. | Rotation shoe; candidate for the segment |
+| **Fri Nov 6** | **42 km, all on the track, with company for the easy part.** Full table rehearsal as on race day: 90 g/h race mix from a table at the start/finish line on a fixed schedule, direction change every 30–45 min. Easy part at partner pace (130–140). **Last 60–75 min at 100 km effort, HR 142–148.** Second candidate shoe for the segment (the one that did not run Oct 30), or the Oct 30 shoe again if the decision is already made. Comparison: Oct 24 2025, 43.5 km at 5:24 for HR 135. Cut to 38 on any shin signal. | Rotation shoe; candidate for the segment |
 | Sat Nov 7 | Daughter run, Z1, ~12 km. | Megablast |
 | Sun Nov 8 | 10 km easy <135. **Weekly review.** Sets week 6 (105–115, 45 km B2B, sub-9 gate Nov 13). | Lone Peak / Torin |
 
@@ -95,7 +95,7 @@ Guideposts, updated:
 ## What I'm watching for
 
 - **Shins**, from here through week 6. Any anterior/medial signal: shoe log first, then drop the Monday run, then Sunday km, keep the Friday long.
-- **Gut at 90 g/h on Oct 30.** Rung 2 or worse (sloshing, burping) → the race card starts at 75 g/h and the Nov 6 rehearsal runs 75.
+- **Gut at 90 g/h on Oct 30**, carried on the road rather than from a table. Rung 2 or worse (sloshing, burping) → the race card starts at 75 g/h and the Nov 6 rehearsal runs 75.
 - **Segment pace at HR 142–148 across Oct 30 → Nov 6 → Nov 13**, same track. 5:03 at 147 is the reference. Flat or slower after Nov 6 says the easy part is too hard or the shoe is wrong.
 - **Tired legs persisting.** Sunday tiredness after the first 85 km week is normal. Tiredness still there on Tuesday after a Monday off is the week-5 hold trigger.
 - **Thursday strides actually happening.** Two more misses with the alert in place → strides move to Tuesday's warm-up and the Thursday instruction drops them.
@@ -107,6 +107,7 @@ Guideposts, updated:
 - **Thursday rewritten from "easy <140 + strides" to "medium-long ≤145, strides at km 3".** Three Thursdays at 139–146 with no strides and no cost to Friday. The plan now describes the run; the strides get a mechanism instead of a wish.
 - **Race-shoe rule: three segments → two segments plus the gate run.** Three Fridays remain, one candidate has one segment, the others none; the Vanish arrived and the Edge Tokyo is untested. Oct 30's segment is now compulsory in a candidate.
 - **Fri Oct 30: 38–40 → 40, and Fri Nov 6: 40 → 42.** 40 is done, legs fine. The peak-block long steps 40 → 42 → 45 instead of repeating 40.
+- **Oct 30 and Nov 6 swap venues (added after the review conversation).** Patrik has no company on Oct 30 and does not want 40 km alone on the track; he has company on Nov 6. So Oct 30 is road-then-track (Oct 16 format: ~28–30 km varied road finishing with the 60-min segment on the track, fuel carried) and Nov 6 is the all-track 42 km with the full table rehearsal. The segment series on the track (Oct 16, Oct 23, Oct 30, Nov 6, Nov 13 gate) is unbroken; only the easy part changes surface. Cost: the 90 g/h-from-a-table rehearsal moves one week later, and the Oct 30 easy part is not comparable to Oct 24 2025.
 - **Week 5 as a conditional (92–95 or hold at 85)** rather than deciding on Nov 1 in a separate file. The Nov 1 check is a short sync, not a re-plan.
 - **Strength kept** despite the week-3 miss; the drop rule did not fire. Thursday maintenance is now explicitly optional.
 - Everything else continues the Oct 22 revision: steady week 4, ramp 85 → ~93 → ~110, Nov 13 gate, taper from week 7.
