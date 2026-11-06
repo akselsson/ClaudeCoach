@@ -61,7 +61,7 @@ Patrik's question afterwards: why did HR rise after km 25? No caffeine in the ge
 - So the "step" is two things landing together: the switch back to the higher-reading direction (~2–3 bpm) on top of the onset of drift (~6–7). HR rose 129 → 136 over 12 min after the switch rather than at once, which fits that mix. Taking the direction effect out, the hours read roughly 130 / 130 / 137 / 141 at matched pace: flat for two hours, then a ramp.
 - **Conditions (Patrik): sunny but ~0 °C at the start, rising to maybe 5 °C.** Not sweat-inducing, so fluid deficit is an unlikely driver and 500 ml/h was probably close to losses. The first draft of this note led with fluid; that was wrong for the day.
 - For the drift, what is left: **the lead-in** (Tue threshold, Wed tempo, Thu 85 min on heavy legs, no off day, so the long started on part-used legs and the cost of holding 5:27 rose after two hours) and **the six days off** before that. Oct 23, with Wednesday off and an easier Thursday, drifted +2–3 bpm over 30 km. The test is a normal week: if Nov 13 follows an empty Wednesday and the drift is back to Oct 23's size, it was the lead-in.
-- The 750 ml/h rehearsal on Nov 13 stands for a different reason: PRT is indoors and warmer, and the race card wants the 6–8% drink regardless.
+- The 750 ml/h rehearsal on Nov 13 stands for a different reason: the race card wants the 6–8% drink regardless, and race conditions differ from today's (see Fuelling).
 - **For future track comparisons:** compare like direction with like, or average over whole direction pairs. A segment run entirely in one direction carries a ~2–3 bpm offset.
 
 ### Pace at matched HR, same track
@@ -94,6 +94,7 @@ Per hour: 500 ml with 2 scoops Umara (60 g) plus a 30 g gel, taken as half of th
 
 - The Oct 25 watch item ("gut at 90 g/h; rung 2 or worse → the race card starts at 75") **passes**. The race card starts at 90.
 - The drink was **12%** (60 g in 500 ml), not the 6–8% the season plan asks for (60 g in 750–1000 ml), and fluid was 500 ml/h. Last year's 18% failed at km 70–80, in hour 7+. Four clean hours at 12% in cool sun do not clear that. The remaining rehearsals (Nov 13, Nov 20) should run the race concentration: same carbs, 750 ml/h.
+- **Race-day conditions (Patrik, Nov 6): ~15 °C indoors and fairly dry, so evaporation is efficient.** Good for cooling, so heat should not drive HR. But losses will be well above a 0–5 °C training run and, because sweat evaporates at once, easy to under-read by feel. No outdoor long run before Dec 4 can rehearse that. A 60-min easy treadmill run with a before/after weigh-in is the nearest available sweat-rate estimate for setting ml/h on the race card.
 - The table routine worked: seven visits on schedule, ~20 s each apart from one 77 s stop.
 
 ## Shoe — Altra Vanish Carbon 3, first run
@@ -112,5 +113,5 @@ Registered in `config/training.json` as g34867300. Out of the box for the full 4
   1. **No race-effort segment since Oct 23.** Oct 30 was lost and today ran easy. The Nov 13 gate run is the only race-effort read left before the race plan (~Nov 20).
   2. **The race-shoe rule cannot be met as written** (two Friday segments plus the gate). Evo SL Silver has one segment, Vanish has 42 km easy and a fit problem, Metaspeed has none this block, the Edge Tokyo trial has no data. The rule needs restating and the Nov 13 shoe named.
   3. **Week 6 as planned (105–115, 45 km B2B, gate)** after 85 → 7 → ~95. The long-run ladder is intact (40 → 42 → 45); the question is the weekly total and whether the off day before the long is protected.
-  4. **Race card:** start at 90 g/h; rehearse 750 ml/h on Nov 13.
+  4. **Race card:** start at 90 g/h; rehearse 750 ml/h on Nov 13; race hall is ~15 °C and dry, so get an indoor sweat-rate number (treadmill weigh-in) before the race plan fixes ml/h.
   5. **Strength:** one session in two weeks (Oct 27). **Strides:** done this week (Wed, 3 × ~80 m) and attempted Thursday, so the remembering problem is not what failed. **Strides stay on Thursday after km 3, no change** (Patrik, Nov 6): Thursday normally follows the Wednesday off day, and this week's heavy legs came from the unprescribed Wednesday run, not from the slot.
