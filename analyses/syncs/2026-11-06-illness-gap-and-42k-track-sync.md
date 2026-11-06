@@ -37,13 +37,30 @@ Activity 20880798483. Description: "Marathon i solsken på Sollentunavallen. New
 | HR | 130.5 | 131.3 | 129.9 | 127.8 | 131.0 | 136.4 | 142.0 | 141.9 | 143.3 |
 
 - **Km 0–24: 5:28 at HR 129.8, no drift at all** (−1.1% decoupling).
-- **Km 24–30: 5:28 at HR 136.3, a +6.5 bpm step at identical pace.** It starts around 2:10 elapsed. Oct 23 showed the same step at the same point (+4.7 bpm).
+- **Km 24–30: 5:28 at HR 136.3, a +6.5 bpm step at identical pace.** It builds over ~12 min from the 2:03:30 direction switch (see "The step and the direction switches" below). Oct 23 rose too (+4.7 bpm), but ~20 min later and alongside a small pace lift, so it is a looser match than "the same step".
 - **Km 30–42.4: 5:21 at HR 142.2**, max 150 (one 3-min surge at 4:58). Flat inside the stretch (0.8%). This is **not a race-effort segment**: the friend set the pace and Patrik's intent was easy throughout. The late HR is drift plus a 7 s/km lift. Cadence 179–181 all run, no late fade.
 - Zones: 74% under 140, 26% in 140–150, 14 s at 150. HR stream clean, max 150 genuine.
 - Stops: 9, 246 s in total. Table visits at ~0:31, 1:01, 1:31, 2:01, 2:30, 3:02, 3:28, matching the 30-min fuelling schedule; 148 s standing at the table. Direction changed three times, each at the table.
 - GPS reads ~1.9% long against lap count × lane geometry (≈41.6 km of track; Oct 23 read +0.7%). Worth 2–4 s/km in the comparisons below, not more.
 
 **Read.** At matched pace the HR ended ~9 bpm above where it started, more late drift than Oct 23 had before its lift. Candidates, not separable from this one run: no off day before the long for the first time this block (TRIMP 63 + 105 + 146 on Tue–Thu, where Wednesday is normally empty), a 7 km week behind it (HR-at-pace rises after low volume, per the preferences file), and an easy part 9 s/km faster than Oct 23's. It is the block's highest-load run (TRIMP 337 against 321 on Oct 23) and it came out structurally clean.
+
+### The step and the direction switches
+
+Patrik's question afterwards: why did HR rise after km 25? No caffeine in the gels; the one thing that changed at that moment was direction (they switched every hour, at the table).
+
+| Hour | Direction (est. lane) | HR at pace |
+|---|---|---|
+| 0:10–1:00 | anticlockwise (2) | 131.2 @ 5:27 |
+| 1:03–2:00 | clockwise (3) | 128.5 @ 5:25 |
+| 2:06–3:00 | anticlockwise (2) | 137.9 @ 5:24 |
+| 3:05–3:50 | clockwise (4) | 142.0 @ 5:20 |
+
+- **Clockwise reads ~2–3 bpm lower at the same GPS pace, at all three switches.** Each one is small and confounded (table stop, pace wobble), but the sign is the same three times. Cause unknown: lane, position relative to the partner on the bends, or GPS measuring the watch arm's arc differently by direction. It may be a pace-measurement effect rather than physiology.
+- **The drift itself, with direction held constant: +6.7 bpm from hour 1 to hour 3**, both anticlockwise in the same lane at the same pace. That is real cardiovascular drift starting around the two-hour mark.
+- So the "step" is two things landing together: the switch back to the higher-reading direction (~2–3 bpm) on top of the onset of drift (~6–7). HR rose 129 → 136 over 12 min after the switch rather than at once, which fits that mix. Taking the direction effect out, the hours read roughly 130 / 130 / 137 / 141 at matched pace: flat for two hours, then a ramp.
+- For the drift, the leading candidates are 500 ml/h of a 12% drink against sweat loss in sun, the lower plasma volume after six days off, and no off day before the long. Nov 13 tests the first: 750 ml/h and a before/after weigh-in.
+- **For future track comparisons:** compare like direction with like, or average over whole direction pairs. A segment run entirely in one direction carries a ~2–3 bpm offset.
 
 ### Pace at matched HR, same track
 
