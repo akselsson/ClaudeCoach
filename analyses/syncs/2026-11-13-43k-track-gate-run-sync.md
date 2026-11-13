@@ -1,7 +1,7 @@
 ---
 date: 2026-11-13
 type: activity-sync
-summary: Nov 9 – 13 against `../schedule/2026-11-09-weekly-review.md`. Fri Nov 13 gate run on the Sollentunavallen track: 43.8 km GPS (~43.0 by the track calibration) in 3:59 moving, 5:27/km, HR 132/151. Cut from 50 km at 4 h because of sleet. **Gate passes**: km 20 to the end averaged 5:24 GPS at HR 135.5, against ≤5:25 at ≤148. The last 12 km ran at sub-9 pace (5:17 GPS) for HR ~137–139, and the closing 5.7 km at 5:12 for HR 139. Drift was +6 bpm by km 25–30, as on Nov 6, but it plateaued at 135–136 instead of climbing to +11. First run in the **Adidas Adios Pro 5**, out of the box: no toe pressure, stable, fast, and a little better HR-for-pace than the Vanish Carbon 3 run on Nov 6. It is now the lead race shoe. 90 g/h clean; cola not trialled. On Thu Nov 12 the run was stopped at 2.5 km with pain on the outside of the left knee and foot. Patrik puts it down to the Monday sixth-day run, and stopping helped: on Friday he felt it early, then it settled. Race plan goes ahead as sub-9, with sub-10 as the safety net.
+summary: Nov 9 – 13 against `../schedule/2026-11-09-weekly-review.md`. Fri Nov 13 gate run on the Sollentunavallen track: 43.8 km GPS (~42.7 real, ~102 laps in lanes 3–4) in 3:59 moving, 5:27/km, HR 132/151. Cut from 50 km at 4 h because of sleet. **Gate passes**: km 20 to the end averaged 5:24 GPS at HR 135.5, against ≤5:25 at ≤148. The last 12 km ran at sub-9 pace (5:17 GPS) for HR ~137–139, and the closing 5.7 km at 5:12 for HR 139. Drift was +6 bpm by km 25–30, as on Nov 6, but it plateaued at 135–136 instead of climbing to +11. First run in the **Adidas Adios Pro 5**, out of the box: no toe pressure, stable, fast, and a little better HR-for-pace than the Vanish Carbon 3 run on Nov 6. It is now the lead race shoe. 90 g/h clean; cola not trialled. On Thu Nov 12 the run was stopped at 2.5 km with pain on the outside of the left knee and foot. Patrik puts it down to the Monday sixth-day run, and stopping helped: on Friday he felt it early, then it settled. Race plan goes ahead as sub-9, with sub-10 as the safety net.
 ---
 
 # Sync — Nov 9 to 13: the 43 km gate run on the track
@@ -43,7 +43,7 @@ Zones: 88% easy (<140), 12% steady (140–150), essentially nothing above. The C
 
 ### The gate: pass
 
-- **Km 20 to end (23.8 km GPS): 5:24 at HR 135.5.** The gate is ≤5:25 GPS at avg HR ≤148, so it passes with **~12 bpm in hand**. Nov 6 over the same stretch was 5:25 at 138.3.
+- **Km 20 to end (23.8 km GPS): 5:24 at HR 135.5.** The gate is ≤5:25 GPS at avg HR ≤148, so it passes with **~12 bpm in hand**. Nov 6 over the same stretch was 5:25 at 138.3. By lane-corrected distance (see below) it's ~5:32 real, right at the ≤5:30 laps limit. The HR margin is the real pass: the pace was the partner's, not a ceiling.
 - It's read over 24 km instead of the planned 30, because the run stopped at 44. The pace was the partner's for most of it, so the gate shows what HR that pace costs, not the most he could have held.
 - The useful number for sub-9 is the last 12 km. **From km 32: ~5:17 GPS at HR ~137–139.** That's sub-9 pace (5:18–5:21 GPS) on HR well under the 142–148 race band, after 3 hours.
 - **Closing push, km 38 to end: 5.73 km at 5:12, HR 139.2, max 148,** built from 5:24 to a 4:43 last km. It stayed below the prescribed 142–148, so it isn't the full "100 km effort" read. It still beats the Oct 23 reference (5:03 at 147 after 30 km) on pace per beat.
@@ -70,9 +70,11 @@ Two caveats for the race plan:
 
 ### Distance on the track
 
-The Nov 6 lap count put GPS at ~1.9% long. On that basis today was **~43.0 km**, at ~5:21/km real for the whole run.
-
-The characterize agent counted track loops from the GPS rotation and got ~101–103 laps, which would make GPS 5–8% long. That contradicts the Nov 6 calibration, which came from a lap count. I'm keeping 1.9% and treating the loop count as unreliable. **For Nov 20, count the laps** (or set the watch's track mode) to settle it. If GPS really is 6% long, sub-9 pacing on GPS becomes meaningless.
+- The characterize agent counted ~101–103 track loops from the GPS rotation.
+- Patrik ran in **lanes 3–4** (lane 3 ≈ 415 m, lane 4 ≈ 423 m), so that's **~42.3–43.2 km real, call it ~42.7**.
+- **GPS ≈ +2.4% long**, consistent with the Nov 6 calibration (+1.9%). The 5–8% the agent first computed assumed lane 1.
+- **Real pace:** ~5:35/km for the whole run, ~5:32 for km 20 to the end, and ~5:24 for the last 12 km.
+- **Race day:** the field runs the inside line, so lap distance will be shorter than these training laps. Pace off the lap split, not GPS.
 
 ## Fuelling
 
@@ -83,13 +85,13 @@ The characterize agent counted track loops from the GPS rotation and got ~101–
 - 43.8 km straight out of the box. Patrik: **great, a race candidate**: no toe pressure, stable, fast.
 - On the shoe chart (`viz/shoe-speed-vs-effort.html`, regenerated today): GAP 5:30 at HR 132.4, **1.37 m/beat**. That's level with the best flat Evo SL long run (Oct 17 2025, 40 km, same track, 1.37) and slightly ahead of the Vanish Carbon 3 on Nov 6 (1.35, ~2 bpm higher at 1 s/km slower).
 - Within-run fade was smaller too (−0.012 vs −0.031 m/beat per 10 km). One run each, so within noise, but the direction matches how he felt.
-- **Race-legal (40 mm stack) still unconfirmed.** Check it before Nov 20.
+- **Race-legal: confirmed** by Patrik (Nov 13).
 - **Race-shoe rule** (Nov 9: one of Nov 13 / Nov 20 in full, plus ≥25 km more, no toe or shin complaint). Nov 13 is done in full in the Adios. Nov 20's 30 km is the ≥25 km, so **Adios Pro 5 is the lead for the Nov 20 rehearsal and the final call.** The Vanish's big-toe pressure puts it behind; the Metaspeed Sky Paris has no long run this block.
 
 ## Carry-forward
 
 - **Sat Nov 14:** daughter run, Z1, ~12 km, as planned. **Sun Nov 15:** off, or 6–8 km easy <135 only if the left knee and foot are quiet.
 - **Race plan, Mon–Wed Nov 16–18:** sub-9 primary, sub-10 safety net. Early HR cap set for the +6 bpm step at ~2.5 h. Moving-pace target at the fast end of 5:18–5:21 GPS to cover stops. Card at 90 g/h / 750 ml/h, ml/h to be confirmed by the Nov 19 sweat test.
-- **Fri Nov 20:** in the Adios Pro 5. Cola in the last hour. **Count laps.** The last 10 km at HR 142–148, since today's push stayed under it.
+- **Fri Nov 20:** in the Adios Pro 5. Cola in the last hour. Note lap count and lane. The last 10 km at HR 142–148, since today's push stayed under it.
 - **Left knee/foot:** watch it; no Monday sixth-day run before the taper.
 - **Strength:** not logged on Tue Nov 10. Under the Nov 9 rule it is now dropped for the rest of the build unless Patrik says it happened.
