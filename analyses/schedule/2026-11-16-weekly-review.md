@@ -93,7 +93,7 @@ Mon off. Tue easy 6–8 km, or Kundo easy with the reps jogged. Wed off. Thu 4�
 
 ## What I'm watching for
 
-- **The left lateral knee/foot.** Tue and Thu are the checks before Friday. It's on the same side as the summer hip/knee complex. **PRT is a ~350 m loop, so the bends come even more often than on the track.** The race plan should find out whether the race reverses direction, and if not, what that means for this knee.
+- **The left lateral knee/foot.** Tue and Thu are the checks before Friday. It's on the same side as the summer hip/knee complex. **PRT is a ~350 m loop, so the bends come even more often than on the track.** It **starts counter-clockwise and switches to clockwise after 5 h** (Patrik, Nov 16). That's ~55 km with the left leg on the inside of every bend, and the inside leg is the one usually linked to lateral knee load. The race plan needs a rule for what to do if the knee speaks before the 5 h switch; after the switch the load moves to the other side.
 - **Friday's closing segment.** First real read of pace at HR 142–148 since Oct 23. Expect it at or faster than ~5:05–5:10 on flat road. Slower than ~5:20 at that HR means the taper starts with the legs flat, not that fitness is missing. The gate already answered that.
 - **Gut at 750 ml/h + cola.** Rung 2 or worse on Friday means the race card starts at 75 g/h, per the season plan's rule.
 - **Taper restlessness.** Patrik tends to run over prescription. In weeks 7–8 an extra 5 km of easy running is harmless. An unplanned tempo or a partner-pace 15 km at HR 145 the day before Fri Nov 27 is not.
