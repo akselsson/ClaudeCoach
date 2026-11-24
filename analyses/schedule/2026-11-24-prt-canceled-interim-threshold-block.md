@@ -41,7 +41,7 @@ The armband trace looks clean, so this isn't a wrist artifact. The reps were 10�
 - **The Thursday cap of 160–162 stays.** It now sits ~5 bpm under threshold, which is what a sub-threshold session should be.
 - **Two uncapped sessions a week would still be the risk**, because the Thursday session would drift up to Kundo intensity.
 
-**Recalibration:** `config/training.json`'s threshold pace zone (4:20–4:30, unchanged since 2026-05-03) is stale. The HR zone (160–170) already fits. Recalibrate the pace zones at the Dec 6 check-in or the review after it. Use pace at 160 from the Thursdays and pace at ~167 from the Kundo 5×6s. An optional alternative is one Thursday (~Dec 10) as a 30-min continuous even effort, where the average HR over the last 20 min estimates threshold HR.
+**Recalibration:** `config/training.json`'s threshold pace zone (4:20–4:30, unchanged since 2026-05-03) is stale. The HR zone (160–170) already fits. Recalibrate the pace zones at the Dec 6 check-in or the review after it. Use pace at 160 from the Thursdays and pace at ~167 from the Kundo 5×6s. An optional alternative is one Thursday (~Dec 10) as a **30-min solo time trial**: the hardest pace he can hold evenly for the full 30 min. Start controlled and finish strong, without a fast start that fades. The average HR over the last 20 min estimates threshold HR (Friel). **Use it for HR, not pace.** The 30-min TT pace is faster than threshold pace, which is closer to a 60-min effort and so roughly 10–15 s/km slower. It's harder than a capped session, so make the next day's long run 16 km.
 
 ## Why this block, and its shape
 
