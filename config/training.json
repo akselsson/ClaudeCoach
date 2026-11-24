@@ -27,18 +27,34 @@
       "date": "2026-05-03",
       "type": "marathon_pace_estimate",
       "value": "4:40/km",
+      "current": false,
+      "note": "User-stated 2026-05-03, post-Tuscany 100k recovery. Consistent with May 2 threshold reps at ~4:25/km, HR 167-169 (activity 18341982884). Superseded 2026-11-24: those reps understated threshold, because the half marathon six days later ran 4:12 at avg HR 167."
+    },
+    {
+      "date": "2026-05-09",
+      "type": "half_marathon_race",
+      "value": "1:29:03",
+      "pace_per_km": "4:12",
       "current": true,
-      "note": "User-stated 2026-05-03, post-Tuscany 100k recovery. Consistent with May 2 threshold reps at ~4:25/km, HR 167-169 (activity 18341982884). Anchor for current marathon and threshold pace zones."
+      "note": "Kungsholmen Runt 21.2 km (activity 18437218357), flat (81 m), negative split from ~4:16. Avg HR 167 (91% of max): km 2-6 at 158-160, km 7-11 at 164-168, then drift to 174-177. Anchor for the threshold zone (threshold ~ 1 h race pace, just faster than HM pace). Riegel equivalents: marathon ~4:24, 10k ~4:02, 5k ~3:53."
+    },
+    {
+      "date": "2026-11-24",
+      "type": "threshold_reps",
+      "value": "5x6 min / 2 min walk",
+      "pace_per_km": "4:05-4:12",
+      "current": true,
+      "note": "Kundo 5x6 (activity 21106087141), taper-fresh at the PRT peak. HR flat at 166-168 inside reps 2-3, and Patrik could have run more reps. Same pace at the same HR as the May HM, so threshold fitness is about unchanged since May. Threshold HR ~167-170."
     }
   ],
   "pace_zones": [
     {"name": "recovery",      "min_per_km": "5:30", "max_per_km": null},
-    {"name": "easy",          "min_per_km": "4:55", "max_per_km": "5:25"},
-    {"name": "steady",        "min_per_km": "4:45", "max_per_km": "4:55"},
-    {"name": "marathon",      "min_per_km": "4:35", "max_per_km": "4:45"},
-    {"name": "threshold",     "min_per_km": "4:20", "max_per_km": "4:30"},
-    {"name": "interval",      "min_per_km": "4:05", "max_per_km": "4:15"},
-    {"name": "vo2",           "min_per_km": "3:55", "max_per_km": "4:05"}
+    {"name": "easy",          "min_per_km": "4:55", "max_per_km": "5:30"},
+    {"name": "steady",        "min_per_km": "4:30", "max_per_km": "4:55"},
+    {"name": "marathon",      "min_per_km": "4:15", "max_per_km": "4:30"},
+    {"name": "threshold",     "min_per_km": "4:05", "max_per_km": "4:15"},
+    {"name": "interval",      "min_per_km": "3:57", "max_per_km": "4:05"},
+    {"name": "vo2",           "min_per_km": "3:48", "max_per_km": "3:57"}
   ],
   "shoe_chart": {
     "window_days": 520,
