@@ -56,7 +56,7 @@ The group run is always **8–10 km**, never more. Plan accordingly — Tuesday 
 Formats Kundo cycles through:
 
 - **4×4 min** — **VO2 max, by decision (2026-10-11).** In a build week Patrik runs the 4×4 as a VO2 session (reps plateau 170–177) and the plan accepts that as the week's one hard day. It is a repeated reference format, so hold the reps even (rep 1 pace throughout) to keep the Sep 15 / Oct 6 / Oct 12 comparison readable, rather than progressing 4:01 → 3:48. Do not write "take it at threshold" for this format — it was prescribed twice (Sep 15, Oct 6) and held neither time; the rep length makes it VO2 by construction. Recovery week → recovery-pace jog with the same rep structure.
-- **5×6 min** — Patrik's reference pace: threshold (HR 158–163) in a build week; steady or easy in a recovery week.
+- **5×6 min**: Patrik's reference session, at threshold in a build week and steady or easy in a recovery week. **Threshold here means HR ~165–169 (~4:05–4:12 on taper-fresh legs, Nov 2026)**, not the old 158–163. That band (86–89% of the 184 max) was a prescription carried over from May and never measured. On 2026-11-24 the Kundo 5×6 held flat HR at 166–168 inside reps 2–3, and Patrik could have run more reps at that pace. That's a sustainable effort at ~91% of max, a normal threshold. Continuous threshold is probably ~4:12–4:18. Config pace zones are recalibrated after a few more sessions (see `../schedule/2026-11-24-prt-canceled-interim-threshold-block.md`).
 - **Easy group run** — straight easy night with no reps.
 
 How the plan uses this rule:
