@@ -34,14 +34,30 @@ The armband trace looks clean, so this isn't a wrist artifact. The reps were 10�
 - Reps 4–5 crept 1–3 bpm. That's ordinary drift across a session, not a runaway.
 - 166–169 is ~91% of the 184 max, a normal threshold HR for a trained runner. 158–163 (86–89%) is closer to sub-threshold. It was a prescription from May and never a measured threshold.
 
-**Working estimate:** threshold ~4:05–4:12 at HR 165–169 in 6-min reps with walking recoveries. Continuous threshold is probably ~4:12–4:18, because interval reps flatter the number. This is at the season's fitness peak with taper freshness. The preferences file is updated to match.
+**Working estimate, revised with the May half marathon:** threshold pace ~4:05–4:10, threshold HR ~167–170.
+- **Kungsholmen Runt, May 9** (activity 18437218357): 21.2 km in 1:29:03 (4:12/km), avg HR 167, negative split. Threshold is roughly ~1 h race pace, so it sits just faster than the 89-min HM pace.
+- **Today:** 4:05–4:12 at 166–168, the same pace at the same HR, so threshold fitness is about where it was in May.
+- **Correction:** an earlier version of this file guessed continuous threshold at 4:12–4:18. That was too slow, because it ignored the race.
+
+The preferences file is updated to match.
 
 **What it means for the block:**
 - Kundo 5×6 at 165–169 is the intended threshold session. Don't hold it down to 158–163.
 - **The Thursday cap of 160–162 stays.** It now sits ~5 bpm under threshold, which is what a sub-threshold session should be.
 - **Two uncapped sessions a week would still be the risk**, because the Thursday session would drift up to Kundo intensity.
 
-**Recalibration:** `config/training.json`'s threshold pace zone (4:20–4:30, unchanged since 2026-05-03) is stale. The HR zone (160–170) already fits. Recalibrate the pace zones at the Dec 6 check-in or the review after it. Use pace at 160 from the Thursdays and pace at ~167 from the Kundo 5×6s. An optional alternative is one Thursday (~Dec 10) as a **30-min solo time trial**: the hardest pace he can hold evenly for the full 30 min. Start controlled and finish strong, without a fast start that fades. The average HR over the last 20 min estimates threshold HR (Friel). **Use it for HR, not pace.** The 30-min TT pace is faster than threshold pace, which is closer to a 60-min effort and so roughly 10–15 s/km slower. It's harder than a capped session, so make the next day's long run 16 km.
+**Recalibrated now, same day** (`config/training.json`). The race and today agree, so there's no need to wait or run a 30-min test. The threshold pace zone moves from 4:20–4:30 (May 3) to **4:05–4:15**, with the neighbouring zones re-derived from the HM by Riegel:
+
+| Zone | Old | New |
+|---|---|---|
+| Easy | 4:55–5:25 | 4:55–5:30 |
+| Steady | 4:45–4:55 | 4:30–4:55 |
+| Marathon | 4:35–4:45 | 4:15–4:30 (Riegel ~4:24) |
+| Threshold | 4:20–4:30 | 4:05–4:15 |
+| Interval (10k-ish) | 4:05–4:15 | 3:57–4:05 |
+| VO2 (5k-ish) | 3:55–4:05 | 3:48–3:57 |
+
+The HR zones are unchanged: threshold 160–170 already fits. The May 3 marathon estimate (4:40) is marked superseded. The Thursday sessions and the Kundo 5×6s keep checking the threshold zone as the taper freshness fades.
 
 ## Why this block, and its shape
 
@@ -92,11 +108,11 @@ The armband trace looks clean, so this isn't a wrist artifact. The reps were 10�
 
 ## What I'm watching for
 
-- **Thursday creep.** The cap is the point of the session. If Thursday's reps settle at 165+, the block becomes two VO2 days a week and Friday pays for it. Pace at a fixed HR is the progress measure. Expect ~4:15–4:25 at 160 to start.
+- **Thursday creep.** The cap is the point of the session. If Thursday's reps settle at 165+, the block becomes two VO2 days a week and Friday pays for it. Pace at a fixed HR is the progress measure. Expect ~4:15–4:20 at 160 to start (May HM: 4:16 at 158–160). That's near HM pace, normal for sub-threshold, and it should still feel controlled.
 - **Friday's HR.** Easy-paced HR on Friday should sit where it usually does after an easy Thursday. If it runs 5+ bpm high, Thursday cost too much: shorten the reps before anything else.
 - **Easy volume sliding below 50 km.** If it does, rising running HR is detraining, not fatigue. The fix is more easy running, not rest.
 - **Tuesday load.** Today was the highest Kundo TRIMP in 10 weeks: the right intensity, but longer than usual. If Kundo keeps landing at 120+ and Thursday also feels heavy, make Thursday 2×10 rather than adding recovery days.
-- **Threshold calibration.** Pace at HR 160 (Thursdays) and at ~167 (Kundo 5×6), to recalibrate the config pace zones. Taper freshness fades over the block, so expect those paces to slip slightly before they improve.
+- **Threshold calibration.** Pace at HR 160 (Thursdays) and at ~167 (Kundo 5×6), checked against the new 4:05–4:15 threshold zone. Taper freshness fades over the block, so expect those paces to slip slightly before they improve. A slip isn't lost fitness.
 - **The next goal.** When Patrik picks a race, this block becomes either its base phase (a spring ultra) or its opening phase (anything shorter). That will be a new season-plan file via `setup-training-plan`.
 
 ## What changes from the prior plan, and why
